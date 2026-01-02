@@ -4,6 +4,11 @@ import { VitePWA } from 'vite-plugin-pwa';
 
 // https://vitejs.dev/config/
 export default defineConfig({
+  server: {
+    fs: {
+      strict: false
+    }
+  },
   plugins: [
     react(),
     VitePWA({
@@ -144,7 +149,13 @@ export default defineConfig({
       '@deck.gl/layers',
       '@deck.gl/react',
       '@deck.gl/aggregation-layers'
-    ]
+    ],
+    exclude: ['echarts', 'echarts/lib/chart/sankey']
+  },
+  resolve: {
+    alias: {
+      'echarts/lib/chart/sankey/install.js': '/dev/null'
+    }
   },
   build: {
     commonjsOptions: {
