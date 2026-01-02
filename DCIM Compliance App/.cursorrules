@@ -1,0 +1,145 @@
+# Daniel's DCIM Dashboard - Cursor AI Rules
+# Place this file in your project root for automatic context loading
+
+## Project Identity
+You are assisting Daniel, a labor studies researcher building the Global Infrastructure Command Center - a zero-backend browser dashboard tracking 11,992 data center facilities for subsidy compliance accountability. The documented subsidy gap exceeds $2.48B across US states.
+
+## Critical Technical Constraints
+
+### NEVER use these (will cause immediate failures):
+- localStorage or sessionStorage (use IndexedDB via Dexie.js)
+- Dynamic Tailwind classes like `bg-${color}-500` (use inline styles or static classes)
+- HTML <form> elements (use React state + button handlers)
+- SVG with >1000 elements (use Canvas or deck.gl)
+- Files over 50KB for Claude artifacts
+- Missing Error Boundary components
+
+### ALWAYS implement:
+- Error Boundaries wrapping all tab components
+- useEffect cleanup functions (return () => clearInterval/etc)
+- React.memo on list item components
+- Virtual scrolling for lists >100 items (TanStack Virtual)
+- Conditional rendering `{show && <Component/>}` not display:none
+
+## Code Style
+
+### Import Collision Warning
+```jsx
+// WRONG - lucide-react Map shadows JS Map
+import { Map } from 'lucide-react';
+const data = new Map(); // CRASH
+
+// CORRECT
+import { Map as MapIcon } from 'lucide-react';
+```
+
+### Dollar Signs in JSX
+```jsx
+// WRONG
+<div>${value}M</div>
+
+// CORRECT
+<div>{'$'}{value}M</div>
+```
+
+### Color Palette (Dark Theme)
+```javascript
+const COLORS = {
+  bg: '#0a0e17',
+  bgCard: '#0d1219',
+  text: '#e8eef6',
+  textMuted: '#5a6d8a',
+  red: '#ff4757',      // Non-compliant
+  yellow: '#ffa502',   // Under review
+  green: '#2ed573',    // Compliant
+  cyan: '#00d2d3',     // Interactive
+};
+```
+
+## Terminology Requirements
+
+### ALWAYS use compliance language:
+- "Non-compliance" NOT "fraud"
+- "Under-compliance" NOT "cheating"  
+- "Subsidy gap" NOT "stolen money"
+- "Shortfall" NOT "crime"
+
+This avoids legal burden of proving criminal intent while maintaining enforcement applicability.
+
+## Presentation Style
+
+Daniel requires dramatic, boardroom-ready presentation:
+- Maximum information density (no wasted space)
+- Dark theme with glowing accents
+- Data tables, charts, infographics with every text section
+- Countdown timers, ASCII boxes, "What's your move?" decision points
+- McKinsey/BCG-style formatting
+
+## Architecture
+
+### Zero-Backend Browser Architecture
+- React 18+ with TypeScript
+- IndexedDB via Dexie.js for persistence
+- Cloudflare Pages hosting (static only)
+- Free government APIs only (EPA ECHO, SEC EDGAR, USASpending)
+
+### Key Numbers
+- 11,992 facilities across 118 providers
+- Edge-inclusive methodology (DCs + POPs + CDN + CORD)
+- $2.48B+ documented subsidy gap
+- Switch Michigan: 97.4% job failure (26 vs 1,000 promised)
+
+## React 18 Patterns
+
+### Non-blocking search
+```jsx
+const [isPending, startTransition] = useTransition();
+startTransition(() => setFilteredResults(filter(data, query)));
+```
+
+### Expensive computations
+```jsx
+const deferredQuery = useDeferredValue(query);
+const filtered = useMemo(() => filter(data, deferredQuery), [deferredQuery]);
+```
+
+## API Endpoints (Free, No Auth)
+
+```javascript
+const APIS = {
+  epaEcho: 'https://echo.epa.gov/api/v1/',
+  secEdgar: 'https://data.sec.gov/submissions/',
+  gleifLei: 'https://api.gleif.org/api/v1/lei-records',
+  usaSpending: 'https://api.usaspending.gov/api/v2/',
+  peeringDb: 'https://www.peeringdb.com/api/',
+};
+```
+
+## File Modification
+
+Prefer Python over bash for JSX modifications:
+```python
+with open('file.jsx', 'r', encoding='utf-8') as f:
+    content = f.read()
+content = content.replace('old', 'new')
+with open('file.jsx', 'w', encoding='utf-8') as f:
+    f.write(content)
+```
+
+## Debugging Checklist
+
+```bash
+ls -lh file.jsx              # Size under 50KB?
+grep "localStorage" file.jsx  # No localStorage?
+grep "ErrorBoundary" file.jsx # Has error boundaries?
+grep "className=\`" file.jsx  # No dynamic Tailwind?
+```
+
+## Context Keywords
+
+- "Command Center" = the main DCIMCommandCenter.tsx dashboard
+- "The Manifest" = 11,992-facility provider database
+- "Coalition partners" = Tech Workers Coalition, CODE-CWA, UPROSE
+- "Edge-inclusive" = counting all infrastructure types, not just traditional DCs
+- "Tools not products" = zero-cost, movement-oriented, open source
+
