@@ -1,0 +1,811 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* FULLSCREEN INSIGHT OVERLAY - Maximum priority */
+#fullscreen-insight-overlay {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  z-index: 999999 !important;
+  background-color: #030712 !important;
+  overflow: hidden !important;
+  transform: none !important;
+  pointer-events: auto !important;
+}
+
+/* Global smooth scrolling - Enhanced with momentum */
+html {
+  scroll-behavior: smooth !important;
+  -webkit-overflow-scrolling: touch !important;
+  /* Prevent scroll jank */
+  overscroll-behavior: contain;
+  /* Momentum scrolling for iOS */
+  -webkit-overflow-scrolling: touch;
+  /* Smooth momentum scrolling */
+  scroll-padding-top: 0;
+  overflow-y: auto;
+  height: 100%;
+}
+
+/* Force smooth scrolling on root */
+#root {
+  scroll-behavior: smooth !important;
+  -webkit-overflow-scrolling: touch !important;
+  overflow-x: hidden;
+  height: 100%;
+  overflow-y: auto;
+}
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+  /* Improve scroll performance with momentum */
+  overscroll-behavior-y: contain;
+  -webkit-overflow-scrolling: touch;
+  /* Smooth momentum scrolling */
+  scroll-behavior: smooth;
+  /* Ensure body can scroll */
+  height: 100%;
+  min-height: 100vh;
+  overflow-y: auto;
+  /* MAXIMUM data density */
+  font-size: 11px;
+  line-height: 1.3;
+}
+
+/* Smooth scrolling for all scrollable containers - Force */
+* {
+  scroll-behavior: smooth !important;
+}
+
+/* Override for specific elements that need it */
+div,
+section,
+main,
+article,
+aside,
+nav {
+  scroll-behavior: smooth !important;
+}
+
+/* Force smooth scrolling on all scrollable elements with momentum */
+[style*="overflow"]:not([style*="overflow: hidden"]),
+.overflow-auto,
+.overflow-y-auto,
+.overflow-x-auto {
+  scroll-behavior: smooth !important;
+  -webkit-overflow-scrolling: touch !important;
+  /* Momentum scrolling */
+  overscroll-behavior: contain;
+  /* Smooth momentum feel */
+  scroll-padding: 0;
+  /* Ensure scrolling works */
+  overflow: auto !important;
+}
+
+/* Make ALL containers scrollable by default */
+div,
+section,
+main,
+article,
+aside {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+
+/* Optimize scroll performance */
+* {
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(156, 163, 175, 0.5) transparent;
+}
+
+/* Enhanced scrollbar styling for webkit browsers - More visible and smooth */
+::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(17, 24, 39, 0.8);
+  border-radius: 6px;
+  border: 1px solid rgba(31, 41, 55, 0.5);
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, rgba(156, 163, 175, 0.8), rgba(107, 114, 128, 0.8));
+  border-radius: 6px;
+  border: 2px solid rgba(31, 41, 55, 0.3);
+  transition: all 0.2s ease;
+  box-shadow: inset 0 0 3px rgba(0, 0, 0, 0.3);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, rgba(156, 163, 175, 1), rgba(107, 114, 128, 1));
+  box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.4);
+  border-color: rgba(31, 41, 55, 0.5);
+}
+
+::-webkit-scrollbar-thumb:active {
+  background: linear-gradient(180deg, rgba(251, 191, 36, 0.8), rgba(245, 158, 11, 0.8));
+  border-color: rgba(245, 158, 11, 0.5);
+}
+
+/* Corner where scrollbars meet */
+::-webkit-scrollbar-corner {
+  background: rgba(17, 24, 39, 0.5);
+}
+
+/* Enhanced smooth scrolling for Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(156, 163, 175, 0.7) rgba(17, 24, 39, 0.5);
+}
+
+/* Smooth scrolling for Firefox - hover state */
+*:hover {
+  scrollbar-color: rgba(156, 163, 175, 0.9) rgba(17, 24, 39, 0.5);
+}
+
+#root {
+  width: 100%;
+  height: 100vh;
+}
+
+/* Screen reader only - visible on focus */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+.sr-only:focus,
+.sr-only:focus-within {
+  position: static;
+  width: auto;
+  height: auto;
+  padding: inherit;
+  margin: inherit;
+  overflow: visible;
+  clip: auto;
+  white-space: normal;
+}
+
+/* Smooth tab content transitions */
+@supports (view-transition-name: none) {
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation-duration: 0.2s;
+  }
+}
+
+/* Tab fade transitions - GPU accelerated */
+.transition-opacity {
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  transform: translate3d(0, 0, 0);
+  -webkit-transform: translate3d(0, 0, 0);
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Fade-in animation utility */
+.animate-fadeIn {
+  animation: fadeIn 0.4s ease-out;
+}
+
+/* Skeleton shimmer animation */
+@keyframes shimmer {
+  0% {
+    background-position: -1000px 0;
+  }
+  100% {
+    background-position: 1000px 0;
+  }
+}
+
+.animate-shimmer {
+  animation: shimmer 2s infinite linear;
+  background: linear-gradient(90deg, 
+    rgba(30, 41, 59, 0) 0%, 
+    rgba(30, 41, 59, 0.3) 50%, 
+    rgba(30, 41, 59, 0) 100%
+  );
+  background-size: 1000px 100%;
+}
+
+/* Enhanced smooth scrolling containers with momentum */
+.overflow-auto,
+.overflow-y-auto,
+.overflow-x-auto,
+[style*="overflow"]:not([style*="overflow: hidden"]) {
+  scroll-behavior: smooth !important;
+  -webkit-overflow-scrolling: touch !important;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(156, 163, 175, 0.7) rgba(17, 24, 39, 0.5);
+  /* Momentum scrolling */
+  overscroll-behavior: contain;
+  /* Smooth momentum feel */
+  scroll-padding: 0;
+  /* Ensure scrolling works */
+  overflow: auto !important;
+}
+
+/* Optimize scroll performance with GPU acceleration and momentum */
+.scroll-smooth {
+  scroll-behavior: smooth !important;
+  -webkit-overflow-scrolling: touch !important;
+  transform: translateZ(0);
+  will-change: scroll-position;
+  /* Enhanced momentum scrolling */
+  overscroll-behavior: contain;
+  /* Smooth feel */
+  scroll-padding: 0;
+}
+
+/* Ultra-smooth scrolling for main content areas */
+.main-scroll,
+.content-scroll,
+[role="tabpanel"] {
+  scroll-behavior: smooth !important;
+  -webkit-overflow-scrolling: touch !important;
+  overscroll-behavior: contain;
+  /* Momentum scrolling */
+  scroll-padding: 0;
+}
+
+/* Smooth transitions for all interactive elements */
+button,
+a,
+[role="button"],
+[role="tab"],
+input,
+select,
+textarea {
+  transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Enhanced tab button transitions */
+[role="tab"] {
+  transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+  transform: translateZ(0); /* GPU acceleration */
+  will-change: background-color, color, border-color;
+}
+
+[role="tab"]:hover {
+  transform: translateZ(0) translateY(-1px);
+}
+
+[role="tab"]:active {
+  transform: translateZ(0) translateY(0);
+  transition-duration: 0.05s;
+}
+
+/* Smooth hover effects */
+.hover\:scale-105:hover {
+  transform: scale(1.05);
+  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Smooth card hover */
+[class*="hover:shadow"]:hover,
+[class*="hover:bg"]:hover {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Smooth button press effect */
+button:active,
+[role="button"]:active,
+[role="tab"]:active {
+  transform: scale(0.98);
+  transition-duration: 0.05s;
+}
+
+/* Smooth expand/collapse animations */
+[aria-expanded="true"],
+[aria-expanded="false"] {
+  transition: all 0.3s ease-in-out;
+}
+
+/* Momentum scrolling for better mobile feel */
+@supports (-webkit-overflow-scrolling: touch) {
+  .overflow-auto,
+  .overflow-y-auto,
+  .main-scroll,
+  .content-scroll {
+    -webkit-overflow-scrolling: touch !important;
+  }
+}
+
+/* Scroll snap points for intuitive section navigation */
+.scroll-snap-y {
+  scroll-snap-type: y proximity;
+  scroll-padding-top: 0;
+}
+
+.scroll-snap-y > * {
+  scroll-snap-align: start;
+  scroll-margin-top: 0;
+}
+
+/* Enhanced smooth scrolling with easing */
+@keyframes smoothScroll {
+  from {
+    scroll-behavior: auto;
+  }
+  to {
+    scroll-behavior: smooth;
+  }
+}
+
+/* Apply smooth scrolling animation */
+.scroll-smooth,
+.main-scroll,
+.content-scroll {
+  animation: smoothScroll 0.3s ease-in-out;
+}
+
+/* Leaflet map custom styles */
+.leaflet-container {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+  background: #111827 !important;
+}
+
+.leaflet-popup-content-wrapper {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.leaflet-popup-tip {
+  background: white;
+}
+
+/* MapLibre GL Enhanced Realism Styles */
+.maplibregl-map {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+  background: #0a0e17 !important;
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: crisp-edges;
+  image-rendering: pixelated;
+}
+
+/* Enhanced satellite imagery rendering */
+.maplibregl-canvas {
+  image-rendering: auto !important;
+  image-rendering: -webkit-optimize-contrast !important;
+  filter: contrast(1.05) brightness(0.98) saturate(1.1);
+  transition: filter 0.3s ease;
+}
+
+/* Realistic map controls */
+.maplibregl-ctrl {
+  background: rgba(17, 24, 39, 0.95) !important;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+  border-radius: 8px !important;
+}
+
+.maplibregl-ctrl button {
+  background: rgba(31, 41, 55, 0.8) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  color: #e8eef6 !important;
+  transition: all 0.2s ease !important;
+}
+
+.maplibregl-ctrl button:hover {
+  background: rgba(55, 65, 81, 0.9) !important;
+  border-color: rgba(255, 255, 255, 0.2) !important;
+  transform: scale(1.05);
+}
+
+/* Enhanced popup styling */
+.maplibregl-popup {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+}
+
+.maplibregl-popup-content {
+  background: rgba(17, 24, 39, 0.98) !important;
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+  border-radius: 12px !important;
+  color: #e8eef6 !important;
+  padding: 16px !important;
+}
+
+.maplibregl-popup-tip {
+  border-top-color: rgba(17, 24, 39, 0.98) !important;
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
+}
+
+.maplibregl-popup-close-button {
+  color: #e8eef6 !important;
+  font-size: 20px !important;
+  padding: 8px !important;
+  transition: all 0.2s ease !important;
+}
+
+.maplibregl-popup-close-button:hover {
+  color: #ff4757 !important;
+  transform: scale(1.2);
+  background: rgba(255, 71, 87, 0.1) !important;
+  border-radius: 4px;
+}
+
+/* Animated dashed line for network path */
+@keyframes dash {
+  to {
+    stroke-dashoffset: -20;
+  }
+}
+
+.animate-dash {
+  animation: dash 1s linear infinite;
+}
+
+/* Custom marker styles */
+.custom-marker {
+  background: transparent !important;
+  border: none !important;
+}
+
+/* Reduce scroll jank - Simplified for better interaction */
+.scroll-container,
+.overflow-auto,
+.overflow-y-auto,
+.overflow-x-auto,
+.main-scroll,
+.content-scroll {
+  /* Smooth momentum scrolling */
+  scroll-behavior: smooth !important;
+  -webkit-overflow-scrolling: touch !important;
+  scroll-padding: 0 !important;
+  /* Prevent scroll chaining with momentum */
+  overscroll-behavior: contain !important;
+  /* Force GPU acceleration */
+  transform: translate3d(0, 0, 0);
+  will-change: scroll-position;
+  /* Optimize repaints */
+  backface-visibility: hidden;
+  /* Make scrollable areas keyboard focusable */
+  outline: none;
+}
+
+/* Keyboard focus indicator for scrollable areas */
+.main-scroll:focus,
+.content-scroll:focus,
+[role="tabpanel"]:focus,
+.overflow-auto:focus,
+.overflow-y-auto:focus {
+  outline: 2px solid rgba(245, 158, 11, 0.5) !important;
+  outline-offset: -2px;
+  box-shadow: inset 0 0 0 2px rgba(245, 158, 11, 0.3);
+}
+
+/* Visual feedback for keyboard scrolling */
+.main-scroll:focus-visible,
+.content-scroll:focus-visible,
+[role="tabpanel"]:focus-visible {
+  outline: 2px solid rgba(245, 158, 11, 0.7) !important;
+  outline-offset: -2px;
+  box-shadow: inset 0 0 0 3px rgba(245, 158, 11, 0.4);
+}
+
+/* Click-to-scroll hint */
+.scrollable-hint::after {
+  content: "Click here and use ↑↓ arrow keys to scroll";
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: rgba(245, 158, 11, 0.9);
+  color: #111827;
+  padding: 4px 12px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+  z-index: 100;
+}
+
+.scrollable-hint:hover::after {
+  opacity: 1;
+}
+
+/* Focused scrollable area indicator */
+[tabindex="0"]:focus:not(input):not(button):not(a):not(select):not(textarea) {
+  outline: 2px solid rgba(245, 158, 11, 0.6) !important;
+  outline-offset: -2px;
+  box-shadow: inset 0 0 0 2px rgba(245, 158, 11, 0.3);
+  cursor: default;
+}
+
+/* Make scrollable areas more obvious on hover */
+.overflow-auto:hover,
+.overflow-y-auto:hover,
+[role="tabpanel"]:hover {
+  cursor: default;
+}
+
+/* Scrollable content cursor hint */
+[style*="overflow-y: auto"]:not(:focus),
+[style*="overflow-y: scroll"]:not(:focus),
+.overflow-y-auto:not(:focus) {
+  cursor: grab;
+}
+
+[style*="overflow-y: auto"]:focus,
+[style*="overflow-y: scroll"]:focus,
+.overflow-y-auto:focus {
+  cursor: default;
+}
+
+/* Subtle hint overlay when keyboard scrolling is active */
+[data-keyboard-scroll="true"]::before {
+  content: "⌨️ Use arrow keys, Page Up/Down, or Space to scroll";
+  position: sticky;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 40;
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.95), rgba(251, 191, 36, 0.95));
+  color: #111827;
+  padding: 8px 16px;
+  text-align: center;
+  font-size: 13px;
+  font-weight: 600;
+  border-radius: 6px;
+  margin: -24px -24px 16px -24px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  animation: slideDown 0.3s ease-out;
+  opacity: 0.95;
+}
+
+@keyframes slideDown {
+  from {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 0.95;
+  }
+}
+
+/* Fade out the hint after a few seconds */
+[data-keyboard-scroll="true"]::before {
+  animation: slideDown 0.3s ease-out, fadeOut 0.5s ease-out 3s forwards;
+}
+
+@keyframes fadeOut {
+  to {
+    opacity: 0;
+    pointer-events: none;
+  }
+}
+
+/* SIMPLIFIED SCROLLING CLASS - Don't disable pointer events! */
+.scrolling {
+  user-select: none;
+}
+
+/* Always keep interactive elements functional */
+input,
+button,
+a,
+select,
+textarea,
+[role="button"],
+[role="dialog"],
+[class*="fixed"] {
+  pointer-events: auto !important;
+  user-select: auto !important;
+}
+
+/* Ensure headers are always visible */
+header, nav {
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+/* Ensure tab navigation is always visible */
+[role="tablist"] {
+  display: flex !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  height: auto !important;
+  min-height: 56px !important;
+  z-index: 50 !important;
+}
+
+/* Enhanced cursor feedback during scroll */
+.scrolling * {
+  cursor: grabbing !important;
+}
+
+.scrolling input,
+.scrolling button,
+.scrolling a,
+.scrolling select {
+  cursor: auto !important;
+}
+
+/* Smooth momentum scrolling for ALL content areas */
+[role="tabpanel"],
+.main-scroll,
+.content-scroll,
+[id="main-content"] {
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  scroll-behavior: smooth !important;
+  -webkit-overflow-scrolling: touch !important;
+  overscroll-behavior: contain !important;
+  scrollbar-width: thin !important;
+  scrollbar-color: rgba(156, 163, 175, 0.8) rgba(17, 24, 39, 0.8) !important;
+}
+
+/* INCREASED DATA DENSITY - Compact spacing throughout */
+@layer utilities {
+  /* Reduce default text sizes - MAXIMUM DENSITY */
+  .text-xs { font-size: 0.625rem; line-height: 0.875rem; }
+  .text-sm { font-size: 0.6875rem; line-height: 1rem; }
+  .text-base { font-size: 0.75rem; line-height: 1.125rem; }
+  .text-lg { font-size: 0.875rem; line-height: 1.25rem; }
+  .text-xl { font-size: 1rem; line-height: 1.375rem; }
+  .text-2xl { font-size: 1.125rem; line-height: 1.5rem; }
+  .text-3xl { font-size: 1.25rem; line-height: 1.625rem; }
+  .text-4xl { font-size: 1.5rem; line-height: 1.875rem; }
+}
+
+/* Compact spacing for common patterns - ULTRA TIGHT */
+.compact-card {
+  padding: 0.5rem !important;
+}
+
+.compact-table td,
+.compact-table th {
+  padding: 0.25rem 0.375rem !important;
+  font-size: 0.6875rem !important;
+  line-height: 1rem !important;
+}
+
+.compact-section {
+  padding: 0.5rem !important;
+  gap: 0.5rem !important;
+}
+
+.compact-header {
+  padding: 0.25rem 0.5rem !important;
+  font-size: 0.75rem !important;
+}
+
+/* Reduce button padding - MINIMAL */
+button,
+[role="button"],
+[role="tab"] {
+  padding: 0.25rem 0.5rem !important;
+  font-size: 0.6875rem !important;
+  line-height: 1rem !important;
+}
+
+/* Compact stat cards - ULTRA DENSE */
+.stat-card {
+  padding: 0.5rem !important;
+}
+
+.stat-card h3,
+.stat-card .stat-label {
+  font-size: 0.625rem !important;
+  margin-bottom: 0.125rem !important;
+}
+
+.stat-card .stat-value {
+  font-size: 1rem !important;
+  line-height: 1.25rem !important;
+}
+
+/* Reduce gap in flex/grid layouts - MINIMAL SPACING */
+.flex,
+.grid {
+  gap: 0.375rem !important;
+}
+
+/* More compact headings - MAXIMUM DENSITY */
+h1 { font-size: 1.25rem !important; line-height: 1.625rem !important; margin-bottom: 0.5rem !important; }
+h2 { font-size: 1rem !important; line-height: 1.375rem !important; margin-bottom: 0.375rem !important; }
+h3 { font-size: 0.875rem !important; line-height: 1.25rem !important; margin-bottom: 0.25rem !important; }
+h4 { font-size: 0.75rem !important; line-height: 1.125rem !important; margin-bottom: 0.25rem !important; }
+h5 { font-size: 0.6875rem !important; line-height: 1rem !important; margin-bottom: 0.125rem !important; }
+
+/* Compact input fields - MINIMAL */
+input,
+select,
+textarea {
+  padding: 0.25rem 0.375rem !important;
+  font-size: 0.6875rem !important;
+}
+
+/* Reduce modal padding */
+[role="dialog"] > div {
+  padding: 0.5rem !important;
+}
+
+/* Compact lists */
+ul,
+ol {
+  margin: 0.25rem 0 !important;
+  padding-left: 1rem !important;
+}
+
+li {
+  margin: 0.125rem 0 !important;
+  line-height: 1.3 !important;
+}
+
+/* Smart Panels Animations */
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.animate-slideDown {
+  animation: slideDown 0.3s ease-out;
+}
+
+.animate-slideInRight {
+  animation: slideInRight 0.3s ease-out;
+}
+
+.writing-mode-vertical {
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+}

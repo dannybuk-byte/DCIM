@@ -1,0 +1,83 @@
+name = "dcim-api-worker"
+main = "index.js"
+compatibility_date = "2024-01-01"
+
+# ============================================================================
+# ROUTES
+# ============================================================================
+# Main worker handles:
+# - /api/claude - Claude API proxy
+# - /api/webhook/:provider - Webhook forwarding
+# - /api/epa/* - EPA ECHO proxy
+# - /api/sec/* - SEC EDGAR proxy
+# - /api/health - Health check
+
+# ============================================================================
+# CRON TRIGGERS (Scheduled Tasks)
+# ============================================================================
+# - Daily summary at 8:00 AM UTC
+# - Compliance check at 8:00 PM UTC
+# 
+# To enable cron triggers, uncomment below:
+# [triggers]
+# crons = ["0 8 * * *", "0 20 * * *"]
+
+# ============================================================================
+# KV NAMESPACES (for rate limiting)
+# ============================================================================
+# To enable rate limiting, create a KV namespace:
+# 1. wrangler kv:namespace create "RATE_LIMITS"
+# 2. Add the binding ID below
+#
+# [[kv_namespaces]]
+# binding = "RATE_LIMITS"
+# id = "your-kv-namespace-id"
+# preview_id = "your-preview-namespace-id"
+
+# ============================================================================
+# D1 DATABASE (optional, for persistent storage)
+# ============================================================================
+# To use D1 for storing alerts, audit history, etc:
+# 1. wrangler d1 create dcim-db
+# 2. Add the binding below
+#
+# [[d1_databases]]
+# binding = "DB"
+# database_name = "dcim-db"
+# database_id = "your-database-id"
+
+# ============================================================================
+# ENVIRONMENT VARIABLES
+# ============================================================================
+[vars]
+ENVIRONMENT = "development"
+
+# ============================================================================
+# SECRETS (set via CLI)
+# ============================================================================
+# wrangler secret put ANTHROPIC_API_KEY
+# wrangler secret put SLACK_WEBHOOK_URL
+# wrangler secret put DISCORD_WEBHOOK_URL
+# wrangler secret put TEAMS_WEBHOOK_URL
+
+# ============================================================================
+# PRODUCTION ENVIRONMENT
+# ============================================================================
+[env.production]
+name = "dcim-api-worker"
+
+[env.production.vars]
+ENVIRONMENT = "production"
+
+# Enable cron in production
+[env.production.triggers]
+crons = ["0 8 * * *", "0 20 * * *"]
+
+# ============================================================================
+# STAGING ENVIRONMENT
+# ============================================================================
+[env.staging]
+name = "dcim-api-worker-staging"
+
+[env.staging.vars]
+ENVIRONMENT = "staging"
