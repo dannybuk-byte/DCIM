@@ -6,12 +6,10 @@ import { VitePWA } from 'vite-plugin-pwa';
 export default defineConfig({
   plugins: [
     react(),
-    VitePWA({VitePWA({
-  workbox: {
-    maximumFileSizeToCacheInBytes: 5 * 1024 * 1024  // 5MB
-  },
-  // ... rest of config
-})
+VitePWA({
+      workbox: {
+        maximumFileSizeToCacheInBytes: 5 * 1024 * 1024
+      },
       registerType: 'autoUpdate',
       includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'masked-icon.svg'],
       manifest: {
