@@ -32,6 +32,7 @@ import {
 } from 'lucide-react';
 import { InvestigationTemplates, InvestigationResults } from './InvestigationTemplates';
 import { type InvestigationTemplate } from '../utils/investigationTemplates';
+import EmployeeDetailModal from './EmployeeDetailModal';
 
 interface DeepDiveViewProps {
   facilities: Facility[];
@@ -105,6 +106,7 @@ export const DeepDiveView: React.FC<DeepDiveViewProps> = ({ facilities, isFullsc
     template: InvestigationTemplate;
     facility?: Facility;
   } | null>(null);
+  const [selectedEmployee, setSelectedEmployee] = useState<any | null>(null);
 
   // Infinite scroll - load more as you scroll
   const visibleCount = useMemo(() => {
@@ -1686,7 +1688,11 @@ export const DeepDiveView: React.FC<DeepDiveViewProps> = ({ facilities, isFullsc
                           <Users size={16} />,
                           <div className="space-y-1 max-h-96 overflow-y-auto">
                             {deepData.employees.slice(0, 50).map((emp, i) => (
-                              <div key={i} className="p-2 bg-black/50 rounded border border-[#00d2d3]/20">
+                              <div 
+                                key={i} 
+                                className="p-2 bg-black/50 rounded border border-[#00d2d3]/20 cursor-pointer hover:bg-[#00d2d3]/10 hover:border-[#00d2d3]/40 transition-all"
+                                onClick={() => setSelectedEmployee(emp)}
+                              >
                                 <div className="flex items-center justify-between mb-1">
                                   <div>
                                     <div className="text-xs font-semibold text-white">{emp.id}</div>
@@ -1930,6 +1936,14 @@ export const DeepDiveView: React.FC<DeepDiveViewProps> = ({ facilities, isFullsc
             />
           </div>
         </div>
+      )}
+      
+      {/* Employee Detail Modal */}
+      {selectedEmployee && (
+        <EmployeeDetailModal
+          employee={selectedEmployee}
+          onClose={() => setSelectedEmployee(null)}
+        />
       )}
     </div>
   );
