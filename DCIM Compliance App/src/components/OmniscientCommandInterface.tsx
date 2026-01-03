@@ -16,7 +16,10 @@ import {
   X,
   Layers,
   Sparkles,
-  HelpCircle
+  HelpCircle,
+  Building,
+  DollarSign,
+  Users
 } from 'lucide-react';
 import { db } from '../db/database';
 import { seedDatabase } from '../db/seedData';
@@ -31,6 +34,10 @@ import { DeepDiveView } from './DeepDiveView';
 import { AISettingsModal } from './AISettingsModal';
 import { NaturalLanguageSearch } from './NaturalLanguageSearch';
 import { HelpModal } from './HelpModal';
+import AnimatedCard from './AnimatedCard'; // Animated cards with hover effects
+import AnimatedProgressBar from './AnimatedProgressBar'; // Progress bars with animations
+import ParticleBackground from './ParticleBackground'; // Particle effect backgrounds
+import { useAnimatedCounter } from '../utils/animations'; // Animation utilities
 
 type ViewMode = 'omniscient' | 'intelligence' | 'hud' | 'timeline' | 'network' | 'map' | 'kanban' | 'deepdive';
 
@@ -678,6 +685,18 @@ const OmniscientView: React.FC<{ facilities: Facility[]; onSelect: (f: Facility)
   // Use filtered facilities if available, otherwise use all
   const displayFacilities = filteredFacilities.length > 0 ? filteredFacilities : facilities;
   
+  // Calculate aggregate stats
+  const stats = useMemo(() => {
+    const total = displayFacilities.length;
+    const compliant = displayFacilities.filter(f => f.complianceStatus === 'Compliant').length;
+    const nonCompliant = displayFacilities.filter(f => f.complianceStatus === 'Non-Compliant').length;
+    const totalGap = displayFacilities.reduce((sum, f) => sum + (f.subsidyGap || 0), 0);
+    const totalJobs = displayFacilities.reduce((sum, f) => sum + (f.jobsPromised || 0), 0);
+    const createdJobs = displayFacilities.reduce((sum, f) => sum + (f.jobsCreated || 0), 0);
+    
+    return { total, compliant, nonCompliant, totalGap, totalJobs, createdJobs };
+  }, [displayFacilities]);
+  
   return (
     <div className={`h-full ${isFullscreen ? 'p-4' : 'p-8'} overflow-auto`}>
       {/* Natural Language Search */}
@@ -715,34 +734,166 @@ const OmniscientView: React.FC<{ facilities: Facility[]; onSelect: (f: Facility)
         </div>
       )}
       
+      {/* Animated Stats Cards */}
+      {!isFullscreen && (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
+          <AnimatedCard
+            title="Total Facilities"
+            value={stats.total}
+            subtitle="Data centers tracked"
+            icon={<Building size={24} />}
+            color="cyan"
+            animated={true}
+            glow={true}
+          />
+          <AnimatedCard
+            title="Compliant"
+            value={stats.compliant}
+            subtitle="Meeting promises"
+            icon={<Sparkles size={24} />}
+            color="green"
+            trend="up"
+            trendValue={`${((stats.compliant / stats.total) * 100).toFixed(1)}%`}
+            animated={true}
+            glow={true}
+          />
+          <AnimatedCard
+            title="Violations"
+            value={stats.nonCompliant}
+            subtitle="Breaking promises"
+            icon={<AlertCircle size={24} />}
+            color="red"
+            trend="down"
+            trendValue={`${((stats.nonCompliant / stats.total) * 100).toFixed(1)}%`}
+            animated={true}
+            pulse={stats.nonCompliant > 0}
+            glow={true}
+          />
+          <AnimatedCard
+            title="Subsidy Gap"
+            value={`$${(stats.totalGap / 1e9).toFixed(2)}B`}
+            subtitle="Money not recovered"
+            icon={<DollarSign size={24} />}
+            color="yellow"
+            animated={false}
+            glow={true}
+          />
+          <AnimatedCard
+            title="Jobs Progress"
+            value={`${((stats.createdJobs / stats.totalJobs) * 100).toFixed(1)}%`}
+            subtitle={`${stats.createdJobs.toLocaleString()} / ${stats.totalJobs.toLocaleString()}`}
+            icon={<Users size={24} />}
+            color={stats.createdJobs / stats.totalJobs >= 0.8 ? 'green' : 'red'}
+            animated={false}
+            glow={true}
+          />
+        </div>
+      )}
+      
       {/* Facility Grid */}
       <div className={`grid gap-${isFullscreen ? '2' : '4'}`} style={{ gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))` }}>
-        {displayFacilities.slice(0, limit).map((facility) => (
+        {displayFacilities.slice(0, limit).map((facility, index) => (
           <div
             key={facility.id}
             onClick={() => onSelect(facility)}
-            className={`bg-white/5 border border-[#00d2d3]/20 rounded ${isFullscreen ? 'p-2' : 'p-4'} hover:bg-white/10 hover:border-[#00d2d3] transition-all cursor-pointer group`}
+            className={`
+              relative overflow-hidden
+              bg-gradient-to-br from-white/5 to-white/10 
+              border border-[#00d2d3]/20 rounded-lg ${isFullscreen ? 'p-2' : 'p-4'} 
+              hover:from-white/10 hover:to-white/15 
+              hover:border-[#00d2d3]/60
+              hover:scale-105 hover:-translate-y-1
+              hover:shadow-2xl hover:shadow-[#00d2d3]/20
+              transition-all duration-300 ease-out
+              cursor-pointer group
+              animate-slide-up
+            `}
+            style={{ animationDelay: `${index * 30}ms` }}
           >
-            <div className={`w-2 h-2 rounded-full mb-${isFullscreen ? '1' : '2'} ${
-              facility.complianceStatus === 'Compliant' ? 'bg-[#2ed573]' :
-              facility.complianceStatus === 'Non-Compliant' ? 'bg-[#ff4757]' :
-              'bg-[#ffa502]'
-            } group-hover:animate-pulse`} />
-            <div className={`${isFullscreen ? 'text-xs' : 'text-sm'} font-bold text-white truncate`}>{facility.name}</div>
-            <div className={`${isFullscreen ? 'text-[10px]' : 'text-xs'} text-gray-400 mt-1 truncate`}>
-              {facility.city}, {facility.state}
+            {/* Particle background on hover */}
+            <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+              <ParticleBackground particleCount={10} opacity={0.2} />
             </div>
-            {isFullscreen && facility.operator && (
-              <div className="text-[9px] text-gray-500 truncate mt-0.5">{facility.operator}</div>
-            )}
-            <div className={`${isFullscreen ? 'text-[10px]' : 'text-xs'} text-[#ff4757] mt-${isFullscreen ? '1' : '2'}`}>
-              ${(facility.subsidyGap / 1e6).toFixed(1)}M
-            </div>
-            {isFullscreen && (facility.jobsPromised || 0) > 0 && (
-              <div className="text-[9px] text-gray-400 mt-0.5">
-                {facility.jobsCreated || 0}/{facility.jobsPromised} jobs
+
+            {/* Shimmer effect on hover */}
+            <div
+              className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+              style={{
+                background: `linear-gradient(90deg, transparent, rgba(0,210,211,0.1), transparent)`,
+                backgroundSize: '200% 100%',
+                animation: 'shimmer 1.5s ease-in-out infinite',
+              }}
+            />
+
+            {/* Content */}
+            <div className="relative z-10">
+              {/* Status indicator with pulse */}
+              <div className={`
+                w-2 h-2 rounded-full mb-${isFullscreen ? '1' : '2'} 
+                ${
+                  facility.complianceStatus === 'Compliant' ? 'bg-[#2ed573] shadow-[0_0_10px_#2ed573]' :
+                  facility.complianceStatus === 'Non-Compliant' ? 'bg-[#ff4757] shadow-[0_0_10px_#ff4757]' :
+                  'bg-[#ffa502] shadow-[0_0_10px_#ffa502]'
+                } 
+                group-hover:animate-pulse
+              `} />
+              
+              {/* Facility name with gradient */}
+              <div className={`
+                ${isFullscreen ? 'text-xs' : 'text-sm'} 
+                font-bold text-transparent bg-clip-text bg-gradient-to-r from-white to-[#00d2d3]
+                truncate mb-1
+                group-hover:from-[#00d2d3] group-hover:to-white
+                transition-all duration-300
+              `}>
+                {facility.name}
               </div>
-            )}
+              
+              {/* Location */}
+              <div className={`${isFullscreen ? 'text-[10px]' : 'text-xs'} text-gray-400 mt-1 truncate`}>
+                📍 {facility.city}, {facility.state}
+              </div>
+              
+              {/* Operator */}
+              {isFullscreen && facility.operator && (
+                <div className="text-[9px] text-gray-500 truncate mt-0.5">
+                  🏢 {facility.operator}
+                </div>
+              )}
+              
+              {/* Subsidy gap with animated counter */}
+              <div className={`
+                ${isFullscreen ? 'text-[10px]' : 'text-xs'} 
+                text-[#ff4757] font-bold mt-${isFullscreen ? '1' : '2'}
+                group-hover:scale-110 transition-transform duration-300
+              `}>
+                💰 ${(facility.subsidyGap / 1e6).toFixed(1)}M gap
+              </div>
+              
+              {/* Jobs progress bar */}
+              {isFullscreen && (facility.jobsPromised || 0) > 0 && (
+                <div className="mt-1">
+                  <AnimatedProgressBar
+                    value={((facility.jobsCreated || 0) / (facility.jobsPromised || 1)) * 100}
+                    height="sm"
+                    color={facility.complianceStatus === 'Compliant' ? 'green' : 'red'}
+                    showPercentage={false}
+                    animated={true}
+                    glow={true}
+                  />
+                  <div className="text-[9px] text-gray-400 mt-0.5">
+                    {facility.jobsCreated || 0}/{facility.jobsPromised} jobs
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Bottom glow on hover */}
+            <div className={`
+              absolute bottom-0 left-0 right-0 h-0.5
+              bg-gradient-to-r from-transparent via-[#00d2d3] to-transparent
+              opacity-0 group-hover:opacity-100 transition-opacity duration-300
+            `} />
           </div>
         ))}
       </div>
