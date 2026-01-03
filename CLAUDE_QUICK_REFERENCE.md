@@ -27,28 +27,39 @@ When starting a new conversation about the DCIM project, paste this:
 3. ALWAYS cleanup useEffect
 4. Use plain language for organizers
 
+### 🔄 Auto-Save System (ACTIVE):
+- ✅ Auto-commits every 5 minutes
+- ✅ Auto-pushes every 30 minutes
+- ✅ Running 24/7 (PID: check with `launchctl list | grep dcim`)
+- ✅ Logs: `/tmp/dcim-autosave.log`
+
 ### 🚀 Deployment:
 ```bash
+# Manual (if needed):
 git add -A && git commit -m "message" && git push origin main
-# Wait 2-3 min, then hard refresh (Cmd+Shift+R)
+
+# Automatic:
+Just edit files → auto-commits → auto-pushes → Cloudflare deploys
 ```
 
 ### 📊 Latest Features (Jan 3, 2026):
-- ✅ 26 features implemented
+- ✅ 27 features implemented (26 main + auto-save system)
 - ✅ Animations (counters, progress bars, particles)
 - ✅ Employee detail modal (clickable in Deep Dive)
 - ✅ Security posture scoring
 - ✅ Certificate Transparency tracking
 - ✅ Plain language UX
+- ✅ **AUTO-SAVE SYSTEM** (never lose work)
 
 ### 📖 For Full Context:
 Read: `/Users/danielbuk/Desktop/DCIM/CLAUDE_HANDOFF_DOCUMENT.md`
 
-This 667-line document has:
+This 750+ line document has:
 - All feature details
 - Architecture patterns
 - Component descriptions
 - Known issues & solutions
+- Auto-save system documentation
 - Next steps
 
 ---
