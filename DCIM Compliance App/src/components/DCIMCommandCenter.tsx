@@ -56,6 +56,7 @@ import { PredictiveIntelligenceTab } from './tabs/PredictiveIntelligenceTab'; //
 import { ComplianceFlowTab } from './tabs/ComplianceFlowTab'; // Intent-Based Visualization
 import { AssuranceMonitorTab } from './tabs/AssuranceMonitorTab'; // Juniper Marvis-style continuous monitoring
 import { IntelligenceHubTab } from './tabs/IntelligenceHubTab'; // UNIFIED: All intelligence methods combined
+import { NetworkVisualizationTab } from './tabs/NetworkVisualizationTab'; // Network visualization with tree & globe
 import EvidencePanel from './EvidencePanel'; // FRE 902(13)-(14) Evidence Integrity
 import { indexFacilities } from '../search/SearchEngine'; // FlexSearch initialization
 import { detectDashboardAction } from '../utils/dashboardActions';
@@ -95,6 +96,7 @@ export type CommandCenterTab =
   | 'Pattern Lab' // NEW: Web Worker + explainability
   | 'Predictive Intel' // NEW: Forecasting, Risk Scoring, Monte Carlo
   | 'Infrastructure' 
+  | 'Network Map' // NEW: 20-level tree + 3D globe visualization
   | 'Network Security' // New NotebookLM tab
   | 'Reports'
   | 'Explorer'
@@ -1173,6 +1175,12 @@ export default function DCIMCommandCenter({ onActionRequested: _onActionRequeste
       {activeTab === 'Intelligence' && (
         <ErrorBoundary>
           <IntelligenceHubTab facilities={deferredFacilities} />
+        </ErrorBoundary>
+      )}
+
+      {activeTab === 'Network Map' && (
+        <ErrorBoundary>
+          <NetworkVisualizationTab facilities={deferredFacilities} />
         </ErrorBoundary>
       )}
 
