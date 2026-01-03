@@ -6,7 +6,7 @@
  */
 
 import React, { memo, useState } from 'react';
-import { Shield, Download, Trash2, CheckCircle2, AlertTriangle, ChevronDown, ChevronRight } from 'lucide-react';
+import { Shield, Download, Trash2, CheckCircle2, AlertTriangle, ChevronDown, ChevronRight, Minimize2, Maximize2 } from 'lucide-react';
 import { useEvidence } from '../hooks/useEvidence';
 import { truncateHash } from '../utils/evidenceIntegrity';
 import type { EvidencePackage, VerificationResult } from '../utils/evidenceIntegrity';
@@ -25,6 +25,7 @@ const EvidencePanel: React.FC<EvidencePanelProps> = memo(({ className = '' }) =>
     packageCount,
   } = useEvidence();
 
+  const [isMinimized, setIsMinimized] = useState(false);
   const [expandedPackages, setExpandedPackages] = useState<Set<string>>(new Set());
   const [verificationResults, setVerificationResults] = useState<Map<string, VerificationResult>>(new Map());
   const [verifying, setVerifying] = useState<Set<string>>(new Set());
@@ -102,41 +103,55 @@ const EvidencePanel: React.FC<EvidencePanelProps> = memo(({ className = '' }) =>
             <div className="px-3 py-1 bg-green-500/10 border border-green-500/30 rounded-md">
               <span className="text-green-400 font-mono text-sm">{packageCount} packages</span>
             </div>
+            <button
+              onClick={() => setIsMinimized(!isMinimized)}
+              className="p-2 hover:bg-slate-700 rounded-md transition-colors"
+              title={isMinimized ? 'Expand panel' : 'Minimize panel'}
+            >
+              {isMinimized ? (
+                <Maximize2 className="w-4 h-4 text-slate-400" />
+              ) : (
+                <Minimize2 className="w-4 h-4 text-slate-400" />
+              )}
+            </button>
           </div>
         </div>
       </div>
 
-      {/* Actions */}
-      {packageCount > 0 && (
-        <div className="p-4 border-b border-slate-700 flex gap-2">
-          <button
-            onClick={handleExport}
-            className="flex items-center gap-2 px-3 py-1.5 bg-green-500/10 hover:bg-green-500/20 border border-green-500/30 rounded-md text-green-400 text-sm transition-colors"
-          >
-            <Download className="w-4 h-4" />
-            Export All
-          </button>
-          <button
-            onClick={handleClear}
-            className="flex items-center gap-2 px-3 py-1.5 bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 rounded-md text-red-400 text-sm transition-colors"
-          >
-            <Trash2 className="w-4 h-4" />
-            Clear All
-          </button>
-        </div>
-      )}
+      {/* Content - Hidden when minimized */}
+      {!isMinimized && (
+        <>
+          {/* Actions */}
+          {packageCount > 0 && (
+            <div className="p-4 border-b border-slate-700 flex gap-2">
+              <button
+                onClick={handleExport}
+                className="flex items-center gap-2 px-3 py-1.5 bg-green-500/10 hover:bg-green-500/20 border border-green-500/30 rounded-md text-green-400 text-sm transition-colors"
+              >
+                <Download className="w-4 h-4" />
+                Export All
+              </button>
+              <button
+                onClick={handleClear}
+                className="flex items-center gap-2 px-3 py-1.5 bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 rounded-md text-red-400 text-sm transition-colors"
+              >
+                <Trash2 className="w-4 h-4" />
+                Clear All
+              </button>
+            </div>
+          )}
 
-      {/* Package List */}
-      <div className="p-4">
-        {packageCount === 0 ? (
-          <div className="text-center py-8 text-slate-400">
-            <Shield className="w-12 h-12 mx-auto mb-3 opacity-50" />
-            <p className="text-sm">No evidence packages collected yet</p>
-            <p className="text-xs mt-1">Packages will appear here when facilities are analyzed</p>
-          </div>
-        ) : (
-          <div className="space-y-2 max-h-96 overflow-y-auto">
-            {packages.map(pkg => {
+          {/* Package List */}
+          <div className="p-4">
+            {packageCount === 0 ? (
+              <div className="text-center py-8 text-slate-400">
+                <Shield className="w-12 h-12 mx-auto mb-3 opacity-50" />
+                <p className="text-sm">No evidence packages collected yet</p>
+                <p className="text-xs mt-1">Packages will appear here when facilities are analyzed</p>
+              </div>
+            ) : (
+              <div className="space-y-2 max-h-96 overflow-y-auto">
+                {packages.map(pkg => {
               const isExpanded = expandedPackages.has(pkg.evidenceId);
               const verification = verificationResults.get(pkg.evidenceId);
               const isVerifying = verifying.has(pkg.evidenceId);
@@ -283,7 +298,9 @@ const EvidencePanel: React.FC<EvidencePanelProps> = memo(({ className = '' }) =>
           </div>
         )}
       </div>
-    </div>
+    </>
+  )}
+</div>
   );
 });
 
