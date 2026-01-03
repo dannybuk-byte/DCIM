@@ -633,9 +633,7 @@ const OmniscientView: React.FC<{ facilities: Facility[]; onSelect: (f: Facility)
       {/* Security Posture Overview - NEW */}
       {!isFullscreen && (
         <div className="mb-6">
-          <ErrorBoundary fallback={<div className="text-red-400 text-sm">Security Overview unavailable</div>}>
-            <SecurityOverview facilities={displayFacilities} />
-          </ErrorBoundary>
+          <SecurityOverview facilities={displayFacilities} />
         </div>
       )}
       
