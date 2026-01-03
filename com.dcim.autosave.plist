@@ -8,7 +8,7 @@
     <key>ProgramArguments</key>
     <array>
         <string>/usr/local/bin/node</string>
-        <string>/Users/danielbuk/Desktop/DCIM/auto-save-watcher.js</string>
+        <string>/Users/danielbuk/Desktop/DCIM/auto-save-watcher.cjs</string>
     </array>
     
     <key>WorkingDirectory</key>
