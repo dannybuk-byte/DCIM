@@ -10,7 +10,7 @@ interface BGPStats {
 
 export const BGPMonitorPanel: React.FC = React.memo(() => {
   const [isActive, setIsActive] = useState(false);
-  const [connectionStatus, setConnectionStatus] = useState<'connected' | 'connecting' | 'disconnected'>('disconnected');
+  const [connectionStatus, setConnectionStatus] = useState<'connected' | 'connecting' | 'disconnected' | 'offline'>('disconnected');
   const [updates, setUpdates] = useState<BGPUpdate[]>([]);
   const [anomalies, setAnomalies] = useState<BGPAnomaly[]>([]);
   const [stats, setStats] = useState<BGPStats>({ updatesPerSecond: 0, totalUpdates: 0, anomalyCount: 0 });
@@ -102,7 +102,17 @@ export const BGPMonitorPanel: React.FC = React.memo(() => {
     switch (connectionStatus) {
       case 'connected': return 'bg-green-500';
       case 'connecting': return 'bg-yellow-500 animate-pulse';
+      case 'offline': return 'bg-red-500';
       case 'disconnected': return 'bg-gray-500';
+    }
+  };
+
+  const getStatusText = () => {
+    switch (connectionStatus) {
+      case 'connected': return 'Connected';
+      case 'connecting': return 'Connecting...';
+      case 'offline': return 'Offline (Max retries reached)';
+      case 'disconnected': return 'Disconnected';
     }
   };
 
@@ -131,15 +141,24 @@ export const BGPMonitorPanel: React.FC = React.memo(() => {
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-2">
             <div className={`w-3 h-3 rounded-full ${getStatusColor()}`} />
-            <span className="text-sm text-slate-300 capitalize">{connectionStatus}</span>
+            <span className="text-sm text-slate-300">{getStatusText()}</span>
           </div>
+          {connectionStatus === 'offline' && (
+            <button
+              onClick={() => bgpMonitor.retry()}
+              className="px-3 py-1 text-xs bg-red-500/20 text-red-400 rounded hover:bg-red-500/30 transition-colors"
+            >
+              Retry Connection
+            </button>
+          )}
           <button
             onClick={toggleMonitoring}
+            disabled={connectionStatus === 'offline'}
             className={`p-2 rounded-lg transition-colors ${
               isActive
                 ? 'bg-cyan-500/20 text-cyan-400 hover:bg-cyan-500/30'
                 : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
-            }`}
+            } disabled:opacity-50 disabled:cursor-not-allowed`}
           >
             {isActive ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5" />}
           </button>

@@ -30,15 +30,18 @@ export class BGPMonitor {
   private reconnectDelay = 1000;
   private maxReconnectDelay = 30000;
   private reconnectTimeout: NodeJS.Timeout | null = null;
+  private reconnectAttempts = 0;
+  private maxReconnectAttempts = 10;
   private updateListeners = new Set<BGPUpdateCallback>();
   private anomalyListeners = new Set<AnomalyCallback>();
   private monitoredASNs = new Set<number>();
   private monitoredPrefixes = new Map<string, number[]>(); // prefix -> last known AS path
   private isConnecting = false;
   private isConnected = false;
+  private permanentlyDisconnected = false;
 
   connect(): void {
-    if (this.isConnecting || this.isConnected) {
+    if (this.isConnecting || this.isConnected || this.permanentlyDisconnected) {
       return;
     }
 
@@ -52,6 +55,7 @@ export class BGPMonitor {
         this.isConnecting = false;
         this.isConnected = true;
         this.reconnectDelay = 1000;
+        this.reconnectAttempts = 0;
         this.subscribe();
       };
 
@@ -68,6 +72,7 @@ export class BGPMonitor {
 
       this.socket.onerror = (error) => {
         console.error('BGP Monitor: WebSocket error:', error);
+        this.reconnectAttempts++;
       };
 
       this.socket.onclose = () => {
@@ -75,12 +80,25 @@ export class BGPMonitor {
         this.isConnected = false;
         this.isConnecting = false;
         this.socket = null;
-        this.scheduleReconnect();
+        
+        // Check if we've exceeded max reconnect attempts
+        if (this.reconnectAttempts >= this.maxReconnectAttempts) {
+          console.warn('BGP Monitor: Max reconnect attempts reached. Entering offline mode.');
+          this.permanentlyDisconnected = true;
+        } else {
+          this.scheduleReconnect();
+        }
       };
     } catch (error) {
       console.error('BGP Monitor: Failed to create WebSocket:', error);
       this.isConnecting = false;
-      this.scheduleReconnect();
+      this.reconnectAttempts++;
+      
+      if (this.reconnectAttempts < this.maxReconnectAttempts) {
+        this.scheduleReconnect();
+      } else {
+        this.permanentlyDisconnected = true;
+      }
     }
   }
 
@@ -247,14 +265,24 @@ export class BGPMonitor {
 
     this.isConnected = false;
     this.isConnecting = false;
+    this.permanentlyDisconnected = false;
+    this.reconnectAttempts = 0;
     this.updateListeners.clear();
     this.anomalyListeners.clear();
   }
 
-  getConnectionStatus(): 'connected' | 'connecting' | 'disconnected' {
+  getConnectionStatus(): 'connected' | 'connecting' | 'disconnected' | 'offline' {
+    if (this.permanentlyDisconnected) return 'offline';
     if (this.isConnected) return 'connected';
     if (this.isConnecting) return 'connecting';
     return 'disconnected';
+  }
+
+  retry(): void {
+    this.permanentlyDisconnected = false;
+    this.reconnectAttempts = 0;
+    this.reconnectDelay = 1000;
+    this.connect();
   }
 
   getMonitoredASNs(): number[] {

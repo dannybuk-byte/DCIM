@@ -29,7 +29,9 @@ export const GlobeView: React.FC<GlobeViewProps> = React.memo(({ facilities }) =
   const [hoveredFacility, setHoveredFacility] = useState<Facility | null>(null);
   const [showCables, setShowCables] = useState(true);
   const [showConnections, setShowConnections] = useState(true);
+  const [renderError, setRenderError] = useState<string | null>(null);
   const animationRef = useRef<number>();
+  const errorCountRef = useRef(0);
 
   // Convert lat/lng to 3D coordinates
   const latLngTo3D = useCallback((lat: number, lng: number, radius: number): [number, number, number] => {
@@ -87,14 +89,22 @@ export const GlobeView: React.FC<GlobeViewProps> = React.memo(({ facilities }) =
 
   // Draw the globe
   const drawGlobe = useCallback(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
+    try {
+      const canvas = canvasRef.current;
+      if (!canvas) {
+        console.warn('Globe: Canvas ref not available');
+        return;
+      }
 
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) {
+        console.error('Globe: Canvas 2D context not supported');
+        setRenderError('Canvas 2D not supported in this browser');
+        return;
+      }
 
-    const width = canvas.width;
-    const height = canvas.height;
+      const width = canvas.width;
+      const height = canvas.height;
 
     // Clear canvas
     ctx.fillStyle = '#0f172a';
@@ -264,6 +274,20 @@ export const GlobeView: React.FC<GlobeViewProps> = React.memo(({ facilities }) =
     ctx.fillText(`Facilities: ${facilitiesWithCoords.length}`, 10, 20);
     ctx.fillText(`Rotation: ${(rotation * 180 / Math.PI).toFixed(0)}°`, 10, 40);
     ctx.fillText(`Zoom: ${zoom.toFixed(2)}x`, 10, 60);
+    
+    // Reset error count on successful render
+    errorCountRef.current = 0;
+    
+    } catch (error) {
+      console.error('Globe rendering error:', error);
+      errorCountRef.current++;
+      
+      // Stop trying after 5 consecutive errors
+      if (errorCountRef.current > 5) {
+        setRenderError(`Rendering failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        setIsRotating(false);
+      }
+    }
   }, [facilities, globeState, showCables, showConnections, latLngTo3D, project3Dto2D, rotateY, rotateX]);
 
   // Animation loop
@@ -317,6 +341,7 @@ export const GlobeView: React.FC<GlobeViewProps> = React.memo(({ facilities }) =
             onClick={() => handleZoom(0.2)}
             className="p-2 bg-slate-800 hover:bg-slate-700 rounded text-cyan-400 transition-colors"
             title="Zoom In"
+            disabled={!!renderError}
           >
             <ZoomIn className="w-4 h-4" />
           </button>
@@ -324,6 +349,7 @@ export const GlobeView: React.FC<GlobeViewProps> = React.memo(({ facilities }) =
             onClick={() => handleZoom(-0.2)}
             className="p-2 bg-slate-800 hover:bg-slate-700 rounded text-cyan-400 transition-colors"
             title="Zoom Out"
+            disabled={!!renderError}
           >
             <ZoomOut className="w-4 h-4" />
           </button>
@@ -331,6 +357,7 @@ export const GlobeView: React.FC<GlobeViewProps> = React.memo(({ facilities }) =
             onClick={handleReset}
             className="p-2 bg-slate-800 hover:bg-slate-700 rounded text-cyan-400 transition-colors"
             title="Reset View"
+            disabled={!!renderError}
           >
             <RotateCcw className="w-4 h-4" />
           </button>
@@ -341,20 +368,41 @@ export const GlobeView: React.FC<GlobeViewProps> = React.memo(({ facilities }) =
                 ? 'bg-cyan-500/20 text-cyan-400'
                 : 'bg-slate-800 text-slate-400 hover:text-slate-300'
             }`}
+            disabled={!!renderError}
           >
             {isRotating ? 'Pause' : 'Rotate'}
           </button>
         </div>
       </div>
 
-      <div className="relative bg-slate-950 rounded-lg border border-slate-700 overflow-hidden">
-        <canvas
-          ref={canvasRef}
-          width={1200}
-          height={600}
-          className="w-full"
-        />
-      </div>
+      {renderError ? (
+        <div className="relative bg-slate-950 rounded-lg border border-red-500/50 overflow-hidden p-8 text-center min-h-[600px] flex items-center justify-center">
+          <div>
+            <Globe className="w-16 h-16 mx-auto text-red-400 mb-4" />
+            <h3 className="text-xl font-semibold text-red-400 mb-2">Globe Rendering Error</h3>
+            <p className="text-slate-300 mb-4">{renderError}</p>
+            <button
+              onClick={() => {
+                setRenderError(null);
+                errorCountRef.current = 0;
+                setIsRotating(true);
+              }}
+              className="px-4 py-2 bg-red-500/20 text-red-400 rounded hover:bg-red-500/30 transition-colors"
+            >
+              Retry Rendering
+            </button>
+          </div>
+        </div>
+      ) : (
+        <div className="relative bg-slate-950 rounded-lg border border-slate-700 overflow-hidden">
+          <canvas
+            ref={canvasRef}
+            width={1200}
+            height={600}
+            className="w-full"
+          />
+        </div>
+      )}
 
       <div className="mt-4 flex items-center gap-4">
         <label className="flex items-center gap-2 text-sm text-slate-300 cursor-pointer">
