@@ -1110,12 +1110,13 @@ const FAQContent: React.FC<{ onBack: () => void }> = ({ onBack }) => {
       </button>
 
       {/* Title */}
-      <div className="text-center mb-12">
-        <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-gradient-to-br from-white/20 to-white/5 border-2 border-white/30 mb-4">
-          <MessageCircle size={40} className="text-white" />
+      <div className="text-center mb-12 animate-fadeIn">
+        <div className="inline-flex items-center justify-center w-24 h-24 rounded-2xl bg-gradient-to-br from-white/20 to-white/5 border-2 border-white/30 mb-6 hover:scale-110 hover:rotate-3 transition-all duration-500 hover:shadow-2xl hover:shadow-white/20 cursor-pointer">
+          <MessageCircle size={48} className="text-white animate-pulse" />
         </div>
-        <h2 className="text-4xl font-bold text-white mb-4">Frequently Asked Questions</h2>
-        <p className="text-xl text-gray-300">25 comprehensive answers covering all aspects of the dashboard</p>
+        <h2 className="text-5xl font-bold text-white mb-4 hover:text-[#00d2d3] transition-colors duration-300">Frequently Asked Questions</h2>
+        <p className="text-2xl text-gray-300 mb-2 hover:text-white transition-colors duration-300">25 comprehensive answers covering all aspects of the dashboard</p>
+        <p className="text-sm text-[#00d2d3] animate-pulse">Click any category or question below</p>
       </div>
 
       {/* Category Filter */}
@@ -1143,9 +1144,12 @@ const FAQContent: React.FC<{ onBack: () => void }> = ({ onBack }) => {
       <div className="space-y-8">
         {['Getting Started', 'Search & Filters', 'Data & Methodology', 'AI & API Keys', 'Troubleshooting', 'Use Cases', 'Advanced'].map(category => (
           <div key={category} className="space-y-4">
-            <h3 className="text-2xl font-bold text-[#00d2d3] mb-4 flex items-center gap-3">
-              <div className="w-1 h-8 bg-gradient-to-b from-[#00d2d3] to-[#2ed573] rounded-full" />
-              {category}
+            <h3 className="group text-2xl font-bold text-[#00d2d3] mb-4 flex items-center gap-3 hover:text-[#2ed573] transition-all duration-300 cursor-pointer">
+              <div className="w-2 h-10 bg-gradient-to-b from-[#00d2d3] to-[#2ed573] rounded-full group-hover:scale-110 group-hover:shadow-lg group-hover:shadow-[#00d2d3]/50 transition-all duration-300" />
+              <span className="group-hover:translate-x-2 transition-transform duration-300">{category}</span>
+              <div className="ml-auto text-sm text-gray-500 group-hover:text-[#00d2d3] transition-colors">
+                {faqs.filter(f => f.category === category).length} questions
+              </div>
             </h3>
             {faqs.filter(faq => faq.category === category).map((faq, index) => {
               const globalIndex = faqs.indexOf(faq);
@@ -1186,22 +1190,22 @@ const FAQContent: React.FC<{ onBack: () => void }> = ({ onBack }) => {
       </div>
 
       {/* More Help */}
-      <div className="p-6 bg-gradient-to-r from-[#00d2d3]/10 to-transparent border-l-4 border-[#00d2d3] rounded-lg">
+      <div className="group p-8 bg-gradient-to-r from-[#00d2d3]/10 to-transparent border-l-4 border-[#00d2d3] rounded-lg hover:from-[#00d2d3]/20 hover:border-[#2ed573] hover:shadow-lg hover:shadow-[#00d2d3]/30 transition-all duration-300">
         <div className="flex items-start gap-4">
-          <Info size={24} className="text-[#00d2d3] flex-shrink-0 mt-1" />
+          <Info size={28} className="text-[#00d2d3] flex-shrink-0 mt-1 group-hover:scale-125 group-hover:rotate-12 transition-all duration-300" />
           <div>
-            <h4 className="text-lg font-bold text-white mb-2">Need More Help?</h4>
-            <p className="text-gray-300 mb-3">
+            <h4 className="text-xl font-bold text-white mb-3 group-hover:text-[#00d2d3] transition-colors">Need More Help?</h4>
+            <p className="text-gray-300 mb-4 group-hover:text-white transition-colors">
               This dashboard is an open accountability project. For additional support or to contribute data corrections:
             </p>
-            <ul className="space-y-2 text-gray-300 text-sm">
-              <li className="flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-[#00d2d3]"></span>
-                <span>Contact via GitHub or coalition partners</span>
+            <ul className="space-y-3 text-gray-300">
+              <li className="flex items-center gap-3 hover:translate-x-2 transition-transform duration-300">
+                <span className="w-3 h-3 rounded-full bg-[#00d2d3] group-hover:scale-150 transition-transform"></span>
+                <span className="group-hover:text-white transition-colors">Contact via GitHub or coalition partners</span>
               </li>
-              <li className="flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-[#00d2d3]"></span>
-                <span>Tech Workers Coalition, CODE-CWA, UPROSE</span>
+              <li className="flex items-center gap-3 hover:translate-x-2 transition-transform duration-300">
+                <span className="w-3 h-3 rounded-full bg-[#00d2d3] group-hover:scale-150 transition-transform"></span>
+                <span className="group-hover:text-white transition-colors">Tech Workers Coalition, CODE-CWA, UPROSE</span>
               </li>
             </ul>
           </div>
