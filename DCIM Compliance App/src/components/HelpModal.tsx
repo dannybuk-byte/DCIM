@@ -732,28 +732,129 @@ const FAQContent: React.FC<{ onBack: () => void }> = ({ onBack }) => {
 
   const faqs = [
     {
+      category: "Getting Started",
       q: "What is this dashboard for?",
       a: "This is a labor accountability tool tracking 11,992 data center facilities and their compliance with job creation promises. It helps organizers investigate the $2.48B+ subsidy gap - public money given to corporations that didn't deliver promised jobs."
     },
     {
+      category: "Getting Started",
       q: "Do I need an API key to use this?",
       a: "No! The dashboard works great without any API key. Investigation Templates and keyword-based search are completely free. An OpenAI/Anthropic API key only unlocks AI-powered natural language search for higher accuracy (~95% vs ~70%)."
     },
     {
+      category: "Getting Started",
+      q: "Which view should I start with?",
+      a: "Start with OMNI view for an overview of all facilities in a scrollable grid. Use DEEP view when you want to investigate specific facilities with nested drill-down. HUD view is great for presentations showing critical non-compliant targets. MAP view visualizes geographic distribution."
+    },
+    {
+      category: "Search & Filters",
       q: "How do I search for facilities?",
       a: "Two ways: (1) Use Natural Language Search in OMNI view - just type naturally like 'Show me non-compliant facilities in Texas'. (2) Use Investigation Templates in DEEP view - 10 pre-built queries for common investigations."
     },
     {
-      q: "How much does the API cost?",
-      a: "If you add your own OpenAI API key, it costs ~$0.005 per query (half a cent). With caching, effective cost is ~$0.001 per query. Heavy users spend $1-5/month. You control your own key and can disable AI anytime."
+      category: "Search & Filters",
+      q: "What are Investigation Templates?",
+      a: "10 pre-built queries for common accountability investigations: Regional Comparison, Operator Track Record, Largest Subsidy Gaps, Promise vs Reality, Timeline Analysis, Workforce Metrics, Peer Review, Subsidy Efficiency, Local Economic Impact, and Corporate Accountability. They're instant, free, and don't require AI!"
     },
     {
+      category: "Search & Filters",
+      q: "How accurate is Natural Language Search?",
+      a: "With an API key, it's ~95% accurate at understanding complex queries like 'Show me facilities in California built after 2020 with compliance under 50%'. Without an API key, keyword matching is ~70% accurate but still very useful for simple queries."
+    },
+    {
+      category: "Search & Filters",
+      q: "Can I save my searches?",
+      a: "Yes! Query results are cached in your browser for 1 hour. Run the same search again and it loads instantly from cache. You can also bookmark specific view modes and use the browser's back button to navigate your search history."
+    },
+    {
+      category: "Data & Methodology",
       q: "Where is the data from?",
       a: "Data is compiled from government sources: EPA ECHO, SEC EDGAR, USASpending.gov, state subsidy databases, and facility operator disclosures. The methodology is 'edge-inclusive' - counting all infrastructure types (DCs, POPs, CDN, CORD)."
     },
     {
+      category: "Data & Methodology",
+      q: "How often is data updated?",
+      a: "Facility data is refreshed quarterly from government sources. Live metrics (power usage, network traffic) are simulated in real-time for demonstration purposes. For production use, these would connect to actual monitoring systems."
+    },
+    {
+      category: "Data & Methodology",
+      q: "What counts as 'non-compliant'?",
+      a: "A facility is non-compliant if actual jobs created are less than 80% of promised jobs. For example, if a facility promised 100 jobs but only created 75, that's a 25% gap and triggers non-compliant status. The threshold can be adjusted in investigations."
+    },
+    {
+      category: "Data & Methodology",
+      q: "Why are some subsidies marked as 'gap'?",
+      a: "Subsidy gap = (promised jobs - actual jobs) / promised jobs × total subsidy amount. If a facility received $10M for 100 jobs but only created 50, the gap is 50% × $10M = $5M of public money that didn't deliver the promised jobs."
+    },
+    {
+      category: "AI & API Keys",
+      q: "How much does the API cost?",
+      a: "If you add your own OpenAI API key, it costs ~$0.005 per query (half a cent). With caching, effective cost is ~$0.001 per query. Heavy users spend $1-5/month. You control your own key and can disable AI anytime."
+    },
+    {
+      category: "AI & API Keys",
       q: "Is my API key secure?",
       a: "Your API key is stored only in your browser's localStorage (base64 encoded). It never leaves your device except to call OpenAI/Anthropic directly. No server stores your key. You can delete it anytime in AI Settings."
+    },
+    {
+      category: "AI & API Keys",
+      q: "Which AI provider should I use?",
+      a: "OpenAI (GPT-4) is recommended for best accuracy and speed. Anthropic (Claude) works great too. Both cost roughly the same (~$0.005/query). OpenAI has slightly faster response times, while Claude excels at complex multi-part queries."
+    },
+    {
+      category: "Troubleshooting",
+      q: "Natural Language Search isn't working",
+      a: "Check: (1) Are you in OMNI view? The search box only appears there. (2) Is your API key configured in AI Settings? (3) Do you have an internet connection? Natural Language Search calls OpenAI API directly from your browser. (4) Try Investigation Templates instead - they work offline!"
+    },
+    {
+      category: "Troubleshooting",
+      q: "The dashboard feels slow",
+      a: "Try: (1) Use fullscreen mode (press F) to hide unnecessary UI. (2) Close Smart Panels by moving mouse away from edges. (3) Switch from DEEP view (heavy nested rendering) to OMNI view (lighter grid). (4) Clear browser cache to reset query cache."
+    },
+    {
+      category: "Troubleshooting",
+      q: "I can't see all the data",
+      a: "In DEEP view, data loads with infinite scroll - keep scrolling down to load more facilities. Click facility cards to expand nested tabs. Some tabs have sub-tabs with even more detail. Hover over info badges (ⓘ) for explanations."
+    },
+    {
+      category: "Troubleshooting",
+      q: "Smart Panels keep appearing",
+      a: "Smart Panels auto-hide when you move your mouse away. To prevent accidental triggers, move your mouse slower near screen edges. You can also click the 'pin' icon in any panel to keep it visible, or click 'hide' to dismiss it."
+    },
+    {
+      category: "Use Cases",
+      q: "How do I investigate a specific company?",
+      a: "Use Natural Language Search: 'Show me all facilities operated by [Company Name]'. Or in DEEP view, use the 'Operator Track Record' investigation template and filter by operator. Click results to see detailed compliance history."
+    },
+    {
+      category: "Use Cases",
+      q: "How do I find the worst compliance offenders?",
+      a: "In DEEP view, use 'Largest Subsidy Gaps' investigation template. This ranks facilities by absolute dollar gap (not percentage). Great for targeting high-impact accountability campaigns."
+    },
+    {
+      category: "Use Cases",
+      q: "How do I compare multiple states?",
+      a: "Use MAP view for quick visual comparison - darker colors = worse compliance. For detailed stats, use 'Regional Comparison' template in DEEP view and select states to compare side-by-side."
+    },
+    {
+      category: "Use Cases",
+      q: "How do I export data for a report?",
+      a: "Use fullscreen mode (F key) for clean screenshots. Take screenshots of investigation results, HUD view radial display, or MAP view. For presentations, switch views and capture each one. Browser dev tools can export DOM as JSON if you need raw data."
+    },
+    {
+      category: "Advanced",
+      q: "What are the keyboard shortcuts?",
+      a: "Press ? to open help, F for fullscreen, Esc to exit fullscreen or close modals. Number keys 1-4 switch between OMNI, DEEP, HUD, and MAP views. Enter executes searches, Esc closes search suggestions."
+    },
+    {
+      category: "Advanced",
+      q: "Can I customize the compliance threshold?",
+      a: "Currently, the 80% threshold (actual jobs ≥ 80% of promised) is hardcoded. For custom thresholds, you can use Natural Language Search to filter results: 'Show me facilities with compliance under 50%'."
+    },
+    {
+      category: "Advanced",
+      q: "Does this work offline?",
+      a: "Partially! Investigation Templates, DEEP view drill-down, and all visualizations work offline. Natural Language Search requires an internet connection to call OpenAI API. Facility data is stored in your browser's IndexedDB."
     }
   ];
 
@@ -774,33 +875,64 @@ const FAQContent: React.FC<{ onBack: () => void }> = ({ onBack }) => {
           <MessageCircle size={40} className="text-white" />
         </div>
         <h2 className="text-4xl font-bold text-white mb-4">Frequently Asked Questions</h2>
-        <p className="text-xl text-gray-300">Find answers to common questions</p>
+        <p className="text-xl text-gray-300">25 comprehensive answers covering all aspects of the dashboard</p>
       </div>
 
-      {/* FAQs */}
-      <div className="space-y-4">
-        {faqs.map((faq, index) => (
-          <div
-            key={index}
-            className="border-2 border-white/10 rounded-xl overflow-hidden hover:border-[#00d2d3]/30 transition-all"
+      {/* Category Filter */}
+      <div className="flex flex-wrap gap-2 mb-8 justify-center">
+        {['All', 'Getting Started', 'Search & Filters', 'Data & Methodology', 'AI & API Keys', 'Troubleshooting', 'Use Cases', 'Advanced'].map(cat => (
+          <button
+            key={cat}
+            onClick={() => {
+              if (cat === 'All') {
+                setExpandedIndex(0);
+              } else {
+                const firstInCategory = faqs.findIndex(f => f.category === cat);
+                setExpandedIndex(firstInCategory);
+              }
+            }}
+            className="px-4 py-2 bg-white/5 border border-white/20 rounded-lg text-sm text-gray-300 hover:bg-white/10 hover:border-[#00d2d3]/50 transition-all"
           >
-            <button
-              onClick={() => setExpandedIndex(expandedIndex === index ? null : index)}
-              className="w-full p-6 text-left flex items-center justify-between bg-white/5 hover:bg-white/10 transition-colors"
-            >
-              <span className="font-bold text-white text-lg pr-4">{faq.q}</span>
-              <ChevronRight
-                size={24}
-                className={`text-[#00d2d3] flex-shrink-0 transition-transform duration-300 ${
-                  expandedIndex === index ? 'rotate-90' : ''
-                }`}
-              />
-            </button>
-            {expandedIndex === index && (
-              <div className="p-6 bg-black/30 border-t border-white/10">
-                <p className="text-gray-300 text-base leading-relaxed">{faq.a}</p>
-              </div>
-            )}
+            {cat}
+          </button>
+        ))}
+      </div>
+
+      {/* FAQs - Organized by Category */}
+      <div className="space-y-8">
+        {['Getting Started', 'Search & Filters', 'Data & Methodology', 'AI & API Keys', 'Troubleshooting', 'Use Cases', 'Advanced'].map(category => (
+          <div key={category} className="space-y-4">
+            <h3 className="text-2xl font-bold text-[#00d2d3] mb-4 flex items-center gap-3">
+              <div className="w-1 h-8 bg-gradient-to-b from-[#00d2d3] to-[#2ed573] rounded-full" />
+              {category}
+            </h3>
+            {faqs.filter(faq => faq.category === category).map((faq, index) => {
+              const globalIndex = faqs.indexOf(faq);
+              return (
+                <div
+                  key={globalIndex}
+                  className="border-2 border-white/10 rounded-xl overflow-hidden hover:border-[#00d2d3]/30 transition-all"
+                >
+                  <button
+                    onClick={() => setExpandedIndex(expandedIndex === globalIndex ? null : globalIndex)}
+                    className="w-full p-6 text-left flex items-center justify-between bg-white/5 hover:bg-white/10 transition-colors"
+                  >
+                    <span className="font-bold text-white text-lg pr-4">{faq.q}</span>
+                    <ChevronRight
+                      size={24}
+                      className={`text-[#00d2d3] flex-shrink-0 transition-transform duration-300 ${
+                        expandedIndex === globalIndex ? 'rotate-90' : ''
+                      }`}
+                    />
+                  </button>
+                  {expandedIndex === globalIndex && (
+                    <div className="p-6 bg-black/30 border-t border-white/10">
+                      <p className="text-gray-300 text-base leading-relaxed">{faq.a}</p>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
         ))}
       </div>
