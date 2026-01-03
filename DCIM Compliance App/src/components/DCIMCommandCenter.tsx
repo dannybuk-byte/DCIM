@@ -1483,6 +1483,9 @@ export default function DCIMCommandCenter({ onActionRequested: _onActionRequeste
           </nav>
       </header>
 
+      {/* SYSTEM HEALTH BANNER - PROMINENT & VISIBLE */}
+      <SystemHealthBanner />
+
       {/* Global Search Command Palette - FlexSearch powered */}
       <CommandPalette
         isOpen={showGlobalSearch}
