@@ -174,7 +174,7 @@ export const OmniscientCommandInterface: React.FC = () => {
             <div className="flex items-center gap-4">
               {/* Branding */}
               <div className="text-sm font-bold tracking-wider text-[#00d2d3]">
-                DCIM OMNISCIENT
+                DATA CENTER ACCOUNTABILITY
               </div>
 
               {/* Live Indicator */}
@@ -187,9 +187,9 @@ export const OmniscientCommandInterface: React.FC = () => {
             {/* Mode Buttons (Always Visible) */}
             <div className="flex items-center gap-1.5">
               {[
-                { mode: 'omniscient' as ViewMode, icon: Target, label: 'OMNI', tooltip: 'Overview with key stats and navigation' },
-                { mode: 'deepdive' as ViewMode, icon: Layers, label: 'DEEP', tooltip: 'Drill down into detailed facility data' },
-                { mode: 'hud' as ViewMode, icon: Zap, label: 'HUD', tooltip: 'Heads-up display with live metrics' },
+                { mode: 'omniscient' as ViewMode, icon: Target, label: 'Overview', tooltip: 'See all facilities at a glance' },
+                { mode: 'deepdive' as ViewMode, icon: Layers, label: 'Details', tooltip: 'Explore individual facilities in depth' },
+                { mode: 'hud' as ViewMode, icon: Zap, label: 'Alerts', tooltip: 'Focus on critical violations' },
                 { mode: 'timeline' as ViewMode, icon: Calendar, label: 'TIME', tooltip: 'Project timeline and milestones' },
                 { mode: 'network' as ViewMode, icon: GitBranch, label: 'NET', tooltip: 'Network connections between facilities' },
                 { mode: 'map' as ViewMode, icon: MapPin, label: 'MAP', tooltip: 'Geographic map view by state' },
@@ -275,9 +275,9 @@ export const OmniscientCommandInterface: React.FC = () => {
                 {/* Mode Buttons */}
                 <div className="flex items-center gap-2">
                   {[
-                    { mode: 'omniscient' as ViewMode, icon: Target, label: 'OMNI' },
-                    { mode: 'deepdive' as ViewMode, icon: Layers, label: 'DEEP' },
-                    { mode: 'hud' as ViewMode, icon: Zap, label: 'HUD' },
+                    { mode: 'omniscient' as ViewMode, icon: Target, label: 'Overview' },
+                    { mode: 'deepdive' as ViewMode, icon: Layers, label: 'Details' },
+                    { mode: 'hud' as ViewMode, icon: Zap, label: 'Alerts' },
                     { mode: 'timeline' as ViewMode, icon: Calendar, label: 'TIME' },
                     { mode: 'network' as ViewMode, icon: GitBranch, label: 'NET' },
                     { mode: 'map' as ViewMode, icon: MapPin, label: 'MAP' },

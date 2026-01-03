@@ -12,13 +12,14 @@
  */
 
 import React, { useMemo } from 'react';
-import { Shield, AlertTriangle, TrendingUp, TrendingDown, Activity, Target } from 'lucide-react';
+import { Shield, AlertTriangle, TrendingUp, TrendingDown, Activity, Target, HelpCircle } from 'lucide-react';
 import { 
   batchCalculateSecurityPosture, 
   getAggregateSecurityStats,
   getRiskLevelColor,
   type SecurityPosture 
 } from '../utils/securityPosture';
+import { getRiskLevelInfo, formatForOrganizers, getContextualHelp } from '../utils/plainLanguage'; // NEW: Plain language utilities
 import type { Facility } from '../types';
 
 interface SecurityOverviewProps {
@@ -27,6 +28,8 @@ interface SecurityOverviewProps {
 }
 
 export const SecurityOverview: React.FC<SecurityOverviewProps> = React.memo(({ facilities, className = '' }) => {
+  const [showHelp, setShowHelp] = React.useState(false);
+
   // Calculate all security postures (memoized)
   const postures = useMemo(() => {
     try {
@@ -57,6 +60,52 @@ export const SecurityOverview: React.FC<SecurityOverviewProps> = React.memo(({ f
 
   return (
     <div className={`space-y-6 ${className}`}>
+      {/* Header with Help */}
+      <div className="bg-gradient-to-r from-blue-900/50 to-purple-900/50 border-2 border-blue-500/30 rounded-lg p-6">
+        <div className="flex items-start justify-between mb-4">
+          <div className="flex-1">
+            <h2 className="text-3xl font-bold text-white mb-2 flex items-center gap-3">
+              <Shield className="w-8 h-8 text-blue-400" />
+              Facility Accountability Overview
+            </h2>
+            <p className="text-lg text-slate-300">
+              Which data centers are keeping their job creation promises?
+            </p>
+          </div>
+          <button
+            onClick={() => setShowHelp(!showHelp)}
+            className="p-2 hover:bg-white/10 rounded-lg transition-colors"
+            title="What am I looking at?"
+          >
+            <HelpCircle className="w-6 h-6 text-blue-400" />
+          </button>
+        </div>
+
+        {showHelp && (
+          <div className="mt-4 p-4 bg-blue-500/10 border border-blue-500/30 rounded-lg">
+            <h3 className="text-sm font-bold text-white mb-2">What am I looking at?</h3>
+            <p className="text-sm text-slate-300 mb-3">
+              This dashboard shows which data centers are breaking their promises. When companies get tax breaks
+              or subsidies, they promise to create jobs. This tracks whether they're keeping those promises.
+            </p>
+            <div className="space-y-2 text-sm">
+              <div className="flex items-start gap-2">
+                <span className="text-green-400 font-bold">✓</span>
+                <span className="text-slate-300"><strong className="text-white">Good Standing:</strong> Meeting job promises</span>
+              </div>
+              <div className="flex items-start gap-2">
+                <span className="text-yellow-400 font-bold">⚠</span>
+                <span className="text-slate-300"><strong className="text-white">Needs Attention:</strong> Falling behind</span>
+              </div>
+              <div className="flex items-start gap-2">
+                <span className="text-red-400 font-bold">🚨</span>
+                <span className="text-slate-300"><strong className="text-white">Major Violation:</strong> Broken promises - hold them accountable</span>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
       {/* Header Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         {/* Average Score */}
@@ -66,44 +115,62 @@ export const SecurityOverview: React.FC<SecurityOverviewProps> = React.memo(({ f
               <Shield className="w-5 h-5 text-blue-400" />
             </div>
             <div>
-              <p className="text-sm text-slate-400">Average Score</p>
-              <p className="text-2xl font-bold text-white">{stats.averageScore}</p>
+              <p className="text-sm text-slate-400">Average Accountability</p>
+              <p className="text-2xl font-bold text-white">{stats.averageScore}/100</p>
             </div>
           </div>
           <div className="text-xs text-slate-500">
-            Across {postures.length.toLocaleString()} facilities
+            Tracking {postures.length.toLocaleString()} facilities
           </div>
         </div>
 
-        {/* Low Risk */}
-        <RiskDistributionCard 
-          riskLevel="low" 
-          count={stats.riskDistribution.low} 
-          total={postures.length}
-        />
+        {/* Good Standing */}
+        <div className="bg-slate-900 border border-green-500/30 rounded-lg p-4">
+          <div className="flex items-center gap-3 mb-2">
+            <div className="w-10 h-10 rounded-lg bg-green-500/10 flex items-center justify-center">
+              <TrendingUp className="w-5 h-5 text-green-400" />
+            </div>
+            <div>
+              <p className="text-sm text-slate-400">Good Standing</p>
+              <p className="text-2xl font-bold text-green-400">{stats.riskDistribution.low}</p>
+            </div>
+          </div>
+          <div className="text-xs text-slate-500">
+            Meeting job promises
+          </div>
+        </div>
 
-        {/* Medium Risk */}
-        <RiskDistributionCard 
-          riskLevel="medium" 
-          count={stats.riskDistribution.medium} 
-          total={postures.length}
-        />
+        {/* Needs Attention */}
+        <div className="bg-slate-900 border border-yellow-500/30 rounded-lg p-4">
+          <div className="flex items-center gap-3 mb-2">
+            <div className="w-10 h-10 rounded-lg bg-yellow-500/10 flex items-center justify-center">
+              <AlertTriangle className="w-5 h-5 text-yellow-400" />
+            </div>
+            <div>
+              <p className="text-sm text-slate-400">Needs Attention</p>
+              <p className="text-2xl font-bold text-yellow-400">{stats.riskDistribution.medium}</p>
+            </div>
+          </div>
+          <div className="text-xs text-slate-500">
+            Falling behind on commitments
+          </div>
+        </div>
 
-        {/* High/Critical Risk */}
+        {/* Major Violations */}
         <div className="bg-slate-900 border border-red-500/30 rounded-lg p-4">
           <div className="flex items-center gap-3 mb-2">
             <div className="w-10 h-10 rounded-lg bg-red-500/10 flex items-center justify-center">
               <AlertTriangle className="w-5 h-5 text-red-400" />
             </div>
             <div>
-              <p className="text-sm text-slate-400">High/Critical</p>
+              <p className="text-sm text-slate-400">Major Violations</p>
               <p className="text-2xl font-bold text-red-400">
                 {stats.riskDistribution.high + stats.riskDistribution.critical}
               </p>
             </div>
           </div>
           <div className="text-xs text-slate-500">
-            {((stats.riskDistribution.high + stats.riskDistribution.critical) / postures.length * 100).toFixed(1)}% of portfolio
+            Broken promises - need accountability
           </div>
         </div>
       </div>
@@ -112,30 +179,30 @@ export const SecurityOverview: React.FC<SecurityOverviewProps> = React.memo(({ f
       <div className="bg-slate-900 border border-slate-700 rounded-lg p-6">
         <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
           <Activity className="w-5 h-5 text-cyan-400" />
-          Risk Distribution
+          How Many Facilities Are in Each Category?
         </h3>
         
         <div className="space-y-3">
           <RiskBar 
-            label="Low Risk" 
+            label="✅ Good Standing (Meeting Promises)" 
             count={stats.riskDistribution.low} 
             total={postures.length} 
             color="green"
           />
           <RiskBar 
-            label="Medium Risk" 
+            label="⚠️ Needs Attention (Falling Behind)" 
             count={stats.riskDistribution.medium} 
             total={postures.length} 
             color="yellow"
           />
           <RiskBar 
-            label="High Risk" 
+            label="⚠️ Serious Concern (Significant Shortfalls)" 
             count={stats.riskDistribution.high} 
             total={postures.length} 
             color="orange"
           />
           <RiskBar 
-            label="Critical Risk" 
+            label="🚨 Major Violation (Broken Promises)" 
             count={stats.riskDistribution.critical} 
             total={postures.length} 
             color="red"
@@ -143,49 +210,99 @@ export const SecurityOverview: React.FC<SecurityOverviewProps> = React.memo(({ f
         </div>
       </div>
 
-      {/* Top Risk Factors */}
+      {/* Top Problems */}
       {stats.topRiskFactors.length > 0 && (
         <div className="bg-slate-900 border border-slate-700 rounded-lg p-6">
           <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
             <Target className="w-5 h-5 text-orange-400" />
-            Top Risk Factors
+            Most Common Problems
           </h3>
+          <p className="text-sm text-slate-400 mb-4">
+            These are the issues affecting the most facilities. Click to learn more.
+          </p>
           
           <div className="space-y-2">
-            {stats.topRiskFactors.map((factor, idx) => (
-              <div key={idx} className="flex items-center justify-between p-3 bg-slate-800/50 rounded-md">
-                <div className="flex items-center gap-3">
-                  <span className="text-2xl">{getCategoryIcon(factor.category)}</span>
-                  <span className="text-sm font-semibold text-slate-300 capitalize">
-                    {factor.category.replace('-', ' ')}
-                  </span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <span className="text-sm text-slate-400">
-                    {factor.count} facilities affected
-                  </span>
-                  <div className="px-2 py-1 bg-orange-500/10 border border-orange-500/30 rounded text-xs font-semibold text-orange-400">
-                    {((factor.count / postures.length) * 100).toFixed(1)}%
+            {stats.topRiskFactors.map((factor, idx) => {
+              const problemLabels: Record<string, string> = {
+                'compliance': 'Job Creation Shortfalls',
+                'data-quality': 'Outdated Information',
+                'provider': 'Unverified Companies',
+                'disclosure': 'Hidden Facilities',
+                'infrastructure': 'Security Concerns',
+              };
+              
+              return (
+                <div key={idx} className="flex items-center justify-between p-3 bg-slate-800/50 rounded-md hover:bg-slate-800 transition-colors">
+                  <div className="flex items-center gap-3">
+                    <span className="text-2xl">{getCategoryIcon(factor.category)}</span>
+                    <span className="text-sm font-semibold text-slate-300">
+                      {problemLabels[factor.category] || factor.category}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className="text-sm text-slate-400">
+                      {factor.count} facilities affected
+                    </span>
+                    <div className="px-2 py-1 bg-orange-500/10 border border-orange-500/30 rounded text-xs font-semibold text-orange-400">
+                      {((factor.count / postures.length) * 100).toFixed(1)}%
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       )}
 
-      {/* Methodology Attribution */}
+      {/* Action Items */}
+      <div className="bg-gradient-to-r from-orange-900/50 to-red-900/50 border-2 border-orange-500/30 rounded-lg p-6">
+        <h3 className="text-lg font-bold text-white mb-3 flex items-center gap-2">
+          <Target className="w-5 h-5 text-orange-400" />
+          What Should I Do Next?
+        </h3>
+        <div className="space-y-3">
+          <div className="flex items-start gap-3 p-3 bg-black/20 rounded-lg">
+            <span className="text-2xl">🔴</span>
+            <div>
+              <p className="text-sm font-semibold text-white mb-1">1. Focus on Major Violations First</p>
+              <p className="text-xs text-slate-300">
+                Click on facilities marked in red. These have the most serious broken promises and are your strongest cases.
+              </p>
+            </div>
+          </div>
+          <div className="flex items-start gap-3 p-3 bg-black/20 rounded-lg">
+            <span className="text-2xl">📋</span>
+            <div>
+              <p className="text-sm font-semibold text-white mb-1">2. Document the Evidence</p>
+              <p className="text-xs text-slate-300">
+                Use the Evidence Panel (bottom-right) to collect and export proof of broken promises for your campaign.
+              </p>
+            </div>
+          </div>
+          <div className="flex items-start gap-3 p-3 bg-black/20 rounded-lg">
+            <span className="text-2xl">👥</span>
+            <div>
+              <p className="text-sm font-semibold text-white mb-1">3. Share with Your Team</p>
+              <p className="text-xs text-slate-300">
+                Export reports and data to share findings with organizers, workers, and community members.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Methodology Attribution - Simplified */}
       <div className="bg-gradient-to-r from-cyan-500/10 to-blue-500/10 border border-cyan-500/30 rounded-lg p-4">
         <div className="flex items-start gap-3">
           <Info className="w-5 h-5 text-cyan-400 mt-0.5 flex-shrink-0" />
           <div>
             <p className="text-sm font-semibold text-white mb-1">
-              Security Posture Methodology
+              How This Works
             </p>
             <p className="text-xs text-slate-300 leading-relaxed">
-              Based on <strong>Jason Haddix's offensive security framework</strong> (Arcanum Security, former Ubisoft CISO).
-              Scores incorporate compliance risk, data quality, provider verification, disclosure transparency, and infrastructure
-              pattern analysis. Uses client-side reconnaissance techniques from The Bug Hunter's Methodology (TBHM).
+              This accountability tracker uses professional security research methods to verify company claims.
+              It combines public records, job data, and company disclosures to calculate an accountability score for each facility.
+              <strong className="text-white"> Lower scores = broken promises.</strong>
             </p>
           </div>
         </div>
