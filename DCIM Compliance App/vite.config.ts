@@ -6,7 +6,7 @@ import { VitePWA } from 'vite-plugin-pwa';
 export default defineConfig({
   plugins: [
     react(),
-VitePWA({
+    VitePWA({
       workbox: {
         maximumFileSizeToCacheInBytes: 5242880,
         runtimeCaching: [
@@ -57,91 +57,4 @@ VitePWA({
         navigateFallback: 'index.html',
         navigateFallbackDenylist: [/^\/api\//]
       },
-      registerType: 'autoUpdate',
-      includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'masked-icon.svg'],
-      manifest: {
-        name: 'DCIM Global Infrastructure Command Center',
-        short_name: 'DCIM Command',
-        description: 'Global Infrastructure Command Center tracking 11,992 data center facilities for subsidy compliance accountability',
-        theme_color: '#0a0e17',
-        background_color: '#0a0e17',
-        display: 'standalone',
-        orientation: 'landscape',
-        start_url: '/',
-        scope: '/',
-        icons: [
-          {
-            src: 'pwa-192x192.svg',
-            sizes: '192x192',
-            type: 'image/svg+xml',
-            purpose: 'any maskable'
-          }
-        ],
-        categories: ['business', 'productivity', 'utilities'],
-        shortcuts: [
-          {
-            name: 'Overview',
-            short_name: 'Overview',
-            description: 'View compliance overview',
-            url: '/?tab=overview',
-            icons: [{ src: 'pwa-192x192.png', sizes: '192x192' }]
-          },
-          {
-            name: 'Map View',
-            short_name: 'Map',
-            description: 'View facility map',
-            url: '/?tab=connectography',
-            icons: [{ src: 'pwa-192x192.png', sizes: '192x192' }]
-          },
-          {
-            name: 'Pattern Lab',
-            short_name: 'Patterns',
-            description: 'Advanced pattern analysis',
-            url: '/?tab=patternlab',
-            icons: [{ src: 'pwa-192x192.png', sizes: '192x192' }]
-          }
-        ]
-      },
-      devOptions: {
-        enabled: false
-      }
-    })        // Navigation fallback for SPA
-        navigateFallback: 'index.html',
-        navigateFallbackDenylist: [/^\/api\//]
-      },
-      devOptions: {
-        enabled: false // Disable in dev for faster rebuilds
-      }
-    })
-  ],
-  optimizeDeps: {
-    include: [
-      'echarts-for-react',
-      '@tensorflow/tfjs',
-      'arima',
-      'slayer',
-      'isolation-forest',
-      '@deck.gl/core',
-      '@deck.gl/layers',
-      '@deck.gl/react',
-      '@deck.gl/aggregation-layers'
-    ]
-  },
-  build: {
-    commonjsOptions: {
-      transformMixedEsModules: true
-    },
-    // Optimize chunk splitting for better caching
-    rollupOptions: {
-      output: {
-        manualChunks: {
-          'vendor-react': ['react', 'react-dom'],
-          'vendor-map': ['maplibre-gl', '@deck.gl/core', '@deck.gl/layers', '@deck.gl/aggregation-layers'],
-          'vendor-charts': ['echarts', 'echarts-for-react'],
-          'vendor-analysis': ['@tensorflow/tfjs', 'arima', 'isolation-forest']
-        }
-      }
-    }
-  },
-  logLevel: 'warn'
-});
+      regist
