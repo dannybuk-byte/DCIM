@@ -19,6 +19,7 @@ import {
   HelpCircle
 } from 'lucide-react';
 import { db } from '../db/database';
+import { seedDatabase } from '../db/seedData';
 import { Facility } from '../types';
 import { DeepDiveView } from './DeepDiveView';
 import { AISettingsModal } from './AISettingsModal';
@@ -51,6 +52,9 @@ export const OmniscientCommandInterface: React.FC = () => {
   useEffect(() => {
     const loadData = async () => {
       try {
+        // Seed database first if empty
+        await seedDatabase();
+        
         const data = await db.facilities.toArray();
         setFacilities(data);
         console.log('🌌 Omniscient Interface: Loaded', data.length, 'facilities');
