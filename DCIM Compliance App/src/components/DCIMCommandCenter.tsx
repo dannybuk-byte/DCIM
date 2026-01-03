@@ -58,6 +58,7 @@ import { AssuranceMonitorTab } from './tabs/AssuranceMonitorTab'; // Juniper Mar
 import { IntelligenceHubTab } from './tabs/IntelligenceHubTab'; // UNIFIED: All intelligence methods combined
 import { NetworkVisualizationTab } from './tabs/NetworkVisualizationTab'; // Network visualization with tree & globe
 import EvidencePanel from './EvidencePanel'; // FRE 902(13)-(14) Evidence Integrity
+import { NestedFAQ } from './NestedFAQ'; // Comprehensive help documentation
 import { indexFacilities } from '../search/SearchEngine'; // FlexSearch initialization
 import { detectDashboardAction } from '../utils/dashboardActions';
 import { ErrorBoundary } from './ErrorBoundary';
@@ -491,6 +492,7 @@ export default function DCIMCommandCenter({ onActionRequested: _onActionRequeste
   const [activeTab, setActiveTab] = useState<CommandCenterTab>('Overview');
   const [isPending, startTabTransition] = useTransition();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false); // Navigation sidebar state
+  const [showFAQ, setShowFAQ] = useState(false); // Help & Documentation modal
   const { enabled: provenanceMode, setEnabled: setProvenanceMode} = useProvenanceMode();
   const [isFullscreenTab, setIsFullscreenTab] = useState(false);
   const [connectographyOpen, setConnectographyOpen] = useState(false);
@@ -1738,10 +1740,22 @@ export default function DCIMCommandCenter({ onActionRequested: _onActionRequeste
         currentTab={activeTab}
       />
 
+      {/* Help & Documentation Modal */}
+      {showFAQ && <NestedFAQ onClose={() => setShowFAQ(false)} />}
+
       {/* Evidence Integrity Panel (Floating) */}
       <div className="fixed bottom-4 right-4 w-96 max-h-[600px] z-40 shadow-2xl">
         <EvidencePanel />
       </div>
+      
+      {/* Floating Help Button */}
+      <button
+        onClick={() => setShowFAQ(true)}
+        className="fixed bottom-4 left-4 p-4 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white rounded-full shadow-2xl shadow-cyan-500/50 hover:shadow-cyan-500/70 transition-all hover:scale-110 z-40"
+        title="Help & Documentation"
+      >
+        <HelpCircle className="w-6 h-6" />
+      </button>
     </div>
       )}
     </>
