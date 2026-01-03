@@ -35,6 +35,7 @@ import type { IntelligenceFinding, IntelligenceScenario } from '../../analyzers/
 import CytoscapeComponent from 'react-cytoscapejs';
 import AutonomousAgentsPanel from '../AutonomousAgentsPanel';
 import { BGPMonitorPanel } from '../BGPMonitorPanel';
+import SecurityOverview from '../SecurityOverview'; // NEW: Security Posture Overview
 import {
   CommandHeader,
   StatusCard,
@@ -255,6 +256,11 @@ export function IntelligenceHubTab({ facilities }: IntelligenceHubTabProps) {
       {/* BGP Real-Time Monitoring Section */}
       <div className="my-6">
         <BGPMonitorPanel />
+      </div>
+      
+      {/* Security Posture Overview Section - NEW */}
+      <div className="my-6">
+        <SecurityOverview facilities={facilities} />
       </div>
       
       {/* Action Bar */}
