@@ -26,6 +26,7 @@ import SecurityOverview from './SecurityOverview'; // NEW: Security Posture Over
 import SecurityInsights from './SecurityInsights'; // Package 1: Security & Verification
 import NetworkDiscovery from './NetworkDiscovery'; // Package 2: Network Discovery
 import ExpansionTracker from './ExpansionTracker'; // Package 3: Subdomain Expansion Tracking
+import GranularDrilldown from './GranularDrilldown'; // Infinite drill-down system
 import { DeepDiveView } from './DeepDiveView';
 import { AISettingsModal } from './AISettingsModal';
 import { NaturalLanguageSearch } from './NaturalLanguageSearch';
@@ -619,10 +620,18 @@ export const OmniscientCommandInterface: React.FC = () => {
             </div>
 
             {/* NEW: Intelligence Sections */}
-            <div className="space-y-4">
-              <SecurityInsights facility={selectedFacility} />
-              <NetworkDiscovery facility={selectedFacility} />
-              <ExpansionTracker facility={selectedFacility} />
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              {/* Left Column */}
+              <div className="space-y-4">
+                <SecurityInsights facility={selectedFacility} />
+                <NetworkDiscovery facility={selectedFacility} />
+              </div>
+              
+              {/* Right Column */}
+              <div className="space-y-4">
+                <ExpansionTracker facility={selectedFacility} />
+                <GranularDrilldown facility={selectedFacility} />
+              </div>
             </div>
           </div>
         </div>
