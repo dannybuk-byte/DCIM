@@ -65,6 +65,7 @@ import { ErrorBoundary } from './ErrorBoundary';
 import { CommandPalette } from './shared/CommandPalette';
 import { SystemHealthBanner } from './SystemHealthBanner';
 import { LiveDeploymentIndicator, BuildInfo } from './LiveDeploymentIndicator';
+import { DeploymentPulse } from './DeploymentPulse';
 import { SettingsPanel } from './shared/SettingsPanel';
 import { downloadComplianceReport } from '../services/PDFReportGenerator';
 import { PWAStatus } from './shared/PWAStatus';
@@ -1765,6 +1766,7 @@ export default function DCIMCommandCenter({ onActionRequested: _onActionRequeste
       {/* Live Deployment Status Indicator */}
       <LiveDeploymentIndicator />
       <BuildInfo />
+      <DeploymentPulse />
     </div>
       )}
     </>
