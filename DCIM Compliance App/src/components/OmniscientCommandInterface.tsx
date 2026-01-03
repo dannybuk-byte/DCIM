@@ -419,7 +419,7 @@ export const OmniscientCommandInterface: React.FC = () => {
       )}
 
       {/* CENTER: Main Visualization Area */}
-      <div className={`absolute overflow-hidden transition-all duration-300 ${
+      <div className={`absolute overflow-y-auto transition-all duration-300 ${
         isFullscreen 
           ? 'inset-0' 
           : topBarExpanded
