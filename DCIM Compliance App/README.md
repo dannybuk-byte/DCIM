@@ -1,6 +1,6 @@
 # DCIM Compliance Dashboard
 
-A zero-backend browser application for infrastructure accountability tracking with AI-powered chat interface.
+ A zero-backend browser application for infrastructure accountability tracking with AI-powered chat interface.
 
 ## Features
 
