@@ -7,6 +7,24 @@
 
 ---
 
+## ⚠️ **CRITICAL: READ THIS FIRST**
+
+### **🚩 THIS IS A LABOR ORGANIZING TOOL, NOT A CORPORATE DCIM TOOL**
+
+**Purpose**: Arm labor unions and community organizers with data to fight Big Tech's broken promises.
+
+**Target Users**: Tech Workers Coalition, CODE-CWA, UPROSE, union organizers, community activists
+
+**The Mission**: Expose how Amazon, Meta, Google, Microsoft take billions in subsidies promising jobs, then automate everything and deliver almost nothing. Use that data as leverage in organizing campaigns.
+
+**NOT FOR**: Corporate IT departments, data center operators, neutral research, or monetization. If a Big Tech company uses this app, we've failed.
+
+**Design Principle**: Every feature must answer: "Does this help organizers win against Big Tech?"
+
+**Mandami is separate** - This is 100% focused on worker power vs. corporate power.
+
+---
+
 ## 📋 Table of Contents
 
 1. [Project Overview](#project-overview)
@@ -25,10 +43,25 @@
 ## 🎯 Project Overview
 
 ### Purpose
-A **labor accountability tool** tracking **11,992 data center facilities** and their compliance with job creation promises tied to tax subsidies ($2.48B+ subsidy gap). Built for organizers, activists, and non-technical users to investigate corporate accountability.
+A **labor union organizing tool** to hold Big Tech accountable. This app tracks **11,992 data center facilities** and their compliance with job creation promises tied to tax subsidies, exposing the **$2.48B+ subsidy gap**. 
+
+**Built specifically for**: Labor unions, worker organizations, community activists, and coalitions fighting corporate accountability.
 
 ### Core Mission
-Hold corporations accountable for job creation promises when they receive public subsidies for data center construction.
+**Empower labor unions to use Big Tech's broken promises as leverage in organizing campaigns.** When tech companies get billions in tax breaks promising jobs, then don't deliver, unions can use this data to:
+- Expose corporate hypocrisy
+- Build public pressure
+- Support organizing drives
+- Demand accountability from local governments
+- Rally community support for worker rights
+
+### Target Users
+- **Labor unions** (Tech Workers Coalition, CODE-CWA, etc.)
+- **Community organizations** (UPROSE, local coalitions)
+- **Worker organizers** and activists
+- **Non-technical users** who need simple, powerful tools to investigate corporate behavior
+
+**NOT for**: Corporate DCIM management, IT operations, or general data center monitoring.
 
 ### Tech Stack
 - **Frontend**: React 18 + TypeScript + Vite
@@ -626,21 +659,29 @@ perf: Optimize facility list rendering with virtualization
 
 ### **High Priority**
 
-1. **Complete View Mode Implementations**:
-   - **Network View**: Implement actual network graph (D3.js, Cytoscape.js, or React Flow)
-   - **Map View**: Implement geographic visualization (Mapbox, Google Maps, or Leaflet)
-   - **Kanban View**: Implement drag-and-drop board (react-beautiful-dnd or dnd-kit)
-   - **Timeline View**: Enhanced timeline with filtering and zooming
+1. **Strengthen Labor Organizing Features**:
+   - **Export for Leaflets/Flyers**: Generate printable fact sheets for each facility violation
+   - **Share Campaign Data**: URL-based sharing of specific facility investigations
+   - **Talking Points Generator**: Auto-generate organizing language from facility data
+   - **Media Alert Templates**: Pre-written press release templates using facility violations
 
-2. **Backend Integration for Investigation Templates**:
-   - Create utility functions to execute template queries
-   - Generate results based on template type
-   - Display results in modal with charts/visualizations
+2. **Complete View Mode Implementations** (with labor organizing focus):
+   - **Map View**: Geographic visualization showing violations by region (for regional campaigns)
+   - **Timeline View**: Show when promises were made vs. broken (narrative building)
+   - **Network View**: Company ownership and connections (follow the money)
+   - **Kanban View**: Campaign tracking board (facilities by organizing stage)
 
-3. **Browser-Based AI Implementation**:
+2. **Backend Integration for Investigation Templates** (labor organizing queries):
+   - "Which facilities broke promises in the last 6 months?" (timely campaigns)
+   - "Show me all Amazon/Meta/Google violations" (company-specific campaigns)
+   - "Facilities that received >$10M in subsidies but created <50 jobs" (biggest offenders)
+   - "Data centers in swing districts" (political leverage)
+
+3. **Browser-Based AI Implementation** (so organizers don't need API keys):
    - Integrate WebLLM or Transformers.js for local inference
    - Implement Gemini Nano for Chrome
    - Fallback to API when local model unavailable
+   - **Priority: Remove API key barrier for grassroots organizers**
 
 ### **Medium Priority**
 
@@ -659,10 +700,12 @@ perf: Optimize facility list rendering with virtualization
    - Implement saved searches/bookmarks
    - Add query suggestions based on common patterns
 
-7. **Export Functionality**:
-   - Export facility data to CSV/JSON
-   - Generate PDF reports
-   - Share queries via URL parameters
+7. **Export Functionality** (critical for organizing):
+   - **Export to PDF**: Printable facility reports for leaflets, flyers, presentations
+   - **Export to CSV/JSON**: Data for further analysis, coalition partners
+   - **Social Media Cards**: Auto-generate shareable graphics with key violations
+   - **Email Templates**: Pre-written emails to local government demanding accountability
+   - **Presentation Mode**: Full-screen slides for union meetings, town halls
 
 ### **Low Priority (Polish)**
 
@@ -684,26 +727,135 @@ perf: Optimize facility list rendering with virtualization
 
 ### **Future Enhancements**
 
-11. **Collaboration Features**:
-    - Share facility investigations with team
-    - Comments on facilities
-    - Tag and categorize facilities
+11. **Collaboration Features** (for union campaigns):
+   - **Campaign Workspace**: Shared investigations for organizing committees
+   - **Facility Tracking**: Mark facilities by campaign stage (research, outreach, active, won)
+   - **Notes & Strategy**: Internal notes on organizing approach per facility
+   - **Coalition Sharing**: Securely share data with partner organizations
+   - **Victory Tracker**: Document wins to build momentum
 
-12. **Alerting System**:
-    - Custom alerts for facility changes
-    - Email/push notifications
-    - Alert history and management
+12. **Alerting System** (for timely action):
+   - **New Violations Alert**: When facilities fall out of compliance
+   - **Subsidy Announcements**: When new tax breaks are announced
+   - **Media Mentions**: Track when facilities appear in news
+   - **Government Filings**: Alert when companies submit job reports
+   - **Campaign Opportunities**: AI-suggested organizing opportunities
 
-13. **Advanced Filtering**:
-    - Filter builder UI (complex AND/OR conditions)
-    - Saved filter presets
-    - Quick filters in sidebar
+13. **Community Engagement Tools**:
+   - **Public Tip Line**: Let workers submit violations anonymously
+   - **Impact Calculator**: Show community impact ("This subsidy could have funded X schools")
+   - **Elected Official Lookup**: Which politicians approved these subsidies?
+   - **Media Contact Lists**: Local journalists covering corporate accountability
+   - **Sample Social Media Posts**: Pre-written tweets, posts for community pressure
 
 ---
 
 ## 🔑 Critical Context
 
-### **User's Primary Concern**
+### **THIS IS A LABOR ORGANIZING TOOL**
+
+**CRITICAL**: This app is **NOT** a corporate DCIM management tool. This is a **weapon for labor unions** fighting Big Tech.
+
+**The Context**:
+- Big Tech companies (Amazon, Meta, Google, Microsoft) get **billions in tax subsidies** to build data centers
+- They promise **thousands of jobs** to local communities
+- They **break those promises** - data centers are highly automated
+- Communities lose tax revenue, get no jobs, while billionaires profit
+- **This app exposes that theft**
+
+**Who We're Fighting FOR**:
+- Tech workers trying to unionize
+- Communities promised jobs that never came
+- Local governments that got scammed
+- Workers whose jobs were automated away
+- Coalitions like Tech Workers Coalition, CODE-CWA, UPROSE
+
+**Who We're Fighting AGAINST**:
+- Corporate PR departments obscuring the truth
+- Complex data that hides accountability
+- Politicians who approved bad deals
+- "Disruptive innovation" narratives that justify worker exploitation
+
+**How This App is Used**:
+1. **Union Organizing**: "Amazon promised 500 jobs here, delivered 23. Join the union to fight back."
+2. **Public Pressure**: Generate media coverage of broken promises
+3. **Political Leverage**: Demand politicians claw back subsidies or block new deals
+4. **Community Coalition**: Unite workers, residents, activists around shared grievance
+5. **Contract Negotiations**: Use violations as leverage in labor disputes
+
+**Design Implication**:
+Every feature should ask: **"Does this help organizers win?"**
+- If it's too technical → simplify or add tooltips
+- If it's not actionable → add export/sharing features
+- If it obscures accountability → make violations more prominent
+- If it requires money/expertise → make it free and accessible
+
+**We're not building for IT managers. We're building for people trying to stop billionaires from stealing from their communities.**
+
+---
+
+## 🔥 Political & Organizing Context
+
+### **The Subsidy Scam**
+
+**How it works**:
+1. Big Tech: "We'll build a data center and create 1,000 jobs!"
+2. Local government: "Here's $100M in tax breaks!"
+3. Data center gets built with automated systems
+4. Actual jobs created: ~50 (mostly low-wage security guards)
+5. Community: No tax revenue, no jobs, stuck with the bill
+6. Big Tech: Moves to next city, repeats scam
+
+**Why This Matters Now**:
+- AI boom driving massive data center expansion
+- Billions more in subsidies being negotiated
+- Union organizing at tech companies accelerating
+- Public awareness of tech industry harms growing
+- Climate impact of data centers becoming major issue
+
+**Real-World Use Cases**:
+
+1. **Amazon HQ2 Redux**: "Remember when Amazon promised 25,000 jobs? This app shows their data centers do the same thing everywhere."
+
+2. **Local Campaign**: "Show up to city council with printouts from this app proving the last 3 data centers broke their promises. Block the next deal."
+
+3. **Media Campaign**: "Generate press releases for each violation. Reporters love data-driven stories about corporate lies."
+
+4. **Worker Organizing**: "When tech workers are on the fence about unionizing, show them how their company lies to communities. Builds class consciousness."
+
+5. **Coalition Building**: "Share this app with environmental groups (data center water usage), housing advocates (promised economic development never came), and worker orgs. Build power."
+
+### **Partner Organizations**
+
+This tool is designed for:
+- **Tech Workers Coalition**: Worker-led organizing across tech industry
+- **CODE-CWA**: Campaign to Organize Digital Employees (Communications Workers of America)
+- **UPROSE**: Brooklyn-based climate justice organization
+- **Local labor councils and central labor unions**
+- **Community organizations fighting gentrification and corporate power**
+
+### **Organizing Strategy Alignment**
+
+The app supports these organizing models:
+
+1. **Direct Action**: Quick data exports for protests, actions, media stunts
+2. **Inside-Outside Strategy**: Workers inside company + community pressure outside
+3. **Electoral Pressure**: Target politicians who approved bad deals (Map view shows districts)
+4. **Legal Strategy**: Data for lawsuits, FOIA requests, regulatory complaints
+5. **Narrative Campaign**: Change public perception of Big Tech from innovators to thieves
+
+### **What We're NOT Building**
+
+❌ **NOT a corporate DCIM tool** - We're not helping companies manage their data centers  
+❌ **NOT "neutral" or "objective"** - This is advocacy software with a clear side  
+❌ **NOT monetizable** - This should be free/open for organizers, not a SaaS product  
+❌ **NOT for data center operators** - If Amazon uses this, we've failed  
+
+**Mandami** (the personal AI assistant project) is **completely separate**. This is **100% focused on labor organizing against Big Tech**.
+
+---
+
+## 👥 User's Primary Concern
 
 The user has repeatedly expressed that **changes are not obvious enough**. This led to multiple iterations where we:
 
@@ -761,13 +913,19 @@ Based on user requests, the priority order is:
 
 ### **Design Philosophy**
 
-The app follows an "**antifragile**" design:
-- Works with 0 facilities (graceful empty states)
-- All features have fallbacks (try-catch blocks, default values)
-- Progressive enhancement (core features work without AI)
-- No crashes, only graceful degradation
+The app follows an "**antifragile**" design with **labor organizing** as the North Star:
+- **Non-technical first**: Works for organizers without IT backgrounds
+- **Graceful degradation**: Works with 0 facilities (empty states), no crashes
+- **Progressive enhancement**: Core features work without AI
+- **Transparency**: Data sources visible, methodology explained
+- **Actionable**: Every violation leads to clear organizing opportunities
+- **Offline-capable**: Can work without constant internet (IndexedDB storage)
 
-**When adding features**: Always consider the error case and provide fallbacks.
+**When adding features**: Ask "Does this help a union organizer expose Big Tech's broken promises?" If no, reconsider.
+
+**The enemy**: Corporate obfuscation, complex data that hides accountability, tools that require technical expertise
+
+**The goal**: Put powerful investigative tools in the hands of workers and organizers
 
 ---
 
