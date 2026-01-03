@@ -212,8 +212,8 @@ export const CommandPalette = memo(function CommandPalette({
             )}
           </div>
           {query && (
-            <span className="text-gray-500">
-              {results.length} results
+            <span className="px-2 py-1 bg-cyan-500/20 text-cyan-400 text-xs font-bold rounded-md border border-cyan-500/30">
+              {results.length} {results.length === 1 ? 'result' : 'results'}
             </span>
           )}
         </div>

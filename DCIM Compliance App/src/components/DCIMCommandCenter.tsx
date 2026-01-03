@@ -1413,9 +1413,13 @@ export default function DCIMCommandCenter({ onActionRequested: _onActionRequeste
               </button>
             </Tooltip>
             <Tooltip content="Search (⌘K)">
-              <button onClick={() => setShowGlobalSearch(true)} className="p-1.5 bg-gray-800 hover:bg-gray-700 rounded border border-gray-700 flex items-center gap-1">
+              <button onClick={() => setShowGlobalSearch(true)} className="p-1.5 bg-gray-800 hover:bg-gray-700 rounded border border-gray-700 flex items-center gap-1 relative">
                 <Search className="w-4 h-4" />
                 <kbd className="text-[9px] px-1 bg-gray-700 rounded">⌘K</kbd>
+                {/* Badge showing indexed count */}
+                <div className="absolute -top-1 -right-1 px-1 py-0.5 bg-cyan-500 text-white text-[8px] font-bold rounded-full min-w-[16px] text-center">
+                  {facilities.length > 999 ? `${Math.floor(facilities.length / 1000)}k` : facilities.length}
+                </div>
               </button>
             </Tooltip>
             <div className="h-4 w-px bg-gray-700" />
