@@ -64,6 +64,15 @@ export const NaturalLanguageSearch: React.FC<NaturalLanguageSearchProps> = ({
     <div className="natural-language-search">
       {/* Search Input */}
       <div className="relative">
+        {/* HOVER ME Badge */}
+        {!inputValue && !searchState.isLoading && (
+          <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 z-10 animate-pulse">
+            <div className="bg-gradient-to-r from-[#00d2d3] to-[#ffa502] text-black font-bold px-6 py-2 rounded-full text-sm shadow-lg shadow-[#00d2d3]/50">
+              ⬇️ HOVER ME - Interactive! ⬇️
+            </div>
+          </div>
+        )}
+        
         <div className="relative flex items-center">
           {/* Icon */}
           <div className="absolute left-4 flex items-center gap-2">
@@ -86,7 +95,9 @@ export const NaturalLanguageSearch: React.FC<NaturalLanguageSearchProps> = ({
             placeholder="Ask anything: 'Show me non-compliant facilities in Texas'"
             className="w-full pl-20 pr-24 py-4 bg-[#0a0e17] border-2 border-[#00d2d3]/30 
                        rounded-lg text-white placeholder-gray-500 
-                       focus:border-[#00d2d3] focus:outline-none transition-all text-sm"
+                       focus:border-[#00d2d3] focus:outline-none transition-all text-sm
+                       hover:border-[#00d2d3]/70 hover:shadow-lg hover:shadow-[#00d2d3]/30 hover:scale-[1.02]
+                       hover:bg-[#0f1421] transition-all duration-300"
             disabled={searchState.isLoading}
           />
           

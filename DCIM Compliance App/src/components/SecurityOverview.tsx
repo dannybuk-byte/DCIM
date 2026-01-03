@@ -61,23 +61,23 @@ export const SecurityOverview: React.FC<SecurityOverviewProps> = React.memo(({ f
   return (
     <div className={`space-y-6 ${className}`}>
       {/* Header with Help */}
-      <div className="bg-gradient-to-r from-blue-900/50 to-purple-900/50 border-2 border-blue-500/30 rounded-lg p-6">
+      <div className="group bg-gradient-to-r from-blue-900/50 to-purple-900/50 border-2 border-blue-500/30 rounded-lg p-6 hover:border-blue-500 hover:shadow-2xl hover:shadow-blue-500/30 transition-all duration-500">
         <div className="flex items-start justify-between mb-4">
           <div className="flex-1">
-            <h2 className="text-3xl font-bold text-white mb-2 flex items-center gap-3">
-              <Shield className="w-8 h-8 text-blue-400" />
+            <h2 className="text-3xl font-bold text-white mb-2 flex items-center gap-3 group-hover:text-blue-300 transition-colors duration-300">
+              <Shield className="w-8 h-8 text-blue-400 group-hover:scale-125 group-hover:rotate-12 group-hover:text-blue-300 transition-all duration-500" />
               Facility Accountability Overview
             </h2>
-            <p className="text-lg text-slate-300">
+            <p className="text-lg text-slate-300 group-hover:text-white transition-colors duration-300">
               Which data centers are keeping their job creation promises?
             </p>
           </div>
           <button
             onClick={() => setShowHelp(!showHelp)}
-            className="p-2 hover:bg-white/10 rounded-lg transition-colors"
+            className="p-2 hover:bg-white/10 rounded-lg transition-colors hover:scale-110 transition-all duration-300"
             title="What am I looking at?"
           >
-            <HelpCircle className="w-6 h-6 text-blue-400" />
+            <HelpCircle className="w-6 h-6 text-blue-400 hover:text-blue-300 hover:rotate-12 transition-all duration-300" />
           </button>
         </div>
 
@@ -109,76 +109,74 @@ export const SecurityOverview: React.FC<SecurityOverviewProps> = React.memo(({ f
       {/* Header Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         {/* Average Score */}
-        <div className="bg-slate-900 border border-slate-700 rounded-lg p-4">
+        <div className="group bg-slate-900 border-2 border-slate-700 rounded-lg p-4 hover:border-blue-500 hover:shadow-lg hover:shadow-blue-500/30 hover:scale-105 transition-all duration-300 cursor-pointer">
           <div className="flex items-center gap-3 mb-2">
-            <div className="w-10 h-10 rounded-lg bg-blue-500/10 flex items-center justify-center">
-              <Shield className="w-5 h-5 text-blue-400" />
+            <div className="w-10 h-10 rounded-lg bg-blue-500/10 group-hover:bg-blue-500/30 flex items-center justify-center group-hover:scale-110 transition-all duration-300">
+              <Shield className="w-5 h-5 text-blue-400 group-hover:text-blue-300 group-hover:rotate-12 transition-all duration-300" />
             </div>
             <div>
-              <p className="text-sm text-slate-400">Average Accountability</p>
-              <p className="text-2xl font-bold text-white">{stats.averageScore}/100</p>
+              <p className="text-sm text-slate-400 group-hover:text-white transition-colors duration-300">Average Accountability</p>
+              <p className="text-2xl font-bold text-white group-hover:text-blue-300 group-hover:scale-110 transition-all duration-300">{stats.averageScore}/100</p>
             </div>
           </div>
-          <div className="text-xs text-slate-500">
+          <div className="text-xs text-slate-500 group-hover:text-slate-300 transition-colors duration-300">
             Tracking {postures.length.toLocaleString()} facilities
           </div>
         </div>
 
         {/* Good Standing */}
-        <div className="bg-slate-900 border border-green-500/30 rounded-lg p-4">
+        <div className="group bg-slate-900 border-2 border-green-500/30 rounded-lg p-4 hover:border-green-500 hover:shadow-lg hover:shadow-green-500/30 hover:scale-105 transition-all duration-300 cursor-pointer">
           <div className="flex items-center gap-3 mb-2">
-            <div className="w-10 h-10 rounded-lg bg-green-500/10 flex items-center justify-center">
-              <TrendingUp className="w-5 h-5 text-green-400" />
+            <div className="w-10 h-10 rounded-lg bg-green-500/10 group-hover:bg-green-500/30 flex items-center justify-center group-hover:scale-110 transition-all duration-300">
+              <TrendingUp className="w-5 h-5 text-green-400 group-hover:text-green-300 group-hover:translate-y-[-4px] transition-all duration-300" />
             </div>
             <div>
-              <p className="text-sm text-slate-400">Good Standing</p>
-              <p className="text-2xl font-bold text-green-400">{stats.riskDistribution.low}</p>
+              <p className="text-sm text-slate-400 group-hover:text-white transition-colors duration-300">Good Standing</p>
+              <p className="text-2xl font-bold text-green-400 group-hover:text-green-300 group-hover:scale-110 transition-all duration-300">{stats.riskDistribution.low}</p>
             </div>
           </div>
-          <div className="text-xs text-slate-500">
+          <div className="text-xs text-slate-500 group-hover:text-slate-300 transition-colors duration-300">
             Meeting job promises
           </div>
         </div>
 
         {/* Needs Attention */}
-        <div className="bg-slate-900 border border-yellow-500/30 rounded-lg p-4">
+        <div className="group bg-slate-900 border-2 border-yellow-500/30 rounded-lg p-4 hover:border-yellow-500 hover:shadow-lg hover:shadow-yellow-500/30 hover:scale-105 transition-all duration-300 cursor-pointer">
           <div className="flex items-center gap-3 mb-2">
-            <div className="w-10 h-10 rounded-lg bg-yellow-500/10 flex items-center justify-center">
-              <AlertTriangle className="w-5 h-5 text-yellow-400" />
+            <div className="w-10 h-10 rounded-lg bg-yellow-500/10 group-hover:bg-yellow-500/30 flex items-center justify-center group-hover:scale-110 group-hover:rotate-12 transition-all duration-300">
+              <AlertTriangle className="w-5 h-5 text-yellow-400 group-hover:text-yellow-300 transition-all duration-300" />
             </div>
             <div>
-              <p className="text-sm text-slate-400">Needs Attention</p>
-              <p className="text-2xl font-bold text-yellow-400">{stats.riskDistribution.medium}</p>
+              <p className="text-sm text-slate-400 group-hover:text-white transition-colors duration-300">Needs Attention</p>
+              <p className="text-2xl font-bold text-yellow-400 group-hover:text-yellow-300 group-hover:scale-110 transition-all duration-300">{stats.riskDistribution.medium}</p>
             </div>
           </div>
-          <div className="text-xs text-slate-500">
+          <div className="text-xs text-slate-500 group-hover:text-slate-300 transition-colors duration-300">
             Falling behind on commitments
           </div>
         </div>
 
         {/* Major Violations */}
-        <div className="bg-slate-900 border border-red-500/30 rounded-lg p-4">
+        <div className="group bg-slate-900 border-2 border-red-500/30 rounded-lg p-4 hover:border-red-500 hover:shadow-lg hover:shadow-red-500/30 hover:scale-105 transition-all duration-300 cursor-pointer animate-pulse hover:animate-none">
           <div className="flex items-center gap-3 mb-2">
-            <div className="w-10 h-10 rounded-lg bg-red-500/10 flex items-center justify-center">
-              <AlertTriangle className="w-5 h-5 text-red-400" />
+            <div className="w-10 h-10 rounded-lg bg-red-500/10 group-hover:bg-red-500/30 flex items-center justify-center group-hover:scale-110 group-hover:rotate-[-12deg] transition-all duration-300">
+              <AlertTriangle className="w-5 h-5 text-red-400 group-hover:text-red-300 transition-all duration-300" />
             </div>
             <div>
-              <p className="text-sm text-slate-400">Major Violations</p>
-              <p className="text-2xl font-bold text-red-400">
-                {stats.riskDistribution.high + stats.riskDistribution.critical}
-              </p>
+              <p className="text-sm text-slate-400 group-hover:text-white transition-colors duration-300">Major Violations</p>
+              <p className="text-2xl font-bold text-red-400 group-hover:text-red-300 group-hover:scale-110 transition-all duration-300">{stats.riskDistribution.high + stats.riskDistribution.critical}</p>
             </div>
           </div>
-          <div className="text-xs text-slate-500">
+          <div className="text-xs text-slate-500 group-hover:text-slate-300 transition-colors duration-300">
             Broken promises - need accountability
           </div>
         </div>
       </div>
 
       {/* Risk Distribution Chart */}
-      <div className="bg-slate-900 border border-slate-700 rounded-lg p-6">
-        <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
-          <Activity className="w-5 h-5 text-cyan-400" />
+      <div className="group bg-slate-900 border-2 border-slate-700 rounded-lg p-6 hover:border-cyan-500/50 hover:shadow-lg hover:shadow-cyan-500/20 transition-all duration-300">
+        <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2 group-hover:text-cyan-300 transition-colors duration-300">
+          <Activity className="w-5 h-5 text-cyan-400 group-hover:scale-125 group-hover:rotate-12 transition-all duration-300" />
           How Many Facilities Are in Each Category?
         </h3>
         
@@ -362,17 +360,24 @@ const RiskBar: React.FC<{
     red: 'bg-red-500',
   };
 
+  const glowClasses = {
+    green: 'hover:shadow-green-500/50',
+    yellow: 'hover:shadow-yellow-500/50',
+    orange: 'hover:shadow-orange-500/50',
+    red: 'hover:shadow-red-500/50',
+  };
+
   return (
-    <div>
+    <div className="group cursor-pointer hover:scale-102 transition-all duration-300">
       <div className="flex items-center justify-between mb-1">
-        <span className="text-sm text-slate-300">{label}</span>
-        <span className="text-sm text-slate-400">
+        <span className="text-sm text-slate-300 group-hover:text-white group-hover:translate-x-1 transition-all duration-300">{label}</span>
+        <span className="text-sm text-slate-400 group-hover:text-white group-hover:scale-110 transition-all duration-300">
           {count} ({percentage.toFixed(1)}%)
         </span>
       </div>
-      <div className="h-2 bg-slate-800 rounded-full overflow-hidden">
+      <div className="h-3 bg-slate-800 rounded-full overflow-hidden group-hover:h-4 transition-all duration-300">
         <div 
-          className={`h-full ${colorClasses[color]} transition-all duration-500`}
+          className={`h-full ${colorClasses[color]} group-hover:shadow-lg ${glowClasses[color]} transition-all duration-500`}
           style={{ width: `${percentage}%` }}
         />
       </div>
