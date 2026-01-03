@@ -21,6 +21,22 @@ export const HelpModal: React.FC<HelpModalProps> = ({ isOpen, onClose }) => {
     }
   }, [isOpen]);
 
+  // Handle Esc key to close modal
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleEscKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        onClose();
+      }
+    };
+
+    window.addEventListener('keydown', handleEscKey);
+    return () => {
+      window.removeEventListener('keydown', handleEscKey);
+    };
+  }, [isOpen, onClose]);
+
   if (!isOpen) return null;
 
   return (

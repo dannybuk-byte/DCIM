@@ -3,7 +3,7 @@
  * Expandable, searchable, categorized help documentation
  */
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { HelpCircle, ChevronDown, ChevronRight, Search, BookOpen, Zap, Shield, Globe, Network, Database, Activity } from 'lucide-react';
 
 interface FAQItem {
@@ -255,6 +255,20 @@ export const NestedFAQ: React.FC<NestedFAQProps> = React.memo(({ onClose }) => {
   const [expandedQuestions, setExpandedQuestions] = useState<Set<string>>(new Set());
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+
+  // Handle Esc key to close modal
+  useEffect(() => {
+    const handleEscKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape' && onClose) {
+        onClose();
+      }
+    };
+
+    window.addEventListener('keydown', handleEscKey);
+    return () => {
+      window.removeEventListener('keydown', handleEscKey);
+    };
+  }, [onClose]);
 
   // Filter FAQs by search and category
   const filteredFAQs = useMemo(() => {
