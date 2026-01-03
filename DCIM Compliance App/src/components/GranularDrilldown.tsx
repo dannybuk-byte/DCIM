@@ -71,7 +71,7 @@ export const GranularDrilldown: React.FC<GranularDrilldownProps> = ({ facility, 
       <div className="bg-slate-800/50 border-b border-slate-700 px-4 py-3">
         <div className="flex items-center gap-2">
           <Info className="w-4 h-4 text-blue-400" />
-          <h3 className="text-sm font-bold text-white">Granular Details</h3>
+          <h3 className="text-sm font-bold text-white">See All Details</h3>
         </div>
         <p className="text-xs text-slate-400 mt-1">
           Click any section to expand and reveal deeper details

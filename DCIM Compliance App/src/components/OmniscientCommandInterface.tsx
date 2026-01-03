@@ -192,10 +192,10 @@ export const OmniscientCommandInterface: React.FC = () => {
             {/* Mode Buttons (Always Visible) */}
             <div className="flex items-center gap-1.5">
               {[
-                { mode: 'omniscient' as ViewMode, icon: Target, label: 'Overview', tooltip: 'See all facilities at a glance' },
-                { mode: 'intelligence' as ViewMode, icon: Network, label: '🔍 Intel', tooltip: 'Security & Network Intelligence for all facilities' },
-                { mode: 'deepdive' as ViewMode, icon: Layers, label: 'Details', tooltip: 'Explore individual facilities in depth' },
-                { mode: 'hud' as ViewMode, icon: Zap, label: 'Alerts', tooltip: 'Focus on critical violations' },
+                { mode: 'omniscient' as ViewMode, icon: Target, label: 'Dashboard', tooltip: 'See all facilities at a glance' },
+                { mode: 'intelligence' as ViewMode, icon: Network, label: '📊 Tracker', tooltip: 'Track companies and their infrastructure' },
+                { mode: 'deepdive' as ViewMode, icon: Layers, label: 'Full Report', tooltip: 'Explore individual facilities in depth' },
+                { mode: 'hud' as ViewMode, icon: Zap, label: 'Violations', tooltip: 'Focus on critical violations' },
                 { mode: 'timeline' as ViewMode, icon: Calendar, label: 'TIME', tooltip: 'Project timeline and milestones' },
                 { mode: 'network' as ViewMode, icon: GitBranch, label: 'NET', tooltip: 'Network connections between facilities' },
                 { mode: 'map' as ViewMode, icon: MapPin, label: 'MAP', tooltip: 'Geographic map view by state' },
@@ -281,10 +281,10 @@ export const OmniscientCommandInterface: React.FC = () => {
                 {/* Mode Buttons */}
                 <div className="flex items-center gap-2">
                   {[
-                    { mode: 'omniscient' as ViewMode, icon: Target, label: 'Overview' },
-                    { mode: 'intelligence' as ViewMode, icon: Network, label: '🔍 Intelligence' },
-                    { mode: 'deepdive' as ViewMode, icon: Layers, label: 'Details' },
-                    { mode: 'hud' as ViewMode, icon: Zap, label: 'Alerts' },
+                    { mode: 'omniscient' as ViewMode, icon: Target, label: 'Dashboard' },
+                    { mode: 'intelligence' as ViewMode, icon: Network, label: '📊 Tracker' },
+                    { mode: 'deepdive' as ViewMode, icon: Layers, label: 'Full Report' },
+                    { mode: 'hud' as ViewMode, icon: Zap, label: 'Violations' },
                     { mode: 'timeline' as ViewMode, icon: Calendar, label: 'TIME' },
                     { mode: 'network' as ViewMode, icon: GitBranch, label: 'NET' },
                     { mode: 'map' as ViewMode, icon: MapPin, label: 'MAP' },
@@ -480,9 +480,9 @@ export const OmniscientCommandInterface: React.FC = () => {
         {viewMode === 'intelligence' && (
           <div className={`${isFullscreen ? 'p-4' : 'p-6'} space-y-6`}>
             <div className="mb-6">
-              <h2 className="text-2xl font-bold text-[#00d2d3] mb-2">🔍 Security & Network Intelligence</h2>
+              <h2 className="text-2xl font-bold text-[#00d2d3] mb-2">📊 Company Tracker</h2>
               <p className="text-sm text-gray-400">
-                Real-time intelligence on all facilities using browser-native APIs. Click any facility below to see detailed analysis.
+                Track companies and verify their infrastructure expansions. All data from public records and government databases.
               </p>
             </div>
             
