@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "prebuild": "bash generate-build-info.sh",
     "build": "vite build",
     "preview": "vite preview",
     "test": "vitest",

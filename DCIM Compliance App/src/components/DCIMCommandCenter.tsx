@@ -64,6 +64,7 @@ import { detectDashboardAction } from '../utils/dashboardActions';
 import { ErrorBoundary } from './ErrorBoundary';
 import { CommandPalette } from './shared/CommandPalette';
 import { SystemHealthBanner } from './SystemHealthBanner';
+import { LiveDeploymentIndicator, BuildInfo } from './LiveDeploymentIndicator';
 import { SettingsPanel } from './shared/SettingsPanel';
 import { downloadComplianceReport } from '../services/PDFReportGenerator';
 import { PWAStatus } from './shared/PWAStatus';
@@ -1760,6 +1761,10 @@ export default function DCIMCommandCenter({ onActionRequested: _onActionRequeste
       >
         <HelpCircle className="w-6 h-6" />
       </button>
+
+      {/* Live Deployment Status Indicator */}
+      <LiveDeploymentIndicator />
+      <BuildInfo />
     </div>
       )}
     </>
