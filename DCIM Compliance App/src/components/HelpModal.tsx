@@ -51,7 +51,8 @@ export const HelpModal: React.FC<HelpModalProps> = ({ isOpen, onClose }) => {
           
           <button
             onClick={onClose}
-            className="absolute top-6 right-6 text-gray-400 hover:text-white transition-all hover:rotate-90 duration-300 z-10 hover:scale-110"
+            className="absolute top-6 right-6 text-gray-400 hover:text-white transition-all hover:rotate-90 duration-300 z-[60] hover:scale-110"
+            aria-label="Close help modal"
           >
             <X size={32} />
           </button>

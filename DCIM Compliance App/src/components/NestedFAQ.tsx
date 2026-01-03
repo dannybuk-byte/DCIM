@@ -347,7 +347,8 @@ export const NestedFAQ: React.FC<NestedFAQProps> = React.memo(({ onClose }) => {
             </div>
             <button
               onClick={onClose}
-              className="text-slate-400 hover:text-white text-3xl leading-none"
+              className="text-slate-400 hover:text-white text-3xl leading-none z-10 hover:scale-110 transition-transform"
+              aria-label="Close help"
             >
               ×
             </button>
