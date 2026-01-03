@@ -435,7 +435,7 @@ export const GlobeView: React.FC<GlobeViewProps> = React.memo(({ facilities }) =
           </div>
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 bg-red-500 rounded-full" />
-            <span>Critical (<60%)</span>
+            <span>Critical (&lt;60%)</span>
           </div>
         </div>
       </div>
