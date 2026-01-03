@@ -4,6 +4,7 @@ import { ErrorBoundary } from '../ErrorBoundary';
 import NetworkTraceModal from '../NetworkTraceModal';
 import { OSINTQueryModal, OSINTToolConfig } from '../OSINTQueryModal';
 import DataSourceStatus from '../DataSourceStatus';
+import { RateLimitDashboard } from '../RateLimitDashboard';
 
 type OSINTTool = OSINTToolConfig;
 
@@ -104,6 +105,9 @@ export const OSINTToolsTab = memo(() => {
           <h2 className="text-2xl font-bold mb-2">OSINT Tools</h2>
           <p className="text-sm text-gray-400">Open Source Intelligence integrations for infrastructure monitoring</p>
         </div>
+
+        {/* Rate Limit Status Dashboard */}
+        <RateLimitDashboard />
 
         {/* Data Source Health Status */}
         <DataSourceStatus />

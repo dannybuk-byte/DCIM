@@ -9,6 +9,7 @@
  */
 
 import { CircuitBreaker } from '../utils/circuitBreaker';
+import { rateLimitGuard } from '../utils/rateLimitGuard';
 
 export type DataSourceType = 'SEC' | 'EPA' | 'PEERINGDB' | 'CRT_SH' | 'USASPENDING';
 
@@ -179,7 +180,8 @@ class DataSourceManager {
           headers.set('User-Agent', 'DCIM-Dashboard/1.0 (contact@example.com)');
         }
         
-        const fetchResponse = await fetch(url, {
+        // Use rate-limited fetch with automatic waiting
+        const fetchResponse = await rateLimitGuard.guardedFetch(url, {
           ...options,
           headers,
         });
