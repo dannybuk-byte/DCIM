@@ -1760,6 +1760,21 @@ export default function DCIMCommandCenter({ onActionRequested: _onActionRequeste
 
       {/* Simple Build Badge - GUARANTEED TO WORK */}
       <SimpleBuildBadge />
+      
+      {/* TEST BADGE - Ultra simple, no styling */}
+      <div style={{
+        position: 'fixed',
+        top: '10px',
+        right: '10px',
+        background: 'red',
+        color: 'white',
+        padding: '20px',
+        fontSize: '20px',
+        zIndex: 99999,
+        border: '5px solid yellow'
+      }}>
+        TEST BADGE
+      </div>
     </div>
       )}
     </>
