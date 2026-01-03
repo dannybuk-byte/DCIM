@@ -21,6 +21,7 @@ import {
 import { db } from '../db/database';
 import { seedDatabase } from '../db/seedData';
 import { Facility } from '../types';
+import SecurityOverview from './SecurityOverview'; // NEW: Security Posture Overview
 import { DeepDiveView } from './DeepDiveView';
 import { AISettingsModal } from './AISettingsModal';
 import { NaturalLanguageSearch } from './NaturalLanguageSearch';
@@ -625,6 +626,15 @@ const OmniscientView: React.FC<{ facilities: Facility[]; onSelect: (f: Facility)
               onFacilityClick={onSelect}
             />
           )}
+        </div>
+      )}
+      
+      {/* Security Posture Overview - NEW */}
+      {!isFullscreen && (
+        <div className="mb-6">
+          <ErrorBoundary fallback={<div className="text-red-400 text-sm">Security Overview unavailable</div>}>
+            <SecurityOverview facilities={displayFacilities} />
+          </ErrorBoundary>
         </div>
       )}
       
