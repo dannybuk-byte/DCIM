@@ -12,7 +12,7 @@ import { useState, useEffect, useCallback } from 'react';
 import {
   Settings, X, Bell, MapPin, Download, Eye, Plus, Trash2,
   Check, AlertTriangle, ExternalLink, TestTube, ChevronDown,
-  ChevronRight, Globe, Webhook, FileDown, Palette, Keyboard, Database
+  ChevronRight, Globe, Webhook, FileDown, Palette, Keyboard, Database, Activity
 } from 'lucide-react';
 import { 
   getWebhooks, addWebhook, updateWebhook, deleteWebhook, testWebhook,
@@ -20,6 +20,7 @@ import {
 } from '../../services/WebhookAlerts';
 import { getSettings, saveSettings, settingsKey } from '../../utils/settingsPersistence';
 import { DatabaseHealthMonitor } from '../DatabaseHealthMonitor';
+import { SystemHealthDashboard } from '../SystemHealthDashboard';
 
 const COLORS = {
   bg: '#0a0e17',
@@ -40,7 +41,7 @@ interface SettingsPanelProps {
   onClose: () => void;
 }
 
-type SettingsTab = 'webhooks' | 'mapbox' | 'export' | 'display' | 'shortcuts' | 'database';
+type SettingsTab = 'webhooks' | 'mapbox' | 'export' | 'display' | 'shortcuts' | 'database' | 'health';
 
 interface MapboxSettings {
   accessToken: string;
@@ -252,6 +253,7 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
   if (!isOpen) return null;
 
   const tabs: { id: SettingsTab; label: string; icon: typeof Settings }[] = [
+    { id: 'health', label: 'Health', icon: Activity },
     { id: 'webhooks', label: 'Webhooks', icon: Bell },
     { id: 'database', label: 'Database', icon: Database },
     { id: 'mapbox', label: 'Mapbox', icon: MapPin },
@@ -803,6 +805,11 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
                 {/* Database Tab */}
                 {activeTab === 'database' && (
                   <DatabaseHealthMonitor />
+                )}
+
+                {/* Health Tab */}
+                {activeTab === 'health' && (
+                  <SystemHealthDashboard />
                 )}
               </>
             )}
