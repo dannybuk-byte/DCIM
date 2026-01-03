@@ -665,3 +665,77 @@ Claude now has full context on:
 
 **Ready to continue development!** 🚀
 
+
+---
+
+## 13. AUTOMATED WORKFLOW (LATEST - Jan 3, 2026)
+
+### 🔄 Auto-Save System
+
+**Goal**: Never lose work, even if you forget to save/commit/push
+
+### Files Created:
+1. **auto-save-watcher.js** - Node.js background script
+2. **com.dcim.autosave.plist** - macOS launch agent
+3. **setup-auto-save.sh** - One-command installer
+4. **AUTOMATED_WORKFLOW_SETUP.md** - Full documentation
+5. **QUICK_START_AUTO_SAVE.md** - Quick reference
+
+### 3-Tier Auto-Save:
+
+```
+Tier 1: Cursor (1 second)
+  → Files saved to disk
+
+Tier 2: Git Commit (5 minutes)
+  → Auto-commit if changes exist
+  → Preserves work in Git history
+
+Tier 3: GitHub Push (30 minutes)
+  → Auto-push if commits exist
+  → GitHub backup
+  → Triggers Cloudflare deployment
+```
+
+### Setup:
+```bash
+cd /Users/danielbuk/Desktop/DCIM
+./setup-auto-save.sh
+```
+
+### Commands:
+```bash
+# Check status
+launchctl list | grep dcim
+
+# View logs
+tail -f /tmp/dcim-autosave.log
+
+# Stop
+launchctl unload ~/Library/LaunchAgents/com.dcim.autosave.plist
+
+# Start
+launchctl load ~/Library/LaunchAgents/com.dcim.autosave.plist
+```
+
+### Benefits:
+- ✅ Close Cursor anytime (auto-commits)
+- ✅ Shut down Mac anytime (backed up)
+- ✅ Forget about Git (fully automated)
+- ✅ Max 5 minutes of work lost (vs hours)
+
+### How It Works:
+1. You edit in Cursor → auto-saves (1s)
+2. Watcher checks every minute
+3. Every 5 min → auto-commit
+4. Every 30 min → auto-push → Cloudflare deploys
+
+### Commit Format:
+- **Auto**: `chore: Auto-save checkpoint 2026-01-03T12:34:56Z`
+- **Manual**: `feat: Your normal commit message`
+
+---
+
+**LAST UPDATED**: January 3, 2026, 2:45 PM PST
+**TOTAL FEATURES**: 27 (26 main + 1 automation system)
+**STATUS**: Production-ready, fully documented, auto-saving 24/7
