@@ -24,7 +24,7 @@ jobs:
 
       - name: Install dependencies
         working-directory: 'DCIM Compliance App'
-        run: npm ci
+        run: npm install --legacy-peer-deps
 
       - name: Run postinstall
         working-directory: 'DCIM Compliance App'
