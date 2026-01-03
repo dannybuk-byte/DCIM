@@ -5,6 +5,7 @@ import NetworkTraceModal from '../NetworkTraceModal';
 import { OSINTQueryModal, OSINTToolConfig } from '../OSINTQueryModal';
 import DataSourceStatus from '../DataSourceStatus';
 import { RateLimitDashboard } from '../RateLimitDashboard';
+import { ProviderHealthDashboard } from '../ProviderHealthDashboard';
 
 type OSINTTool = OSINTToolConfig;
 
