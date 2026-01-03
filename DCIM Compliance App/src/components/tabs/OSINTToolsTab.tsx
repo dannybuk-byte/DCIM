@@ -107,6 +107,9 @@ export const OSINTToolsTab = memo(() => {
           <p className="text-sm text-gray-400">Open Source Intelligence integrations for infrastructure monitoring</p>
         </div>
 
+        {/* Multi-Provider Failover Dashboard */}
+        <ProviderHealthDashboard />
+
         {/* Rate Limit Status Dashboard */}
         <RateLimitDashboard />
 
