@@ -33,6 +33,7 @@ import type { Facility } from '../../types';
 import { useUnifiedIntelligence } from '../../hooks/useUnifiedIntelligence';
 import type { IntelligenceFinding, IntelligenceScenario } from '../../analyzers/unified/intelligenceEngine';
 import CytoscapeComponent from 'react-cytoscapejs';
+import AutonomousAgentsPanel from '../AutonomousAgentsPanel';
 import {
   CommandHeader,
   StatusCard,
@@ -243,6 +244,11 @@ export function IntelligenceHubTab({ facilities }: IntelligenceHubTabProps) {
           <div className="text-4xl font-bold text-purple-300 mb-1">{intelligence.correlations}</div>
           <div className="text-base font-bold text-purple-400">🌳 Correlations</div>
         </div>
+      </div>
+      
+      {/* Autonomous AI Agents Section */}
+      <div className="my-6">
+        <AutonomousAgentsPanel facilities={facilities} />
       </div>
       
       {/* Action Bar */}

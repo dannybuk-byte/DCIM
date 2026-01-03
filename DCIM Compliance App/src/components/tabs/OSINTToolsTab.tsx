@@ -3,6 +3,7 @@ import { Search, CheckCircle, XCircle, Network } from 'lucide-react';
 import { ErrorBoundary } from '../ErrorBoundary';
 import NetworkTraceModal from '../NetworkTraceModal';
 import { OSINTQueryModal, OSINTToolConfig } from '../OSINTQueryModal';
+import DataSourceStatus from '../DataSourceStatus';
 
 type OSINTTool = OSINTToolConfig;
 
@@ -103,6 +104,9 @@ export const OSINTToolsTab = memo(() => {
           <h2 className="text-2xl font-bold mb-2">OSINT Tools</h2>
           <p className="text-sm text-gray-400">Open Source Intelligence integrations for infrastructure monitoring</p>
         </div>
+
+        {/* Data Source Health Status */}
+        <DataSourceStatus />
 
         {/* Featured Tool: Network Traffic Tracer */}
         <div className="bg-gradient-to-r from-cyan-900/30 to-blue-900/30 border-2 border-cyan-700/50 rounded-lg p-6">

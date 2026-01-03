@@ -56,6 +56,8 @@ import { PredictiveIntelligenceTab } from './tabs/PredictiveIntelligenceTab'; //
 import { ComplianceFlowTab } from './tabs/ComplianceFlowTab'; // Intent-Based Visualization
 import { AssuranceMonitorTab } from './tabs/AssuranceMonitorTab'; // Juniper Marvis-style continuous monitoring
 import { IntelligenceHubTab } from './tabs/IntelligenceHubTab'; // UNIFIED: All intelligence methods combined
+import EvidencePanel from './EvidencePanel'; // FRE 902(13)-(14) Evidence Integrity
+import { indexFacilities } from '../search/SearchEngine'; // FlexSearch initialization
 import { detectDashboardAction } from '../utils/dashboardActions';
 import { ErrorBoundary } from './ErrorBoundary';
 import { CommandPalette } from './shared/CommandPalette';
@@ -653,6 +655,12 @@ export default function DCIMCommandCenter({ onActionRequested: _onActionRequeste
         setFacilities(allFacilities);
         setFilteredFacilities(allFacilities);
         setStats(calculatedStats);
+        
+        // Initialize FlexSearch index for fast searching
+        if (allFacilities.length > 0) {
+          console.log('[DCIMCommandCenter] Initializing FlexSearch with', allFacilities.length, 'facilities');
+          indexFacilities(allFacilities);
+        }
       } catch (error) {
         console.error('Error initializing command center:', error);
         // Graceful degradation
@@ -1721,6 +1729,11 @@ export default function DCIMCommandCenter({ onActionRequested: _onActionRequeste
         onNavigate={handleTabChange}
         currentTab={activeTab}
       />
+
+      {/* Evidence Integrity Panel (Floating) */}
+      <div className="fixed bottom-4 right-4 w-96 max-h-[600px] z-40 shadow-2xl">
+        <EvidencePanel />
+      </div>
     </div>
       )}
     </>
