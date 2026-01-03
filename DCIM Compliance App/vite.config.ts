@@ -6,7 +6,7 @@ export default defineConfig({
   plugins: [
     react()
   ],
-  optimizeDeps: {
+  optimizeDeps: {a
     include: [
       'echarts-for-react',
       '@tensorflow/tfjs',
