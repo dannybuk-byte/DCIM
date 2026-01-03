@@ -34,6 +34,7 @@ import { useUnifiedIntelligence } from '../../hooks/useUnifiedIntelligence';
 import type { IntelligenceFinding, IntelligenceScenario } from '../../analyzers/unified/intelligenceEngine';
 import CytoscapeComponent from 'react-cytoscapejs';
 import AutonomousAgentsPanel from '../AutonomousAgentsPanel';
+import { BGPMonitorPanel } from '../BGPMonitorPanel';
 import {
   CommandHeader,
   StatusCard,
@@ -249,6 +250,11 @@ export function IntelligenceHubTab({ facilities }: IntelligenceHubTabProps) {
       {/* Autonomous AI Agents Section */}
       <div className="my-6">
         <AutonomousAgentsPanel facilities={facilities} />
+      </div>
+      
+      {/* BGP Real-Time Monitoring Section */}
+      <div className="my-6">
+        <BGPMonitorPanel />
       </div>
       
       {/* Action Bar */}
