@@ -25,6 +25,7 @@ import { ErrorBoundary } from './ErrorBoundary'; // Error boundary for resilienc
 import SecurityOverview from './SecurityOverview'; // NEW: Security Posture Overview
 import SecurityInsights from './SecurityInsights'; // Package 1: Security & Verification
 import NetworkDiscovery from './NetworkDiscovery'; // Package 2: Network Discovery
+import ExpansionTracker from './ExpansionTracker'; // Package 3: Subdomain Expansion Tracking
 import { DeepDiveView } from './DeepDiveView';
 import { AISettingsModal } from './AISettingsModal';
 import { NaturalLanguageSearch } from './NaturalLanguageSearch';
@@ -621,6 +622,7 @@ export const OmniscientCommandInterface: React.FC = () => {
             <div className="space-y-4">
               <SecurityInsights facility={selectedFacility} />
               <NetworkDiscovery facility={selectedFacility} />
+              <ExpansionTracker facility={selectedFacility} />
             </div>
           </div>
         </div>
