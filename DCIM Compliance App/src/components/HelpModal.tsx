@@ -374,23 +374,30 @@ const GettingStartedContent: React.FC<{ onBack: () => void }> = ({ onBack }) => 
         <div className="ml-8">
           <h3 className="text-2xl font-bold text-white mb-3">Choose Your View</h3>
           <p className="text-gray-300 mb-4 text-lg">Click view mode buttons at the top to switch between different perspectives:</p>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 gap-3 mb-4">
             <div className="p-4 bg-[#00d2d3]/10 border border-[#00d2d3]/30 rounded-lg">
               <div className="font-bold text-[#00d2d3] mb-1">OMNI</div>
-              <div className="text-sm text-gray-400">Grid view with Natural Language Search</div>
+              <div className="text-sm text-gray-400 mb-2">Grid view with Natural Language Search</div>
+              <div className="text-xs text-gray-500">Best for: Searching and filtering 11,992 facilities</div>
             </div>
             <div className="p-4 bg-[#ffa502]/10 border border-[#ffa502]/30 rounded-lg">
               <div className="font-bold text-[#ffa502] mb-1">DEEP</div>
-              <div className="text-sm text-gray-400">Detailed drill-down + Templates</div>
+              <div className="text-sm text-gray-400 mb-2">Detailed drill-down + Templates</div>
+              <div className="text-xs text-gray-500">Best for: Investigating specific facilities in depth</div>
             </div>
             <div className="p-4 bg-[#ff4757]/10 border border-[#ff4757]/30 rounded-lg">
               <div className="font-bold text-[#ff4757] mb-1">HUD</div>
-              <div className="text-sm text-gray-400">Radial display of critical targets</div>
+              <div className="text-sm text-gray-400 mb-2">Radial display of critical targets</div>
+              <div className="text-xs text-gray-500">Best for: Presentations and quick compliance overview</div>
             </div>
             <div className="p-4 bg-[#2ed573]/10 border border-[#2ed573]/30 rounded-lg">
               <div className="font-bold text-[#2ed573] mb-1">MAP</div>
-              <div className="text-sm text-gray-400">Geographic view by state</div>
+              <div className="text-sm text-gray-400 mb-2">Geographic view by state</div>
+              <div className="text-xs text-gray-500">Best for: Regional campaigns and geographic analysis</div>
             </div>
+          </div>
+          <div className="p-4 bg-black/30 border border-[#00d2d3]/20 rounded-lg text-sm text-gray-400">
+            <strong className="text-white">💡 Tip:</strong> Press number keys 1-4 to quickly switch between views!
           </div>
         </div>
       </div>
@@ -402,8 +409,37 @@ const GettingStartedContent: React.FC<{ onBack: () => void }> = ({ onBack }) => 
         <div className="ml-8">
           <h3 className="text-2xl font-bold text-white mb-3">Search with Natural Language</h3>
           <p className="text-gray-300 mb-4 text-lg">In OMNI view, type questions naturally:</p>
-          <div className="p-4 bg-black/30 border border-[#ffa502]/30 rounded-lg font-mono text-[#ffa502] text-lg">
-            "Show me non-compliant facilities in Texas"
+          <div className="space-y-3 mb-4">
+            <div className="p-4 bg-black/30 border border-[#ffa502]/30 rounded-lg">
+              <div className="text-xs text-gray-400 mb-1">Example Query 1:</div>
+              <div className="font-mono text-[#ffa502] text-base">"Show me non-compliant facilities in Texas"</div>
+            </div>
+            <div className="p-4 bg-black/30 border border-[#ffa502]/30 rounded-lg">
+              <div className="text-xs text-gray-400 mb-1">Example Query 2:</div>
+              <div className="font-mono text-[#ffa502] text-base">"Find facilities with subsidy gaps over $10M"</div>
+            </div>
+            <div className="p-4 bg-black/30 border border-[#ffa502]/30 rounded-lg">
+              <div className="text-xs text-gray-400 mb-1">Example Query 3:</div>
+              <div className="font-mono text-[#ffa502] text-base">"California facilities built after 2020 with compliance under 60%"</div>
+            </div>
+          </div>
+          <div className="space-y-2 text-sm text-gray-400 pl-4 border-l-2 border-[#ffa502]/30">
+            <div className="flex items-start gap-2">
+              <span className="text-[#ffa502] mt-1">▸</span>
+              <span><strong className="text-white">Step 1:</strong> Click in the search box at the top of OMNI view</span>
+            </div>
+            <div className="flex items-start gap-2">
+              <span className="text-[#ffa502] mt-1">▸</span>
+              <span><strong className="text-white">Step 2:</strong> Type your question naturally - no special syntax needed</span>
+            </div>
+            <div className="flex items-start gap-2">
+              <span className="text-[#ffa502] mt-1">▸</span>
+              <span><strong className="text-white">Step 3:</strong> Press Enter and watch results appear with stats banner</span>
+            </div>
+            <div className="flex items-start gap-2">
+              <span className="text-[#ffa502] mt-1">▸</span>
+              <span><strong className="text-white">Step 4:</strong> Click any facility card to see full details</span>
+            </div>
           </div>
         </div>
       </div>
@@ -415,12 +451,34 @@ const GettingStartedContent: React.FC<{ onBack: () => void }> = ({ onBack }) => 
         <div className="ml-8">
           <h3 className="text-2xl font-bold text-white mb-3">Use Investigation Templates</h3>
           <p className="text-gray-300 mb-4 text-lg">In DEEP view, expand any facility and scroll to "Quick Investigations":</p>
-          <div className="flex flex-wrap gap-2">
-            {['Regional Comparison', 'Operator Track Record', 'Largest Subsidy Gaps', '+7 more'].map(template => (
-              <div key={template} className="px-4 py-2 bg-[#2ed573]/10 border border-[#2ed573]/30 rounded-full text-sm text-gray-300">
-                {template}
+          <div className="grid grid-cols-2 gap-2 mb-4">
+            {[
+              { name: 'Regional Comparison', desc: 'Compare facilities across states' },
+              { name: 'Operator Track Record', desc: 'See all facilities by operator' },
+              { name: 'Largest Subsidy Gaps', desc: 'Rank by absolute dollar gap' },
+              { name: 'Promise vs Reality', desc: 'Jobs promised vs. delivered' },
+              { name: 'Timeline Analysis', desc: 'Track compliance over time' },
+              { name: 'Workforce Metrics', desc: 'Employee count and turnover' }
+            ].map(template => (
+              <div key={template.name} className="p-3 bg-[#2ed573]/10 border border-[#2ed573]/30 rounded-lg">
+                <div className="font-bold text-[#2ed573] text-sm mb-1">{template.name}</div>
+                <div className="text-xs text-gray-400">{template.desc}</div>
               </div>
             ))}
+          </div>
+          <div className="space-y-2 text-sm text-gray-400 pl-4 border-l-2 border-[#2ed573]/30">
+            <div className="flex items-start gap-2">
+              <span className="text-[#2ed573] mt-1">▸</span>
+              <span><strong className="text-white">100% Free:</strong> Investigation Templates require no API key - they work instantly offline</span>
+            </div>
+            <div className="flex items-start gap-2">
+              <span className="text-[#2ed573] mt-1">▸</span>
+              <span><strong className="text-white">Pre-built Queries:</strong> 10 templates designed by labor organizers for common investigations</span>
+            </div>
+            <div className="flex items-start gap-2">
+              <span className="text-[#2ed573] mt-1">▸</span>
+              <span><strong className="text-white">One Click Results:</strong> Click any template to see results in a modal with stats and facility cards</span>
+            </div>
           </div>
         </div>
       </div>
@@ -432,10 +490,192 @@ const GettingStartedContent: React.FC<{ onBack: () => void }> = ({ onBack }) => 
         <div className="ml-8">
           <h3 className="text-2xl font-bold text-white mb-3">Configure AI (Optional)</h3>
           <p className="text-gray-300 mb-4 text-lg">Click the AI button in top bar to add your OpenAI API key for enhanced features.</p>
-          <div className="p-4 bg-[#00d2d3]/10 border border-[#00d2d3]/30 rounded-lg">
-            <div className="text-xs text-gray-400 uppercase tracking-wider mb-2">Note</div>
-            <div className="text-sm text-gray-300">Dashboard works great without AI! Templates and keyword search are completely free.</div>
+          <div className="space-y-3 mb-4">
+            <div className="p-4 bg-[#00d2d3]/10 border border-[#00d2d3]/30 rounded-lg">
+              <div className="flex items-center justify-between mb-2">
+                <div className="font-bold text-white">OpenAI (Recommended)</div>
+                <div className="text-xs text-[#00d2d3] bg-[#00d2d3]/20 px-2 py-1 rounded">BEST SPEED</div>
+              </div>
+              <div className="text-sm text-gray-400">GPT-4 provides ~95% accuracy, ~2 second response time</div>
+            </div>
+            <div className="p-4 bg-[#ffa502]/10 border border-[#ffa502]/30 rounded-lg">
+              <div className="flex items-center justify-between mb-2">
+                <div className="font-bold text-white">Anthropic Claude</div>
+                <div className="text-xs text-[#ffa502] bg-[#ffa502]/20 px-2 py-1 rounded">BEST COMPLEXITY</div>
+              </div>
+              <div className="text-sm text-gray-400">Claude excels at multi-part queries, ~3 second response time</div>
+            </div>
           </div>
+          <div className="p-4 bg-[#ff4757]/10 border border-[#ff4757]/30 rounded-lg">
+            <div className="text-xs text-[#ff4757] font-bold mb-2">⚠️ IMPORTANT</div>
+            <div className="text-sm text-gray-300 mb-3">Dashboard works great without AI! All core features are free:</div>
+            <ul className="text-xs text-gray-400 space-y-1 ml-4">
+              <li>✓ Investigation Templates (10 pre-built queries)</li>
+              <li>✓ DEEP view drill-down (infinite nested exploration)</li>
+              <li>✓ HUD, MAP, and BOARD views (all visualization modes)</li>
+              <li>✓ Fullscreen, keyboard shortcuts, Smart Panels</li>
+            </ul>
+          </div>
+          <div className="mt-4 space-y-2 text-sm text-gray-400 pl-4 border-l-2 border-white/30">
+            <div className="flex items-start gap-2">
+              <span className="text-white mt-1">▸</span>
+              <span><strong className="text-white">Cost:</strong> ~$0.005 per query (half a cent), typical usage is $1-5/month</span>
+            </div>
+            <div className="flex items-start gap-2">
+              <span className="text-white mt-1">▸</span>
+              <span><strong className="text-white">Security:</strong> Your API key stays in your browser, never sent to our servers</span>
+            </div>
+            <div className="flex items-start gap-2">
+              <span className="text-white mt-1">▸</span>
+              <span><strong className="text-white">Setup:</strong> Get API key from OpenAI or Anthropic website, paste in AI Settings modal</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    {/* Comprehensive Walkthrough Example */}
+    <div className="p-8 bg-gradient-to-br from-[#ffa502]/10 to-transparent border-2 border-[#ffa502]/30 rounded-xl">
+      <h3 className="text-3xl font-bold text-white mb-4 flex items-center gap-3">
+        <Award size={36} className="text-[#ffa502]" />
+        Complete Investigation Walkthrough
+      </h3>
+      <div className="mb-4 p-4 bg-black/30 border border-[#ffa502]/20 rounded-lg">
+        <p className="text-gray-300 mb-2">
+          <strong className="text-white text-lg">Scenario:</strong> You're a labor organizer investigating non-compliant data centers in Texas that received large subsidies but failed to create promised jobs.
+        </p>
+        <p className="text-[#ffa502] text-sm">
+          Goal: Find facilities, quantify the subsidy gap, identify worst offenders, and create a report for coalition partners.
+        </p>
+      </div>
+      
+      <div className="space-y-4">
+        <div className="flex gap-4 items-start">
+          <div className="flex-shrink-0 w-10 h-10 rounded-full bg-[#ffa502] flex items-center justify-center font-bold text-black">1</div>
+          <div className="flex-1">
+            <h4 className="font-bold text-white text-lg mb-2">Start with OMNI View</h4>
+            <p className="text-gray-300 text-sm mb-2">Click the <strong className="text-[#00d2d3]">OMNI</strong> button at the top of the screen. You'll see a grid of facility cards with a Natural Language Search box at the top.</p>
+            <div className="p-3 bg-[#00d2d3]/10 border border-[#00d2d3]/20 rounded text-xs text-gray-400">
+              💡 You should see "Search 11,992 facilities..." placeholder text in the search box
+            </div>
+          </div>
+        </div>
+
+        <div className="flex gap-4 items-start">
+          <div className="flex-shrink-0 w-10 h-10 rounded-full bg-[#ffa502] flex items-center justify-center font-bold text-black">2</div>
+          <div className="flex-1">
+            <h4 className="font-bold text-white text-lg mb-2">Run Natural Language Search</h4>
+            <p className="text-gray-300 text-sm mb-2">Click in the search box and type:</p>
+            <div className="p-3 bg-black/40 border border-[#ffa502]/30 rounded font-mono text-[#ffa502] mb-2">"Show me non-compliant facilities in Texas with subsidies over $10M"</div>
+            <p className="text-gray-300 text-sm mb-2">Press <kbd className="px-2 py-1 bg-white/10 border border-white/20 rounded text-xs font-mono mx-1">Enter</kbd></p>
+            <div className="p-3 bg-[#00d2d3]/10 border border-[#00d2d3]/20 rounded text-xs text-gray-400">
+              ⏱️ Results appear in ~2 seconds with a stats banner showing count, total subsidies, and compliance rate
+            </div>
+          </div>
+        </div>
+
+        <div className="flex gap-4 items-start">
+          <div className="flex-shrink-0 w-10 h-10 rounded-full bg-[#ffa502] flex items-center justify-center font-bold text-black">3</div>
+          <div className="flex-1">
+            <h4 className="font-bold text-white text-lg mb-2">Review Results & Stats</h4>
+            <p className="text-gray-300 text-sm mb-2">The results banner shows:</p>
+            <ul className="space-y-1 text-sm text-gray-400 ml-4">
+              <li>• <strong className="text-white">Found X facilities</strong> - Total matching your query</li>
+              <li>• <strong className="text-white">$YYY.YM total subsidies</strong> - Public money given to these facilities</li>
+              <li>• <strong className="text-white">ZZ% avg compliance</strong> - Percentage of jobs promised vs. delivered</li>
+              <li>• <strong className="text-white">$AAA.AM subsidy gap</strong> - Money that didn't deliver promised jobs</li>
+            </ul>
+            <div className="p-3 bg-[#00d2d3]/10 border border-[#00d2d3]/20 rounded text-xs text-gray-400 mt-2">
+              📊 Each facility card shows: Operator name, location, promised vs. actual jobs, subsidy amount, compliance status (color-coded)
+            </div>
+          </div>
+        </div>
+
+        <div className="flex gap-4 items-start">
+          <div className="flex-shrink-0 w-10 h-10 rounded-full bg-[#ffa502] flex items-center justify-center font-bold text-black">4</div>
+          <div className="flex-1">
+            <h4 className="font-bold text-white text-lg mb-2">Deep Dive on Worst Offenders</h4>
+            <p className="text-gray-300 text-sm mb-2">Click the <strong className="text-[#ffa502]">DEEP</strong> button to switch views. Scroll to facilities with largest subsidy gaps (highest dollar amounts in red).</p>
+            <p className="text-gray-300 text-sm mb-2">Click any facility card to expand it. You'll see:</p>
+            <ul className="space-y-1 text-sm text-gray-400 ml-4">
+              <li>• <strong className="text-white">Overview Tab:</strong> Summary, timeline, live status, Investigation Templates</li>
+              <li>• <strong className="text-white">Technical Tab:</strong> Racks → Servers → Components (drill down infinitely)</li>
+              <li>• <strong className="text-white">Financial Tab:</strong> Transactions by customer with granular payment data</li>
+              <li>• <strong className="text-white">Workforce Tab:</strong> Employee directory, incident log, turnover metrics</li>
+            </ul>
+          </div>
+        </div>
+
+        <div className="flex gap-4 items-start">
+          <div className="flex-shrink-0 w-10 h-10 rounded-full bg-[#ffa502] flex items-center justify-center font-bold text-black">5</div>
+          <div className="flex-1">
+            <h4 className="font-bold text-white text-lg mb-2">Run Investigation Template</h4>
+            <p className="text-gray-300 text-sm mb-2">In the expanded facility, scroll to "Quick Investigations" section. Click <strong className="text-[#2ed573]">Operator Track Record</strong> to see all facilities run by this operator.</p>
+            <p className="text-gray-300 text-sm mb-2">A modal appears showing:</p>
+            <ul className="space-y-1 text-sm text-gray-400 ml-4">
+              <li>• Total facilities operated: <strong className="text-white">23</strong></li>
+              <li>• Non-compliant rate: <strong className="text-[#ff4757]">61%</strong> (14 out of 23)</li>
+              <li>• Total subsidy gap: <strong className="text-[#ff4757]">$87.3M</strong></li>
+            </ul>
+            <div className="p-3 bg-[#2ed573]/10 border border-[#2ed573]/20 rounded text-xs text-gray-400 mt-2">
+              🎯 This reveals a pattern: This operator has a track record of missing job targets across multiple facilities
+            </div>
+          </div>
+        </div>
+
+        <div className="flex gap-4 items-start">
+          <div className="flex-shrink-0 w-10 h-10 rounded-full bg-[#ffa502] flex items-center justify-center font-bold text-black">6</div>
+          <div className="flex-1">
+            <h4 className="font-bold text-white text-lg mb-2">Create Visual Report</h4>
+            <p className="text-gray-300 text-sm mb-2">Switch to <strong className="text-[#ff4757]">HUD</strong> view to see critical targets in a radial display - great for presentations.</p>
+            <p className="text-gray-300 text-sm mb-2">Press <kbd className="px-2 py-1 bg-white/10 border border-white/20 rounded text-xs font-mono mx-1">F</kbd> for fullscreen mode to remove UI clutter.</p>
+            <p className="text-gray-300 text-sm mb-2">Take screenshots using your browser's screenshot tool (Cmd+Shift+4 on Mac, Win+Shift+S on Windows).</p>
+            <div className="p-3 bg-[#ffa502]/10 border border-[#ffa502]/20 rounded text-xs text-gray-400">
+              📸 Capture: (1) HUD view radial, (2) MAP view by state, (3) DEEP view of worst offender with tabs expanded
+            </div>
+          </div>
+        </div>
+
+        <div className="flex gap-4 items-start">
+          <div className="flex-shrink-0 w-10 h-10 rounded-full bg-[#2ed573] flex items-center justify-center font-bold text-black">✓</div>
+          <div className="flex-1">
+            <h4 className="font-bold text-[#2ed573] text-lg mb-2">Share Findings with Coalition</h4>
+            <p className="text-gray-300 text-sm mb-2">You now have:</p>
+            <ul className="space-y-1 text-sm text-gray-400 ml-4">
+              <li>✓ <strong className="text-white">Quantified data:</strong> X facilities, $Y.YM subsidy gap in Texas</li>
+              <li>✓ <strong className="text-white">Worst offenders:</strong> Operator name with track record across 23 facilities</li>
+              <li>✓ <strong className="text-white">Visual evidence:</strong> Screenshots showing radial HUD, geographic map, detailed drill-down</li>
+              <li>✓ <strong className="text-white">Actionable targets:</strong> Specific facilities and operators for accountability campaigns</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    {/* Pro Tips Grid */}
+    <div className="grid grid-cols-2 gap-4">
+      <div className="p-6 bg-gradient-to-r from-[#00d2d3]/20 to-transparent border-l-4 border-[#00d2d3] rounded-lg">
+        <div className="flex items-center gap-3 mb-3">
+          <div className="text-3xl">🚀</div>
+          <h4 className="text-xl font-bold text-white">For First-Time Users</h4>
+        </div>
+        <p className="text-gray-300 text-sm mb-3">
+          Start with Investigation Templates! They're instant, free, and don't require API setup. Perfect for getting familiar with the data.
+        </p>
+        <div className="text-xs text-gray-500">
+          Recommended: Try "Regional Comparison" or "Largest Subsidy Gaps" first
+        </div>
+      </div>
+      <div className="p-6 bg-gradient-to-r from-[#2ed573]/20 to-transparent border-l-4 border-[#2ed573] rounded-lg">
+        <div className="flex items-center gap-3 mb-3">
+          <div className="text-3xl">💡</div>
+          <h4 className="text-xl font-bold text-white">For Power Users</h4>
+        </div>
+        <p className="text-gray-300 text-sm mb-3">
+          Master keyboard shortcuts! Press <kbd className="px-2 py-1 bg-white/10 border border-white/20 rounded text-xs font-mono">1-4</kbd> to switch views, <kbd className="px-2 py-1 bg-white/10 border border-white/20 rounded text-xs font-mono">F</kbd> for fullscreen, <kbd className="px-2 py-1 bg-white/10 border border-white/20 rounded text-xs font-mono">?</kbd> for help.
+        </p>
+        <div className="text-xs text-gray-500">
+          Combine with Smart Panels (hover edges) for maximum efficiency
         </div>
       </div>
     </div>
