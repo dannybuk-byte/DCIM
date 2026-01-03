@@ -7,6 +7,7 @@ import React, { useState } from 'react';
 import { Globe, Layers, Map } from 'lucide-react';
 import { Facility } from '../../types';
 import { InfrastructureTree } from '../InfrastructureTree';
+import { GlobeView } from '../GlobeView';
 
 interface NetworkVisualizationTabProps {
   facilities: Facility[];
@@ -69,13 +70,7 @@ export function NetworkVisualizationTab({ facilities }: NetworkVisualizationTabP
       )}
       
       {viewMode === 'globe' && (
-        <div className="bg-slate-900/50 rounded-lg border border-slate-700 p-8 text-center">
-          <Globe className="w-16 h-16 mx-auto text-cyan-400 mb-4 animate-pulse" />
-          <h3 className="text-xl font-semibold text-white mb-2">3D Globe View</h3>
-          <p className="text-slate-400">
-            Implementing deck.gl 3D globe visualization...
-          </p>
-        </div>
+        <GlobeView facilities={facilities} />
       )}
     </div>
   );
