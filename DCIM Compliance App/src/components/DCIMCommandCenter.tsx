@@ -63,6 +63,7 @@ import { indexFacilities } from '../search/SearchEngine'; // FlexSearch initiali
 import { detectDashboardAction } from '../utils/dashboardActions';
 import { ErrorBoundary } from './ErrorBoundary';
 import { CommandPalette } from './shared/CommandPalette';
+import { SystemHealthBanner } from './SystemHealthBanner';
 import { SettingsPanel } from './shared/SettingsPanel';
 import { downloadComplianceReport } from '../services/PDFReportGenerator';
 import { PWAStatus } from './shared/PWAStatus';
