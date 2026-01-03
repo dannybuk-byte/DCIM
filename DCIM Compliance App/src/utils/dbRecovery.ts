@@ -193,3 +193,160 @@ export async function clearAllData(): Promise<void> {
   }
 }
 
+/**
+ * Check IndexedDB quota usage
+ */
+export async function checkQuota(): Promise<{
+  usage: number;
+  quota: number;
+  percentage: number;
+  available: number;
+}> {
+  if (!navigator.storage || !navigator.storage.estimate) {
+    return {
+      usage: 0,
+      quota: 0,
+      percentage: 0,
+      available: 0,
+    };
+  }
+
+  try {
+    const estimate = await navigator.storage.estimate();
+    const usage = estimate.usage || 0;
+    const quota = estimate.quota || 0;
+    const percentage = quota > 0 ? (usage / quota) * 100 : 0;
+    const available = quota - usage;
+
+    return {
+      usage,
+      quota,
+      percentage,
+      available,
+    };
+  } catch (error) {
+    console.error('Error checking quota:', error);
+    return {
+      usage: 0,
+      quota: 0,
+      percentage: 0,
+      available: 0,
+    };
+  }
+}
+
+/**
+ * Export all data as JSON (for backup/migration)
+ */
+export async function exportAllData(): Promise<string> {
+  try {
+    const [facilities, searchHistory] = await Promise.all([
+      db.facilities.toArray(),
+      db.searchHistory.toArray(),
+    ]);
+
+    const exportData = {
+      version: 1,
+      exportedAt: new Date().toISOString(),
+      data: {
+        facilities,
+        searchHistory,
+      },
+    };
+
+    return JSON.stringify(exportData, null, 2);
+  } catch (error) {
+    console.error('Error exporting data:', error);
+    throw error;
+  }
+}
+
+/**
+ * Import data from JSON backup
+ */
+export async function importData(jsonData: string): Promise<void> {
+  try {
+    const importData = JSON.parse(jsonData);
+
+    if (!importData.version || !importData.data) {
+      throw new Error('Invalid backup file format');
+    }
+
+    // Clear existing data
+    await clearAllData();
+
+    // Import facilities
+    if (importData.data.facilities && Array.isArray(importData.data.facilities)) {
+      await db.facilities.bulkPut(importData.data.facilities);
+      console.log(`✅ Imported ${importData.data.facilities.length} facilities`);
+    }
+
+    // Import search history
+    if (importData.data.searchHistory && Array.isArray(importData.data.searchHistory)) {
+      await db.searchHistory.bulkPut(importData.data.searchHistory);
+      console.log(`✅ Imported ${importData.data.searchHistory.length} search history entries`);
+    }
+
+    console.log('✅ Data import complete');
+  } catch (error) {
+    console.error('Error importing data:', error);
+    throw error;
+  }
+}
+
+/**
+ * Download exported data as a file
+ */
+export async function downloadBackup(): Promise<void> {
+  try {
+    const data = await exportAllData();
+    const blob = new Blob([data], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `dcim-backup-${new Date().toISOString().slice(0, 10)}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    
+    URL.revokeObjectURL(url);
+    
+    console.log('✅ Backup downloaded');
+  } catch (error) {
+    console.error('Error downloading backup:', error);
+    throw error;
+  }
+}
+
+/**
+ * Automatic cleanup when quota is nearly full (>80%)
+ */
+export async function autoCleanupIfNeeded(): Promise<boolean> {
+  const quota = await checkQuota();
+  
+  if (quota.percentage > 80) {
+    console.warn(`⚠️ Storage quota ${quota.percentage.toFixed(1)}% full - cleaning up...`);
+    
+    try {
+      // Clear OSINT cache (least critical data)
+      await db.osintCache?.clear();
+      
+      // Clear old search history (> 30 days)
+      const thirtyDaysAgo = Date.now() - 30 * 24 * 60 * 60 * 1000;
+      await db.searchHistory
+        .where('timestamp')
+        .below(thirtyDaysAgo)
+        .delete();
+      
+      console.log('✅ Automatic cleanup complete');
+      return true;
+    } catch (error) {
+      console.error('Automatic cleanup failed:', error);
+      return false;
+    }
+  }
+  
+  return false;
+}
+

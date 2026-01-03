@@ -12,13 +12,14 @@ import { useState, useEffect, useCallback } from 'react';
 import {
   Settings, X, Bell, MapPin, Download, Eye, Plus, Trash2,
   Check, AlertTriangle, ExternalLink, TestTube, ChevronDown,
-  ChevronRight, Globe, Webhook, FileDown, Palette, Keyboard
+  ChevronRight, Globe, Webhook, FileDown, Palette, Keyboard, Database
 } from 'lucide-react';
 import { 
   getWebhooks, addWebhook, updateWebhook, deleteWebhook, testWebhook,
   type WebhookConfig, type WebhookProvider, type AlertEventType
 } from '../../services/WebhookAlerts';
 import { getSettings, saveSettings, settingsKey } from '../../utils/settingsPersistence';
+import { DatabaseHealthMonitor } from '../DatabaseHealthMonitor';
 
 const COLORS = {
   bg: '#0a0e17',
@@ -39,7 +40,7 @@ interface SettingsPanelProps {
   onClose: () => void;
 }
 
-type SettingsTab = 'webhooks' | 'mapbox' | 'export' | 'display' | 'shortcuts';
+type SettingsTab = 'webhooks' | 'mapbox' | 'export' | 'display' | 'shortcuts' | 'database';
 
 interface MapboxSettings {
   accessToken: string;
@@ -252,6 +253,7 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
 
   const tabs: { id: SettingsTab; label: string; icon: typeof Settings }[] = [
     { id: 'webhooks', label: 'Webhooks', icon: Bell },
+    { id: 'database', label: 'Database', icon: Database },
     { id: 'mapbox', label: 'Mapbox', icon: MapPin },
     { id: 'export', label: 'Export', icon: Download },
     { id: 'display', label: 'Display', icon: Eye },
@@ -796,6 +798,11 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
                       </table>
                     </div>
                   </div>
+                )}
+
+                {/* Database Tab */}
+                {activeTab === 'database' && (
+                  <DatabaseHealthMonitor />
                 )}
               </>
             )}
