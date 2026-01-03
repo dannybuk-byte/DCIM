@@ -63,9 +63,9 @@ export const HelpModal: React.FC<HelpModalProps> = ({ isOpen, onClose }) => {
             </div>
             <div>
               <h1 className="text-5xl font-bold bg-gradient-to-r from-white via-[#00d2d3] to-white bg-clip-text text-transparent mb-1 animate-gradient">
-                DCIM Help Center
+                DCIM Help Center v2.0
               </h1>
-              <p className="text-xl text-gray-300">Everything you need to track data center compliance</p>
+              <p className="text-xl text-gray-300">Everything you need to track data center compliance • Expanded Guides</p>
             </div>
           </div>
         </div>
