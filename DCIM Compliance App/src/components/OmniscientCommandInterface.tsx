@@ -30,7 +30,7 @@ import { AISettingsModal } from './AISettingsModal';
 import { NaturalLanguageSearch } from './NaturalLanguageSearch';
 import { HelpModal } from './HelpModal';
 
-type ViewMode = 'omniscient' | 'hud' | 'timeline' | 'network' | 'map' | 'kanban' | 'deepdive';
+type ViewMode = 'omniscient' | 'intelligence' | 'hud' | 'timeline' | 'network' | 'map' | 'kanban' | 'deepdive';
 
 export const OmniscientCommandInterface: React.FC = () => {
   const [viewMode, setViewMode] = useState<ViewMode>('omniscient');
@@ -191,6 +191,7 @@ export const OmniscientCommandInterface: React.FC = () => {
             <div className="flex items-center gap-1.5">
               {[
                 { mode: 'omniscient' as ViewMode, icon: Target, label: 'Overview', tooltip: 'See all facilities at a glance' },
+                { mode: 'intelligence' as ViewMode, icon: Network, label: '🔍 Intel', tooltip: 'Security & Network Intelligence for all facilities' },
                 { mode: 'deepdive' as ViewMode, icon: Layers, label: 'Details', tooltip: 'Explore individual facilities in depth' },
                 { mode: 'hud' as ViewMode, icon: Zap, label: 'Alerts', tooltip: 'Focus on critical violations' },
                 { mode: 'timeline' as ViewMode, icon: Calendar, label: 'TIME', tooltip: 'Project timeline and milestones' },
@@ -279,6 +280,7 @@ export const OmniscientCommandInterface: React.FC = () => {
                 <div className="flex items-center gap-2">
                   {[
                     { mode: 'omniscient' as ViewMode, icon: Target, label: 'Overview' },
+                    { mode: 'intelligence' as ViewMode, icon: Network, label: '🔍 Intelligence' },
                     { mode: 'deepdive' as ViewMode, icon: Layers, label: 'Details' },
                     { mode: 'hud' as ViewMode, icon: Zap, label: 'Alerts' },
                     { mode: 'timeline' as ViewMode, icon: Calendar, label: 'TIME' },
@@ -473,6 +475,61 @@ export const OmniscientCommandInterface: React.FC = () => {
         )}
 
         {viewMode === 'omniscient' && <OmniscientView facilities={facilities} onSelect={setSelectedFacility} isFullscreen={isFullscreen} />}
+        {viewMode === 'intelligence' && (
+          <div className={`${isFullscreen ? 'p-4' : 'p-6'} space-y-6`}>
+            <div className="mb-6">
+              <h2 className="text-2xl font-bold text-[#00d2d3] mb-2">🔍 Security & Network Intelligence</h2>
+              <p className="text-sm text-gray-400">
+                Real-time intelligence on all facilities using browser-native APIs. Click any facility below to see detailed analysis.
+              </p>
+            </div>
+            
+            {/* Security Overview */}
+            <SecurityOverview facilities={facilities} />
+            
+            {/* Facility Grid with Intelligence Preview */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {facilities.slice(0, 12).map((facility) => (
+                <div
+                  key={facility.id}
+                  onClick={() => setSelectedFacility(facility)}
+                  className="bg-white/5 border border-[#00d2d3]/20 rounded-lg p-4 hover:bg-white/10 hover:border-[#00d2d3] transition-all cursor-pointer"
+                >
+                  <div className="flex items-start justify-between mb-3">
+                    <div>
+                      <h3 className="text-sm font-bold text-white truncate">{facility.name}</h3>
+                      <p className="text-xs text-gray-400 mt-1">{facility.city}, {facility.state}</p>
+                    </div>
+                    <div className={`w-2 h-2 rounded-full ${
+                      facility.complianceStatus === 'Compliant' ? 'bg-[#2ed573]' :
+                      facility.complianceStatus === 'Non-Compliant' ? 'bg-[#ff4757]' :
+                      'bg-[#ffa502]'
+                    }`} />
+                  </div>
+                  
+                  {/* Quick Intelligence Preview */}
+                  <div className="space-y-2">
+                    <SecurityInsights facility={facility} className="opacity-75 hover:opacity-100 transition-opacity" />
+                  </div>
+                  
+                  <div className="mt-3 pt-3 border-t border-[#00d2d3]/10">
+                    <button className="text-xs text-[#00d2d3] hover:text-white font-semibold">
+                      View Full Intelligence →
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+            
+            {facilities.length > 12 && (
+              <div className="text-center py-4">
+                <p className="text-sm text-gray-400">
+                  Showing 12 of {facilities.length} facilities. Click any card to see full intelligence.
+                </p>
+              </div>
+            )}
+          </div>
+        )}
         {viewMode === 'deepdive' && <DeepDiveView facilities={facilities} isFullscreen={isFullscreen} />}
         {viewMode === 'hud' && <HUDView facilities={facilities} onSelect={setSelectedFacility} isFullscreen={isFullscreen} />}
         {viewMode === 'timeline' && <TimelineView facilities={facilities} onSelect={setSelectedFacility} isFullscreen={isFullscreen} />}
