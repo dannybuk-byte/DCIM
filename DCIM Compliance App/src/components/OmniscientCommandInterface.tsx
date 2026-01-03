@@ -21,6 +21,7 @@ import {
 import { db } from '../db/database';
 import { seedDatabase } from '../db/seedData';
 import { Facility } from '../types';
+import { ErrorBoundary } from './ErrorBoundary'; // Error boundary for resilience
 import SecurityOverview from './SecurityOverview'; // NEW: Security Posture Overview
 import { DeepDiveView } from './DeepDiveView';
 import { AISettingsModal } from './AISettingsModal';
