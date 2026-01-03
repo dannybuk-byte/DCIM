@@ -1131,9 +1131,10 @@ const FAQContent: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                 setExpandedIndex(firstInCategory);
               }
             }}
-            className="px-4 py-2 bg-white/5 border border-white/20 rounded-lg text-sm text-gray-300 hover:bg-white/10 hover:border-[#00d2d3]/50 transition-all"
+            className="group relative px-6 py-3 bg-white/5 border-2 border-white/20 rounded-xl text-sm text-gray-300 hover:bg-white/10 hover:border-[#00d2d3] hover:text-white hover:scale-110 transition-all duration-300 hover:shadow-lg hover:shadow-[#00d2d3]/50 active:scale-95"
           >
-            {cat}
+            <div className="absolute inset-0 bg-gradient-to-r from-[#00d2d3]/20 to-[#2ed573]/20 opacity-0 group-hover:opacity-100 rounded-xl transition-opacity duration-300" />
+            <span className="relative z-10 font-semibold">{cat}</span>
           </button>
         ))}
       </div>
@@ -1148,25 +1149,32 @@ const FAQContent: React.FC<{ onBack: () => void }> = ({ onBack }) => {
             </h3>
             {faqs.filter(faq => faq.category === category).map((faq, index) => {
               const globalIndex = faqs.indexOf(faq);
+              const isExpanded = expandedIndex === globalIndex;
               return (
                 <div
                   key={globalIndex}
-                  className="border-2 border-white/10 rounded-xl overflow-hidden hover:border-[#00d2d3]/30 transition-all"
+                  className={`group border-2 rounded-xl overflow-hidden transition-all duration-300 ${
+                    isExpanded 
+                      ? 'border-[#00d2d3] shadow-lg shadow-[#00d2d3]/30 scale-[1.02]' 
+                      : 'border-white/10 hover:border-[#00d2d3]/50 hover:shadow-md hover:scale-[1.01]'
+                  }`}
                 >
                   <button
                     onClick={() => setExpandedIndex(expandedIndex === globalIndex ? null : globalIndex)}
-                    className="w-full p-6 text-left flex items-center justify-between bg-white/5 hover:bg-white/10 transition-colors"
+                    className="w-full p-6 text-left flex items-center justify-between bg-white/5 hover:bg-white/10 transition-all duration-300"
                   >
-                    <span className="font-bold text-white text-lg pr-4">{faq.q}</span>
+                    <span className="font-bold text-white text-lg pr-4 group-hover:text-[#00d2d3] transition-colors duration-300">{faq.q}</span>
                     <ChevronRight
                       size={24}
-                      className={`text-[#00d2d3] flex-shrink-0 transition-transform duration-300 ${
-                        expandedIndex === globalIndex ? 'rotate-90' : ''
+                      className={`flex-shrink-0 transition-all duration-500 ${
+                        isExpanded 
+                          ? 'rotate-90 text-[#00d2d3] scale-125' 
+                          : 'text-gray-400 group-hover:text-[#00d2d3] group-hover:translate-x-2'
                       }`}
                     />
                   </button>
-                  {expandedIndex === globalIndex && (
-                    <div className="p-6 bg-black/30 border-t border-white/10">
+                  {isExpanded && (
+                    <div className="p-6 bg-gradient-to-br from-black/30 to-[#00d2d3]/5 border-t border-[#00d2d3]/30 animate-slideDown">
                       <p className="text-gray-300 text-base leading-relaxed">{faq.a}</p>
                     </div>
                   )}
