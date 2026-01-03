@@ -23,6 +23,8 @@ import { seedDatabase } from '../db/seedData';
 import { Facility } from '../types';
 import { ErrorBoundary } from './ErrorBoundary'; // Error boundary for resilience
 import SecurityOverview from './SecurityOverview'; // NEW: Security Posture Overview
+import SecurityInsights from './SecurityInsights'; // Package 1: Security & Verification
+import NetworkDiscovery from './NetworkDiscovery'; // Package 2: Network Discovery
 import { DeepDiveView } from './DeepDiveView';
 import { AISettingsModal } from './AISettingsModal';
 import { NaturalLanguageSearch } from './NaturalLanguageSearch';
@@ -520,8 +522,8 @@ export const OmniscientCommandInterface: React.FC = () => {
 
       {/* OVERLAY: Selected Facility Detail */}
       {selectedFacility && (
-        <div className="absolute inset-0 bg-black/80 backdrop-blur-sm z-[100] flex items-center justify-center" onClick={() => setSelectedFacility(null)}>
-          <div className="bg-black border-2 border-[#00d2d3] rounded-lg p-8 max-w-2xl w-full mx-8 shadow-[0_0_50px_#00d2d3]" onClick={e => e.stopPropagation()}>
+        <div className="absolute inset-0 bg-black/80 backdrop-blur-sm z-[100] flex items-center justify-center overflow-y-auto p-4" onClick={() => setSelectedFacility(null)}>
+          <div className="bg-black border-2 border-[#00d2d3] rounded-lg p-8 max-w-5xl w-full shadow-[0_0_50px_#00d2d3] my-8" onClick={e => e.stopPropagation()}>
             <div className="flex items-start justify-between mb-6">
               <div>
                 <h2 className="text-2xl font-bold text-[#00d2d3]">{selectedFacility.name}</h2>
@@ -531,7 +533,9 @@ export const OmniscientCommandInterface: React.FC = () => {
                 ✕
               </button>
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            
+            {/* Basic Info Grid */}
+            <div className="grid grid-cols-2 gap-4 mb-6">
               <div className="bg-white/5 p-4 rounded border border-[#00d2d3]/20">
                 <div className="text-xs text-gray-400 mb-1">Operator</div>
                 <div className="text-lg font-bold">{selectedFacility.operator}</div>
@@ -554,6 +558,12 @@ export const OmniscientCommandInterface: React.FC = () => {
                 <div className="text-xs text-gray-400 mb-1">Type</div>
                 <div className="text-lg font-bold">{selectedFacility.type}</div>
               </div>
+            </div>
+
+            {/* NEW: Intelligence Sections */}
+            <div className="space-y-4">
+              <SecurityInsights facility={selectedFacility} />
+              <NetworkDiscovery facility={selectedFacility} />
             </div>
           </div>
         </div>
