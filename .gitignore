@@ -1,2 +1,9 @@
 node_modules
-*.code-workspace
+node_modules/
+dist/
+.next/
+node_modules/
+dist/
+.next/
+dist/
+.vite/

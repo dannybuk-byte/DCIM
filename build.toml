@@ -1,7 +1,0 @@
-[build]
-  command = "cd 'DCIM Compliance App' && npm install && npm run postinstall && npm run build"
-  publish = "DCIM Compliance App/dist"
-
-[build.environment]
-  NODE_VERSION = "20"
-

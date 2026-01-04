@@ -5,13 +5,14 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build",
+    "prebuild": "bash generate-build-info.sh",
+    "build": "vite build",
     "preview": "vite preview",
     "test": "vitest",
     "test:ui": "vitest --ui",
     "test:run": "vitest run",
     "test:coverage": "vitest run --coverage",
-    "postinstall": "echo '// Stub for macOS permission workaround\\nexport function install() {}' > node_modules/echarts/lib/chart/sankey/install.js"
+    "postinstall": "node -e \"const fs = require('fs'); const dir = 'node_modules/echarts/lib/chart/sankey'; try { fs.mkdirSync(dir, { recursive: true }); fs.writeFileSync(dir + '/install.js', '// Stub file\\nexport function install() {}\\n'); console.log('✅ Created echarts stub'); } catch(e) { console.warn('⚠️ Could not create echarts stub:', e.message); }\""
   },
   "dependencies": {
     "@deck.gl/aggregation-layers": "^9.2.5",
