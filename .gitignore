@@ -13,3 +13,4 @@ dist
 .mcp-memory.jsonl
 *.log
 >>>>>>> origin/main
+.DS_Store
