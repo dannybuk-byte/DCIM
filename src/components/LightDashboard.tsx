@@ -1,18 +1,23 @@
 /**
- * Light Dashboard - Professional, Demo-Ready UI
+ * Light Dashboard - Professional, Demo-Ready UI with Maximum Data Density
  * 
- * A beautifully designed light theme dashboard for presentations and demos.
- * Clean, modern, and professional while maintaining full functionality.
+ * Features:
+ * - Nested interactive tabs at every level
+ * - Deep expandable tree structures (unlimited nesting)
+ * - Maximum data density with compact layouts
+ * - Full drill-down capability: Operator → State → City → Facility → Issues
  */
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { 
-  Search, Menu, Bell, Settings, Download, ChevronRight,
+  Search, Menu, Bell, Download, ChevronRight,
   Building2, AlertTriangle, CheckCircle, XCircle, HelpCircle,
-  TrendingUp, TrendingDown, DollarSign, MapPin,
+  TrendingUp, TrendingDown, DollarSign, MapPin, Users,
   Filter, X, Sparkles, BarChart3, Globe, FileText, Zap, 
   Shield, Activity, RefreshCw, Clock, ArrowRight, Database, Network,
-  ChevronDown, ExternalLink, Info, Copy, Check, ArrowUpRight
+  ChevronDown, ExternalLink, Info, Copy, Check, ArrowUpRight,
+  Layers, Hash, Calendar, Target, Eye, EyeOff, Maximize2, Minimize2,
+  Plus, Minus, FolderOpen, Folder, ChevronUp
 } from 'lucide-react';
 import { db } from '../db/database';
 import { seedDatabase } from '../db/seedData';
@@ -22,109 +27,687 @@ import { safeDbOperation } from '../utils/dbOperations';
 import { formatCurrency } from '../utils/formatting';
 import { downloadComplianceReport } from '../services/PDFReportGenerator';
 
-// Section type for navigation
+// Types
 type Section = 'dashboard' | 'facilities' | 'geography' | 'problems' | 'intelligence' | 'subsidies' | 'workers' | 'timeline' | 'reports' | 'osint' | 'network';
+type ViewMode = 'table' | 'tree' | 'cards';
+type DensityMode = 'compact' | 'normal' | 'comfortable';
 
-// Navigation sections
-const navSections = [
-  {
-    title: 'Getting Started',
-    items: [
-      { id: 'dashboard' as Section, label: 'Dashboard', icon: BarChart3, description: 'Overview & key metrics' },
-      { id: 'facilities' as Section, label: 'Facilities', icon: Building2, description: 'Browse all data centers' },
-    ]
-  },
-  {
-    title: 'Analysis & Intelligence',
-    items: [
-      { id: 'geography' as Section, label: 'Geographic View', icon: Globe, description: 'Map visualization' },
-      { id: 'problems' as Section, label: 'Problems', icon: AlertTriangle, badge: 'hot', description: 'Non-compliant facilities' },
-      { id: 'intelligence' as Section, label: 'Intelligence Hub', icon: Zap, description: 'AI-powered insights' },
-    ]
-  },
-  {
-    title: 'Compliance Tracking',
-    items: [
-      { id: 'subsidies' as Section, label: 'Subsidies', icon: DollarSign, description: 'Track tax breaks' },
-      { id: 'workers' as Section, label: 'Worker Safety', icon: Shield, description: 'Labor conditions' },
-      { id: 'timeline' as Section, label: 'Timeline', icon: Clock, description: 'Compliance history' },
-    ]
-  },
-  {
-    title: 'Reports & Tools',
-    items: [
-      { id: 'reports' as Section, label: 'Reports', icon: FileText, description: 'Generate exports' },
-      { id: 'osint' as Section, label: 'OSINT Tools', icon: Search, description: 'Open source intel' },
-      { id: 'network' as Section, label: 'Network Map', icon: Network, description: 'Infrastructure view' },
-    ]
-  }
-];
+// ============================================================================
+// NESTED TABS COMPONENT - Supports unlimited nesting levels
+// ============================================================================
+interface Tab {
+  id: string;
+  label: string;
+  icon?: React.ReactNode;
+  badge?: string | number;
+  content?: React.ReactNode;
+  children?: Tab[];
+}
 
-// Stat Card Component
-const StatCard: React.FC<{
+const NestedTabs: React.FC<{
+  tabs: Tab[];
+  level?: number;
+  onTabChange?: (tabId: string, level: number) => void;
+  density?: DensityMode;
+}> = ({ tabs, level = 0, onTabChange, density = 'compact' }) => {
+  const [activeTab, setActiveTab] = useState(tabs[0]?.id || '');
+  const [expandedTabs, setExpandedTabs] = useState<Set<string>>(new Set());
+
+  const activeTabData = tabs.find(t => t.id === activeTab);
+  const hasChildren = activeTabData?.children && activeTabData.children.length > 0;
+
+  const toggleExpand = (tabId: string) => {
+    setExpandedTabs(prev => {
+      const next = new Set(prev);
+      if (next.has(tabId)) next.delete(tabId);
+      else next.add(tabId);
+      return next;
+    });
+  };
+
+  const paddings = {
+    compact: 'px-2 py-1',
+    normal: 'px-3 py-1.5',
+    comfortable: 'px-4 py-2'
+  };
+
+  const textSizes = {
+    compact: 'text-xs',
+    normal: 'text-sm',
+    comfortable: 'text-base'
+  };
+
+  const levelColors = [
+    'bg-blue-500', 'bg-emerald-500', 'bg-purple-500', 'bg-amber-500', 'bg-rose-500', 'bg-cyan-500'
+  ];
+
+  return (
+    <div className={`${level > 0 ? 'ml-2 border-l-2 border-slate-200 pl-2' : ''}`}>
+      {/* Tab Headers */}
+      <div className={`flex flex-wrap gap-1 ${level === 0 ? 'border-b border-slate-200 pb-1' : 'mb-1'}`}>
+        {tabs.map((tab) => {
+          const isActive = activeTab === tab.id;
+          const isExpanded = expandedTabs.has(tab.id);
+          
+          return (
+            <button
+              key={tab.id}
+              onClick={() => {
+                setActiveTab(tab.id);
+                onTabChange?.(tab.id, level);
+              }}
+              className={`
+                ${paddings[density]} ${textSizes[density]}
+                flex items-center gap-1.5 rounded-lg font-medium
+                transition-all duration-200
+                ${isActive 
+                  ? `${levelColors[level % levelColors.length]} text-white shadow-sm` 
+                  : 'text-slate-600 hover:bg-slate-100 hover:text-slate-800'
+                }
+              `}
+            >
+              {tab.icon}
+              <span>{tab.label}</span>
+              {tab.badge !== undefined && (
+                <span className={`
+                  ml-1 px-1.5 py-0.5 rounded-full text-[10px] font-bold
+                  ${isActive ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-600'}
+                `}>
+                  {tab.badge}
+                </span>
+              )}
+              {tab.children && tab.children.length > 0 && (
+                <button
+                  onClick={(e) => { e.stopPropagation(); toggleExpand(tab.id); }}
+                  className="ml-1 p-0.5 rounded hover:bg-white/20"
+                >
+                  {isExpanded ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
+                </button>
+              )}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Tab Content */}
+      {activeTabData && (
+        <div className="mt-1">
+          {activeTabData.content}
+          {hasChildren && expandedTabs.has(activeTab) && (
+            <NestedTabs 
+              tabs={activeTabData.children!} 
+              level={level + 1} 
+              onTabChange={onTabChange}
+              density={density}
+            />
+          )}
+        </div>
+      )}
+    </div>
+  );
+};
+
+// ============================================================================
+// EXPANDABLE TREE COMPONENT - Deep nesting with unlimited levels
+// ============================================================================
+interface TreeNode {
+  id: string;
+  label: string;
+  sublabel?: string;
+  icon?: React.ReactNode;
+  value?: string | number;
+  badge?: { text: string; color: string };
+  children?: TreeNode[];
+  data?: Record<string, unknown>;
+  onClick?: () => void;
+}
+
+const ExpandableTree: React.FC<{
+  nodes: TreeNode[];
+  level?: number;
+  density?: DensityMode;
+  defaultExpanded?: boolean;
+  maxExpandedLevels?: number;
+  onNodeClick?: (node: TreeNode) => void;
+}> = ({ nodes, level = 0, density = 'compact', defaultExpanded = false, maxExpandedLevels = 2, onNodeClick }) => {
+  const [expanded, setExpanded] = useState<Set<string>>(() => {
+    if (defaultExpanded && level < maxExpandedLevels) {
+      return new Set(nodes.map(n => n.id));
+    }
+    return new Set();
+  });
+
+  const toggle = (id: string) => {
+    setExpanded(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const expandAll = () => setExpanded(new Set(nodes.map(n => n.id)));
+  const collapseAll = () => setExpanded(new Set());
+
+  const paddings = { compact: 'py-0.5 px-1', normal: 'py-1 px-2', comfortable: 'py-2 px-3' };
+  const textSizes = { compact: 'text-xs', normal: 'text-sm', comfortable: 'text-base' };
+  const indents = { compact: 12, normal: 16, comfortable: 20 };
+
+  const levelColors = [
+    'border-blue-400', 'border-emerald-400', 'border-purple-400', 
+    'border-amber-400', 'border-rose-400', 'border-cyan-400'
+  ];
+  const bgColors = [
+    'hover:bg-blue-50', 'hover:bg-emerald-50', 'hover:bg-purple-50',
+    'hover:bg-amber-50', 'hover:bg-rose-50', 'hover:bg-cyan-50'
+  ];
+
+  return (
+    <div className={level === 0 ? 'border border-slate-200 rounded-lg overflow-hidden' : ''}>
+      {/* Controls */}
+      {level === 0 && nodes.some(n => n.children?.length) && (
+        <div className="flex items-center gap-2 px-2 py-1 bg-slate-50 border-b border-slate-200">
+          <button onClick={expandAll} className="text-[10px] text-blue-600 hover:underline flex items-center gap-0.5">
+            <Plus size={10} /> Expand All
+          </button>
+          <button onClick={collapseAll} className="text-[10px] text-slate-500 hover:underline flex items-center gap-0.5">
+            <Minus size={10} /> Collapse All
+          </button>
+          <span className="text-[10px] text-slate-400 ml-auto">{nodes.length} items</span>
+        </div>
+      )}
+
+      {/* Nodes */}
+      <div className={level > 0 ? `ml-${indents[density] / 4} border-l-2 ${levelColors[level % levelColors.length]}` : ''}>
+        {nodes.map((node) => {
+          const isExpanded = expanded.has(node.id);
+          const hasChildren = node.children && node.children.length > 0;
+
+          return (
+            <div key={node.id}>
+              <div
+                className={`
+                  ${paddings[density]} ${textSizes[density]} ${bgColors[level % bgColors.length]}
+                  flex items-center gap-1.5 cursor-pointer
+                  transition-colors duration-150
+                  ${level > 0 ? 'border-b border-slate-100' : 'border-b border-slate-200'}
+                `}
+                onClick={() => {
+                  if (hasChildren) toggle(node.id);
+                  node.onClick?.();
+                  onNodeClick?.(node);
+                }}
+              >
+                {/* Expand/Collapse Icon */}
+                <div className="w-4 h-4 flex items-center justify-center">
+                  {hasChildren ? (
+                    isExpanded ? (
+                      <FolderOpen size={14} className="text-amber-500" />
+                    ) : (
+                      <Folder size={14} className="text-slate-400" />
+                    )
+                  ) : (
+                    <div className="w-1.5 h-1.5 rounded-full bg-slate-300" />
+                  )}
+                </div>
+
+                {/* Node Icon */}
+                {node.icon && <div className="text-slate-500">{node.icon}</div>}
+
+                {/* Label */}
+                <div className="flex-1 min-w-0">
+                  <span className="font-medium text-slate-800 truncate">{node.label}</span>
+                  {node.sublabel && (
+                    <span className="ml-1.5 text-slate-400 truncate">{node.sublabel}</span>
+                  )}
+                </div>
+
+                {/* Badge */}
+                {node.badge && (
+                  <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${node.badge.color}`}>
+                    {node.badge.text}
+                  </span>
+                )}
+
+                {/* Value */}
+                {node.value !== undefined && (
+                  <span className="font-mono font-semibold text-slate-700">{node.value}</span>
+                )}
+
+                {/* Expand Arrow */}
+                {hasChildren && (
+                  <ChevronRight 
+                    size={14} 
+                    className={`text-slate-400 transition-transform ${isExpanded ? 'rotate-90' : ''}`} 
+                  />
+                )}
+              </div>
+
+              {/* Children */}
+              {hasChildren && isExpanded && (
+                <ExpandableTree
+                  nodes={node.children!}
+                  level={level + 1}
+                  density={density}
+                  defaultExpanded={defaultExpanded}
+                  maxExpandedLevels={maxExpandedLevels}
+                  onNodeClick={onNodeClick}
+                />
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+};
+
+// ============================================================================
+// COMPACT STAT CARD - High density version
+// ============================================================================
+const CompactStatCard: React.FC<{
   label: string;
   value: string | number;
-  subtext?: string;
+  subvalue?: string;
   change?: number;
   icon: React.ReactNode;
   color: 'blue' | 'green' | 'red' | 'amber' | 'purple' | 'cyan';
   onClick?: () => void;
-}> = ({ label, value, subtext, change, icon, color, onClick }) => {
-  const colorMap = {
-    blue: { icon: 'bg-blue-100 text-blue-600', border: 'border-blue-100 hover:border-blue-300' },
-    green: { icon: 'bg-emerald-100 text-emerald-600', border: 'border-emerald-100 hover:border-emerald-300' },
-    red: { icon: 'bg-rose-100 text-rose-600', border: 'border-rose-100 hover:border-rose-300' },
-    amber: { icon: 'bg-amber-100 text-amber-600', border: 'border-amber-100 hover:border-amber-300' },
-    purple: { icon: 'bg-purple-100 text-purple-600', border: 'border-purple-100 hover:border-purple-300' },
-    cyan: { icon: 'bg-cyan-100 text-cyan-600', border: 'border-cyan-100 hover:border-cyan-300' },
-  };
+  expanded?: boolean;
+  children?: React.ReactNode;
+}> = ({ label, value, subvalue, change, icon, color, onClick, expanded, children }) => {
+  const [isExpanded, setIsExpanded] = useState(expanded || false);
   
-  const colors = colorMap[color];
+  const colorMap = {
+    blue: { bg: 'bg-blue-50', text: 'text-blue-600', border: 'border-blue-200' },
+    green: { bg: 'bg-emerald-50', text: 'text-emerald-600', border: 'border-emerald-200' },
+    red: { bg: 'bg-rose-50', text: 'text-rose-600', border: 'border-rose-200' },
+    amber: { bg: 'bg-amber-50', text: 'text-amber-600', border: 'border-amber-200' },
+    purple: { bg: 'bg-purple-50', text: 'text-purple-600', border: 'border-purple-200' },
+    cyan: { bg: 'bg-cyan-50', text: 'text-cyan-600', border: 'border-cyan-200' },
+  };
+  const c = colorMap[color];
 
   return (
-    <button 
-      onClick={onClick}
-      className={`
-        w-full text-left p-6 bg-white rounded-2xl border-2 ${colors.border}
-        transition-all duration-300 ease-out
-        hover:shadow-xl hover:-translate-y-1 active:translate-y-0 active:shadow-md
-        cursor-pointer group
-      `}
-    >
-      <div className="flex items-start justify-between">
-        <div className="flex-1">
-          <p className="text-sm font-medium text-slate-500 mb-2">{label}</p>
-          <p className="text-3xl font-bold font-display text-slate-800 tracking-tight">{value}</p>
-          {subtext && (
-            <p className="text-sm text-slate-500 mt-1">{subtext}</p>
-          )}
+    <div className={`${c.bg} rounded-lg border ${c.border} overflow-hidden transition-all`}>
+      <button
+        onClick={() => { onClick?.(); if (children) setIsExpanded(!isExpanded); }}
+        className="w-full p-2 text-left hover:bg-white/50 transition-colors"
+      >
+        <div className="flex items-center gap-2">
+          <div className={`p-1.5 rounded-lg ${c.bg} ${c.text}`}>{icon}</div>
+          <div className="flex-1 min-w-0">
+            <p className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider truncate">{label}</p>
+            <div className="flex items-baseline gap-1.5">
+              <p className="text-lg font-bold text-slate-800">{value}</p>
+              {subvalue && <span className="text-xs text-slate-500">{subvalue}</span>}
+            </div>
+          </div>
           {change !== undefined && (
-            <div className={`flex items-center gap-1.5 mt-3 text-sm font-semibold ${
-              change >= 0 ? 'text-emerald-600' : 'text-rose-600'
-            }`}>
-              {change >= 0 ? <TrendingUp size={16} /> : <TrendingDown size={16} />}
-              <span>{Math.abs(change)}% from last month</span>
+            <div className={`flex items-center gap-0.5 text-xs font-semibold ${change >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+              {change >= 0 ? <TrendingUp size={12} /> : <TrendingDown size={12} />}
+              {Math.abs(change)}%
             </div>
           )}
+          {children && (
+            <ChevronDown size={14} className={`text-slate-400 transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
+          )}
         </div>
-        <div className={`
-          w-14 h-14 rounded-2xl flex items-center justify-center 
-          ${colors.icon} 
-          transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3
-        `}>
-          {icon}
+      </button>
+      {children && isExpanded && (
+        <div className="border-t border-slate-200 p-2 bg-white/50">
+          {children}
         </div>
-      </div>
-    </button>
+      )}
+    </div>
   );
 };
 
-// Facility Detail Modal
+// ============================================================================
+// DENSE DATA TABLE - Maximum columns, expandable rows
+// ============================================================================
+const DenseDataTable: React.FC<{
+  facilities: Facility[];
+  onSelect: (facility: Facility) => void;
+  density?: DensityMode;
+}> = ({ facilities, onSelect, density = 'compact' }) => {
+  const [expandedRows, setExpandedRows] = useState<Set<number>>(new Set());
+  const [sortBy, setSortBy] = useState<string>('subsidyGap');
+  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
+
+  const toggleRow = (id: number) => {
+    setExpandedRows(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const sortedFacilities = useMemo(() => {
+    return [...facilities].sort((a, b) => {
+      const aVal = a[sortBy as keyof Facility] ?? 0;
+      const bVal = b[sortBy as keyof Facility] ?? 0;
+      if (typeof aVal === 'number' && typeof bVal === 'number') {
+        return sortDir === 'asc' ? aVal - bVal : bVal - aVal;
+      }
+      return sortDir === 'asc' 
+        ? String(aVal).localeCompare(String(bVal))
+        : String(bVal).localeCompare(String(aVal));
+    });
+  }, [facilities, sortBy, sortDir]);
+
+  const handleSort = (column: string) => {
+    if (sortBy === column) setSortDir(d => d === 'asc' ? 'desc' : 'asc');
+    else { setSortBy(column); setSortDir('desc'); }
+  };
+
+  const cellPadding = density === 'compact' ? 'px-2 py-1' : density === 'normal' ? 'px-3 py-2' : 'px-4 py-3';
+  const textSize = density === 'compact' ? 'text-xs' : density === 'normal' ? 'text-sm' : 'text-base';
+
+  const statusColors: Record<string, string> = {
+    'Compliant': 'bg-emerald-100 text-emerald-700',
+    'Non-Compliant': 'bg-rose-100 text-rose-700',
+    'At Risk': 'bg-amber-100 text-amber-700',
+    'Unknown': 'bg-slate-100 text-slate-600',
+  };
+
+  const SortHeader: React.FC<{ column: string; label: string }> = ({ column, label }) => (
+    <th 
+      onClick={() => handleSort(column)}
+      className={`${cellPadding} ${textSize} text-left font-bold text-slate-500 uppercase tracking-wider cursor-pointer hover:bg-slate-100 select-none whitespace-nowrap`}
+    >
+      <div className="flex items-center gap-1">
+        {label}
+        {sortBy === column && (
+          <ChevronDown size={12} className={`transition-transform ${sortDir === 'asc' ? 'rotate-180' : ''}`} />
+        )}
+      </div>
+    </th>
+  );
+
+  return (
+    <div className="border border-slate-200 rounded-lg overflow-hidden">
+      <div className="overflow-x-auto">
+        <table className="w-full">
+          <thead className="bg-slate-50 border-b border-slate-200">
+            <tr>
+              <th className={`${cellPadding} w-8`}></th>
+              <SortHeader column="name" label="Facility" />
+              <SortHeader column="operator" label="Operator" />
+              <SortHeader column="state" label="State" />
+              <SortHeader column="city" label="City" />
+              <SortHeader column="type" label="Type" />
+              <SortHeader column="complianceStatus" label="Status" />
+              <SortHeader column="subsidyGap" label="Gap" />
+              <SortHeader column="jobsCreated" label="Jobs" />
+              <SortHeader column="jobsPromised" label="Promised" />
+              <th className={`${cellPadding} ${textSize} text-left font-bold text-slate-500 uppercase tracking-wider`}>Issues</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-slate-100">
+            {sortedFacilities.map((facility) => {
+              const isExpanded = expandedRows.has(facility.id!);
+              return (
+                <React.Fragment key={facility.id}>
+                  <tr 
+                    className="hover:bg-blue-50/50 transition-colors cursor-pointer group"
+                    onClick={() => toggleRow(facility.id!)}
+                  >
+                    <td className={cellPadding}>
+                      <button className="p-0.5 rounded hover:bg-slate-200">
+                        <ChevronRight size={12} className={`text-slate-400 transition-transform ${isExpanded ? 'rotate-90' : ''}`} />
+                      </button>
+                    </td>
+                    <td className={`${cellPadding} ${textSize}`}>
+                      <div className="flex items-center gap-1.5">
+                        <div className="w-6 h-6 rounded bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white text-[10px] font-bold">
+                          {facility.name.charAt(0)}
+                        </div>
+                        <span className="font-medium text-slate-800 truncate max-w-[150px]" title={facility.name}>
+                          {facility.name}
+                        </span>
+                      </div>
+                    </td>
+                    <td className={`${cellPadding} ${textSize} text-slate-600 truncate max-w-[100px]`} title={facility.operator}>
+                      {facility.operator}
+                    </td>
+                    <td className={`${cellPadding} ${textSize} text-slate-600 font-mono`}>{facility.state}</td>
+                    <td className={`${cellPadding} ${textSize} text-slate-600 truncate max-w-[80px]`}>{facility.city}</td>
+                    <td className={`${cellPadding} ${textSize} text-slate-500`}>{facility.type || '-'}</td>
+                    <td className={cellPadding}>
+                      <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold ${statusColors[facility.complianceStatus] || statusColors['Unknown']}`}>
+                        {facility.complianceStatus === 'Non-Compliant' ? 'NC' : facility.complianceStatus === 'Compliant' ? 'OK' : facility.complianceStatus === 'At Risk' ? 'AR' : '?'}
+                      </span>
+                    </td>
+                    <td className={`${cellPadding} ${textSize} font-mono font-semibold ${(facility.subsidyGap || 0) > 0 ? 'text-rose-600' : 'text-slate-600'}`}>
+                      {formatCurrency(facility.subsidyGap || 0)}
+                    </td>
+                    <td className={`${cellPadding} ${textSize} font-mono text-slate-600`}>
+                      {(facility.jobsCreated ?? 0).toLocaleString()}
+                    </td>
+                    <td className={`${cellPadding} ${textSize} font-mono text-slate-600`}>
+                      {(facility.jobsPromised ?? 0).toLocaleString()}
+                    </td>
+                    <td className={cellPadding}>
+                      {facility.issues && facility.issues.length > 0 ? (
+                        <span className="px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 text-[10px] font-bold">
+                          {facility.issues.length}
+                        </span>
+                      ) : (
+                        <span className="text-slate-300">-</span>
+                      )}
+                    </td>
+                  </tr>
+                  {/* Expanded Row Details */}
+                  {isExpanded && (
+                    <tr className="bg-slate-50">
+                      <td colSpan={11} className="p-0">
+                        <div className="p-3 border-l-4 border-blue-400">
+                          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
+                            <div className="bg-white p-2 rounded border border-slate-200">
+                              <p className="text-slate-400 font-semibold uppercase text-[10px]">Full Name</p>
+                              <p className="text-slate-800 font-medium">{facility.name}</p>
+                            </div>
+                            <div className="bg-white p-2 rounded border border-slate-200">
+                              <p className="text-slate-400 font-semibold uppercase text-[10px]">Location</p>
+                              <p className="text-slate-800 font-medium">{facility.city}, {facility.state}</p>
+                            </div>
+                            <div className="bg-white p-2 rounded border border-slate-200">
+                              <p className="text-slate-400 font-semibold uppercase text-[10px]">Jobs Gap</p>
+                              <p className="text-rose-600 font-bold">
+                                {((facility.jobsPromised ?? 0) - (facility.jobsCreated ?? 0)).toLocaleString()}
+                              </p>
+                            </div>
+                            <div className="bg-white p-2 rounded border border-slate-200">
+                              <p className="text-slate-400 font-semibold uppercase text-[10px]">Facility ID</p>
+                              <p className="text-slate-600 font-mono">{facility.id}</p>
+                            </div>
+                          </div>
+                          {facility.issues && facility.issues.length > 0 && (
+                            <div className="mt-3">
+                              <p className="text-slate-500 font-semibold text-[10px] uppercase mb-1">Issues</p>
+                              <div className="flex flex-wrap gap-1">
+                                {facility.issues.map((issue, i) => (
+                                  <span key={i} className="px-2 py-1 bg-amber-100 text-amber-800 rounded text-[10px]">
+                                    {issue}
+                                  </span>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                          <button
+                            onClick={(e) => { e.stopPropagation(); onSelect(facility); }}
+                            className="mt-3 px-3 py-1.5 bg-blue-500 hover:bg-blue-600 text-white text-xs font-semibold rounded transition-colors"
+                          >
+                            View Full Details →
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  )}
+                </React.Fragment>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+};
+
+// ============================================================================
+// HIERARCHICAL DATA VIEW - Build tree from facilities
+// ============================================================================
+const HierarchicalView: React.FC<{
+  facilities: Facility[];
+  onSelect: (facility: Facility) => void;
+  density?: DensityMode;
+}> = ({ facilities, onSelect, density = 'compact' }) => {
+  // Build hierarchy: Operator → State → City → Facility
+  const treeData = useMemo<TreeNode[]>(() => {
+    const operatorMap = new Map<string, Map<string, Map<string, Facility[]>>>();
+
+    facilities.forEach(f => {
+      const operator = f.operator || 'Unknown';
+      const state = f.state || 'Unknown';
+      const city = f.city || 'Unknown';
+
+      if (!operatorMap.has(operator)) operatorMap.set(operator, new Map());
+      const stateMap = operatorMap.get(operator)!;
+      if (!stateMap.has(state)) stateMap.set(state, new Map());
+      const cityMap = stateMap.get(state)!;
+      if (!cityMap.has(city)) cityMap.set(city, []);
+      cityMap.get(city)!.push(f);
+    });
+
+    const nodes: TreeNode[] = [];
+
+    operatorMap.forEach((stateMap, operator) => {
+      let operatorTotal = 0;
+      let operatorNonCompliant = 0;
+      let operatorSubsidyGap = 0;
+
+      const stateNodes: TreeNode[] = [];
+      stateMap.forEach((cityMap, state) => {
+        let stateNonCompliant = 0;
+        let stateSubsidyGap = 0;
+
+        const cityNodes: TreeNode[] = [];
+        cityMap.forEach((facilities, city) => {
+          const cityNonCompliant = facilities.filter(f => f.complianceStatus === 'Non-Compliant').length;
+          const citySubsidyGap = facilities.reduce((sum, f) => sum + (f.subsidyGap || 0), 0);
+
+          stateNonCompliant += cityNonCompliant;
+          stateSubsidyGap += citySubsidyGap;
+          operatorTotal += facilities.length;
+
+          const facilityNodes: TreeNode[] = facilities.map(f => ({
+            id: `facility-${f.id}`,
+            label: f.name,
+            sublabel: f.type || '',
+            icon: <Building2 size={12} />,
+            value: formatCurrency(f.subsidyGap || 0),
+            badge: f.complianceStatus === 'Non-Compliant' 
+              ? { text: 'NC', color: 'bg-rose-100 text-rose-700' }
+              : f.complianceStatus === 'Compliant'
+              ? { text: 'OK', color: 'bg-emerald-100 text-emerald-700' }
+              : { text: 'AR', color: 'bg-amber-100 text-amber-700' },
+            onClick: () => onSelect(f),
+            children: f.issues && f.issues.length > 0 ? f.issues.map((issue, i) => ({
+              id: `issue-${f.id}-${i}`,
+              label: issue,
+              icon: <AlertTriangle size={10} className="text-amber-500" />,
+            })) : undefined,
+          }));
+
+          cityNodes.push({
+            id: `city-${operator}-${state}-${city}`,
+            label: city,
+            sublabel: `${facilities.length} facilities`,
+            icon: <MapPin size={12} />,
+            value: formatCurrency(citySubsidyGap),
+            badge: cityNonCompliant > 0 ? { text: `${cityNonCompliant} NC`, color: 'bg-rose-100 text-rose-700' } : undefined,
+            children: facilityNodes,
+          });
+        });
+
+        operatorNonCompliant += stateNonCompliant;
+        operatorSubsidyGap += stateSubsidyGap;
+
+        stateNodes.push({
+          id: `state-${operator}-${state}`,
+          label: state,
+          sublabel: `${cityNodes.length} cities`,
+          icon: <Globe size={12} />,
+          value: formatCurrency(stateSubsidyGap),
+          badge: stateNonCompliant > 0 ? { text: `${stateNonCompliant} NC`, color: 'bg-rose-100 text-rose-700' } : undefined,
+          children: cityNodes,
+        });
+      });
+
+      nodes.push({
+        id: `operator-${operator}`,
+        label: operator,
+        sublabel: `${operatorTotal} facilities`,
+        icon: <Layers size={14} />,
+        value: formatCurrency(operatorSubsidyGap),
+        badge: operatorNonCompliant > 0 ? { text: `${operatorNonCompliant} NC`, color: 'bg-rose-100 text-rose-700' } : undefined,
+        children: stateNodes,
+      });
+    });
+
+    return nodes.sort((a, b) => {
+      const aVal = parseFloat(String(a.value).replace(/[$,KMB]/g, '')) || 0;
+      const bVal = parseFloat(String(b.value).replace(/[$,KMB]/g, '')) || 0;
+      return bVal - aVal;
+    });
+  }, [facilities, onSelect]);
+
+  return <ExpandableTree nodes={treeData} density={density} defaultExpanded={false} maxExpandedLevels={1} />;
+};
+
+// ============================================================================
+// MINI STATS BAR - Inline statistics
+// ============================================================================
+const MiniStatsBar: React.FC<{ stats: ComplianceStats }> = ({ stats }) => (
+  <div className="flex flex-wrap items-center gap-2 p-2 bg-slate-50 rounded-lg border border-slate-200 text-xs">
+    <div className="flex items-center gap-1">
+      <Building2 size={12} className="text-blue-500" />
+      <span className="font-semibold text-slate-800">{stats.totalFacilities.toLocaleString()}</span>
+      <span className="text-slate-500">total</span>
+    </div>
+    <span className="text-slate-300">|</span>
+    <div className="flex items-center gap-1">
+      <CheckCircle size={12} className="text-emerald-500" />
+      <span className="font-semibold text-emerald-600">{stats.compliant.toLocaleString()}</span>
+    </div>
+    <div className="flex items-center gap-1">
+      <XCircle size={12} className="text-rose-500" />
+      <span className="font-semibold text-rose-600">{stats.nonCompliant.toLocaleString()}</span>
+    </div>
+    <div className="flex items-center gap-1">
+      <AlertTriangle size={12} className="text-amber-500" />
+      <span className="font-semibold text-amber-600">{stats.atRisk.toLocaleString()}</span>
+    </div>
+    <span className="text-slate-300">|</span>
+    <div className="flex items-center gap-1">
+      <DollarSign size={12} className="text-rose-500" />
+      <span className="font-semibold text-rose-600">{formatCurrency(stats.totalSubsidyGap)}</span>
+      <span className="text-slate-500">gap</span>
+    </div>
+  </div>
+);
+
+// ============================================================================
+// FACILITY DETAIL MODAL - With nested tabs
+// ============================================================================
 const FacilityModal: React.FC<{
   facility: Facility;
   onClose: () => void;
 }> = ({ facility, onClose }) => {
   const [copied, setCopied] = useState(false);
+  const [activeTab, setActiveTab] = useState('overview');
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
@@ -132,123 +715,194 @@ const FacilityModal: React.FC<{
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const statusColors = {
+  const statusColors: Record<string, string> = {
     'Compliant': 'bg-emerald-100 text-emerald-700 border-emerald-200',
     'Non-Compliant': 'bg-rose-100 text-rose-700 border-rose-200',
     'At Risk': 'bg-amber-100 text-amber-700 border-amber-200',
     'Unknown': 'bg-slate-100 text-slate-600 border-slate-200',
   };
 
+  const tabs = [
+    { id: 'overview', label: 'Overview', icon: <Eye size={12} /> },
+    { id: 'compliance', label: 'Compliance', icon: <Shield size={12} /> },
+    { id: 'financial', label: 'Financial', icon: <DollarSign size={12} /> },
+    { id: 'issues', label: 'Issues', icon: <AlertTriangle size={12} />, badge: facility.issues?.length || 0 },
+  ];
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={onClose}>
       <div className="absolute inset-0 bg-black/30 backdrop-blur-sm" />
       <div 
-        className="relative bg-white rounded-3xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden animate-scale-in"
+        className="relative bg-white rounded-xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-hidden animate-scale-in"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="p-6 border-b border-slate-100 flex items-start justify-between">
-          <div className="flex items-center gap-4">
-            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-blue-500/30">
+        <div className="p-3 border-b border-slate-200 flex items-center justify-between bg-slate-50">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white font-bold text-lg shadow">
               {facility.name.charAt(0)}
             </div>
             <div>
-              <h2 className="text-xl font-bold text-slate-800">{facility.name}</h2>
-              <p className="text-slate-500">{facility.operator}</p>
+              <h2 className="text-sm font-bold text-slate-800">{facility.name}</h2>
+              <p className="text-xs text-slate-500">{facility.operator} • {facility.city}, {facility.state}</p>
             </div>
-          </div>
-          <button 
-            onClick={onClose}
-            className="p-2 hover:bg-slate-100 rounded-xl transition-colors"
-          >
-            <X size={20} className="text-slate-400" />
-          </button>
-        </div>
-
-        {/* Content */}
-        <div className="p-6 overflow-y-auto max-h-[60vh]">
-          {/* Status Badge */}
-          <div className="mb-6">
-            <span className={`
-              inline-flex items-center px-4 py-2 rounded-full text-sm font-semibold border
-              ${statusColors[facility.complianceStatus] || statusColors['Unknown']}
-            `}>
-              {facility.complianceStatus === 'Compliant' && <CheckCircle size={16} className="mr-2" />}
-              {facility.complianceStatus === 'Non-Compliant' && <XCircle size={16} className="mr-2" />}
-              {facility.complianceStatus === 'At Risk' && <AlertTriangle size={16} className="mr-2" />}
+            <span className={`ml-2 px-2 py-0.5 rounded text-xs font-semibold border ${statusColors[facility.complianceStatus] || statusColors['Unknown']}`}>
               {facility.complianceStatus}
             </span>
           </div>
+          <button onClick={onClose} className="p-1.5 hover:bg-slate-200 rounded-lg transition-colors">
+            <X size={18} className="text-slate-400" />
+          </button>
+        </div>
 
-          {/* Info Grid */}
-          <div className="grid grid-cols-2 gap-4 mb-6">
-            <div className="p-4 bg-slate-50 rounded-xl">
-              <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Location</p>
-              <p className="text-slate-800 font-medium flex items-center gap-2">
-                <MapPin size={16} className="text-slate-400" />
-                {facility.city || 'Unknown'}, {facility.state || 'Unknown'}
-              </p>
-            </div>
-            <div className="p-4 bg-slate-50 rounded-xl">
-              <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Facility Type</p>
-              <p className="text-slate-800 font-medium">{facility.type || 'Data Center'}</p>
-            </div>
-            <div className="p-4 bg-rose-50 rounded-xl">
-              <p className="text-xs font-semibold text-rose-400 uppercase tracking-wider mb-1">Subsidy Gap</p>
-              <p className="text-rose-700 font-bold text-lg">{formatCurrency(facility.subsidyGap || 0)}</p>
-            </div>
-            <div className="p-4 bg-blue-50 rounded-xl">
-              <p className="text-xs font-semibold text-blue-400 uppercase tracking-wider mb-1">Jobs Created</p>
-              <p className="text-blue-700 font-bold text-lg">{(facility.jobsCreated ?? 0).toLocaleString()}</p>
-            </div>
-          </div>
+        {/* Tabs */}
+        <div className="border-b border-slate-200 px-3 py-1 bg-white flex gap-1">
+          {tabs.map(tab => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium flex items-center gap-1.5 transition-colors ${
+                activeTab === tab.id 
+                  ? 'bg-blue-500 text-white' 
+                  : 'text-slate-600 hover:bg-slate-100'
+              }`}
+            >
+              {tab.icon}
+              {tab.label}
+              {tab.badge !== undefined && tab.badge > 0 && (
+                <span className={`ml-1 px-1.5 py-0.5 rounded-full text-[10px] font-bold ${
+                  activeTab === tab.id ? 'bg-white/20' : 'bg-rose-100 text-rose-700'
+                }`}>
+                  {tab.badge}
+                </span>
+              )}
+            </button>
+          ))}
+        </div>
 
-          {/* Issues */}
-          {facility.issues && facility.issues.length > 0 && (
-            <div className="mb-6">
-              <h3 className="text-sm font-semibold text-slate-800 mb-3 flex items-center gap-2">
-                <AlertTriangle size={16} className="text-amber-500" />
-                Active Issues ({facility.issues.length})
-              </h3>
-              <div className="space-y-2">
-                {facility.issues.map((issue, i) => (
-                  <div key={i} className="p-3 bg-amber-50 border border-amber-100 rounded-xl text-sm text-amber-800">
-                    {issue}
-                  </div>
-                ))}
+        {/* Content */}
+        <div className="p-3 overflow-y-auto max-h-[60vh]">
+          {activeTab === 'overview' && (
+            <div className="grid grid-cols-3 gap-2">
+              <div className="p-2 bg-slate-50 rounded-lg border border-slate-200">
+                <p className="text-[10px] font-bold text-slate-400 uppercase">Facility ID</p>
+                <p className="text-xs font-mono text-slate-700">{facility.id}</p>
+              </div>
+              <div className="p-2 bg-slate-50 rounded-lg border border-slate-200">
+                <p className="text-[10px] font-bold text-slate-400 uppercase">Type</p>
+                <p className="text-xs text-slate-700">{facility.type || 'Data Center'}</p>
+              </div>
+              <div className="p-2 bg-slate-50 rounded-lg border border-slate-200">
+                <p className="text-[10px] font-bold text-slate-400 uppercase">Location</p>
+                <p className="text-xs text-slate-700">{facility.city}, {facility.state}</p>
+              </div>
+              <div className="p-2 bg-blue-50 rounded-lg border border-blue-200">
+                <p className="text-[10px] font-bold text-blue-400 uppercase">Operator</p>
+                <p className="text-xs text-blue-700 font-medium">{facility.operator}</p>
+              </div>
+              <div className="p-2 bg-emerald-50 rounded-lg border border-emerald-200">
+                <p className="text-[10px] font-bold text-emerald-400 uppercase">Jobs Created</p>
+                <p className="text-xs text-emerald-700 font-bold">{(facility.jobsCreated ?? 0).toLocaleString()}</p>
+              </div>
+              <div className="p-2 bg-purple-50 rounded-lg border border-purple-200">
+                <p className="text-[10px] font-bold text-purple-400 uppercase">Jobs Promised</p>
+                <p className="text-xs text-purple-700 font-bold">{(facility.jobsPromised ?? 0).toLocaleString()}</p>
               </div>
             </div>
           )}
 
+          {activeTab === 'compliance' && (
+            <div className="space-y-3">
+              <div className={`p-3 rounded-lg border ${statusColors[facility.complianceStatus] || statusColors['Unknown']}`}>
+                <div className="flex items-center gap-2">
+                  {facility.complianceStatus === 'Compliant' && <CheckCircle size={16} />}
+                  {facility.complianceStatus === 'Non-Compliant' && <XCircle size={16} />}
+                  {facility.complianceStatus === 'At Risk' && <AlertTriangle size={16} />}
+                  <span className="font-bold">{facility.complianceStatus}</span>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <div className="p-2 bg-slate-50 rounded-lg border">
+                  <p className="text-[10px] font-bold text-slate-400 uppercase">Jobs Gap</p>
+                  <p className="text-sm text-rose-600 font-bold">
+                    {((facility.jobsPromised ?? 0) - (facility.jobsCreated ?? 0)).toLocaleString()}
+                  </p>
+                </div>
+                <div className="p-2 bg-slate-50 rounded-lg border">
+                  <p className="text-[10px] font-bold text-slate-400 uppercase">Compliance Rate</p>
+                  <p className="text-sm text-slate-700 font-bold">
+                    {facility.jobsPromised ? Math.round((facility.jobsCreated ?? 0) / facility.jobsPromised * 100) : 0}%
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'financial' && (
+            <div className="space-y-3">
+              <div className="p-3 bg-rose-50 rounded-lg border border-rose-200">
+                <p className="text-[10px] font-bold text-rose-400 uppercase">Total Subsidy Gap</p>
+                <p className="text-2xl text-rose-700 font-bold">{formatCurrency(facility.subsidyGap || 0)}</p>
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <div className="p-2 bg-slate-50 rounded-lg border">
+                  <p className="text-[10px] font-bold text-slate-400 uppercase">Cost per Job Created</p>
+                  <p className="text-sm text-slate-700 font-mono">
+                    {facility.jobsCreated ? formatCurrency((facility.subsidyGap || 0) / facility.jobsCreated) : 'N/A'}
+                  </p>
+                </div>
+                <div className="p-2 bg-slate-50 rounded-lg border">
+                  <p className="text-[10px] font-bold text-slate-400 uppercase">Cost per Job Promised</p>
+                  <p className="text-sm text-slate-700 font-mono">
+                    {facility.jobsPromised ? formatCurrency((facility.subsidyGap || 0) / facility.jobsPromised) : 'N/A'}
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'issues' && (
+            <div className="space-y-2">
+              {facility.issues && facility.issues.length > 0 ? (
+                facility.issues.map((issue, i) => (
+                  <div key={i} className="p-2 bg-amber-50 border border-amber-200 rounded-lg flex items-start gap-2">
+                    <AlertTriangle size={14} className="text-amber-500 mt-0.5 flex-shrink-0" />
+                    <span className="text-xs text-amber-800">{issue}</span>
+                  </div>
+                ))
+              ) : (
+                <div className="p-6 text-center">
+                  <CheckCircle className="w-8 h-8 text-emerald-400 mx-auto mb-2" />
+                  <p className="text-sm text-slate-600">No active issues</p>
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Copy ID */}
-          <div className="flex items-center gap-2 p-3 bg-slate-50 rounded-xl">
-            <span className="text-xs text-slate-500">Facility ID:</span>
-            <code className="text-xs font-mono text-slate-600 flex-1">{facility.id}</code>
+          <div className="flex items-center gap-2 p-2 bg-slate-50 rounded-lg mt-3">
+            <span className="text-[10px] text-slate-500">ID:</span>
+            <code className="text-[10px] font-mono text-slate-600 flex-1">{facility.id}</code>
             <button 
               onClick={() => copyToClipboard(String(facility.id))}
-              className="p-1.5 hover:bg-slate-200 rounded-lg transition-colors"
+              className="p-1 hover:bg-slate-200 rounded transition-colors"
             >
-              {copied ? <Check size={14} className="text-emerald-500" /> : <Copy size={14} className="text-slate-400" />}
+              {copied ? <Check size={12} className="text-emerald-500" /> : <Copy size={12} className="text-slate-400" />}
             </button>
           </div>
         </div>
 
         {/* Footer */}
-        <div className="p-6 border-t border-slate-100 flex items-center justify-between">
-          <button 
-            onClick={onClose}
-            className="px-4 py-2.5 text-slate-600 hover:text-slate-800 font-medium transition-colors"
-          >
+        <div className="p-3 border-t border-slate-200 flex items-center justify-between bg-slate-50">
+          <button onClick={onClose} className="px-3 py-1.5 text-slate-600 hover:text-slate-800 text-xs font-medium">
             Close
           </button>
-          <div className="flex items-center gap-3">
-            <button className="flex items-center gap-2 px-4 py-2.5 border-2 border-slate-200 hover:border-blue-300 rounded-xl font-medium text-slate-700 hover:text-blue-600 transition-all">
-              <FileText size={16} />
-              Export Details
+          <div className="flex items-center gap-2">
+            <button className="flex items-center gap-1 px-3 py-1.5 border border-slate-200 hover:border-blue-300 rounded-lg text-xs font-medium text-slate-700 hover:text-blue-600">
+              <FileText size={12} /> Export
             </button>
-            <button className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 rounded-xl font-semibold text-white shadow-lg shadow-blue-500/30 transition-all">
-              <ExternalLink size={16} />
-              View Full Profile
+            <button className="flex items-center gap-1 px-3 py-1.5 bg-blue-500 hover:bg-blue-600 rounded-lg text-xs font-semibold text-white">
+              <ExternalLink size={12} /> Full Profile
             </button>
           </div>
         </div>
@@ -257,99 +911,9 @@ const FacilityModal: React.FC<{
   );
 };
 
-// Notification Panel
-const NotificationPanel: React.FC<{
-  stats: ComplianceStats | null;
-  facilities: Facility[];
-  onClose: () => void;
-  onViewProblems: () => void;
-}> = ({ stats, facilities, onClose, onViewProblems }) => {
-  const urgentFacilities = facilities.filter(f => f.complianceStatus === 'Non-Compliant').slice(0, 5);
-
-  return (
-    <div className="absolute top-full right-0 mt-2 w-96 bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden animate-slide-down z-50">
-      <div className="p-4 border-b border-slate-100 flex items-center justify-between">
-        <h3 className="font-bold text-slate-800 flex items-center gap-2">
-          <Bell size={18} className="text-blue-500" />
-          Notifications
-        </h3>
-        <button onClick={onClose} className="p-1 hover:bg-slate-100 rounded-lg transition-colors">
-          <X size={16} className="text-slate-400" />
-        </button>
-      </div>
-      
-      <div className="max-h-80 overflow-y-auto">
-        {stats && stats.nonCompliant > 0 ? (
-          <>
-            <div className="p-4 bg-rose-50 border-b border-rose-100">
-              <div className="flex items-start gap-3">
-                <div className="w-10 h-10 rounded-xl bg-rose-100 flex items-center justify-center">
-                  <AlertTriangle className="text-rose-600" size={20} />
-                </div>
-                <div className="flex-1">
-                  <p className="font-semibold text-rose-700">{stats.nonCompliant} Non-Compliant Facilities</p>
-                  <p className="text-sm text-rose-600 mt-1">Require immediate attention</p>
-                  <button 
-                    onClick={onViewProblems}
-                    className="mt-2 text-sm font-semibold text-rose-700 hover:text-rose-800 flex items-center gap-1"
-                  >
-                    View All <ArrowRight size={14} />
-                  </button>
-                </div>
-              </div>
-            </div>
-            
-            {urgentFacilities.map((facility, i) => (
-              <div key={facility.id} className="p-4 border-b border-slate-100 hover:bg-slate-50 transition-colors">
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-rose-100 flex items-center justify-center text-rose-600 font-bold text-sm">
-                    {i + 1}
-                  </div>
-                  <div className="flex-1">
-                    <p className="font-medium text-slate-800 text-sm">{facility.name}</p>
-                    <p className="text-xs text-slate-500">{facility.operator} • {facility.state}</p>
-                  </div>
-                  <span className="text-sm font-bold text-rose-600">{formatCurrency(facility.subsidyGap)}</span>
-                </div>
-              </div>
-            ))}
-          </>
-        ) : (
-          <div className="p-8 text-center">
-            <CheckCircle className="w-12 h-12 text-emerald-400 mx-auto mb-3" />
-            <p className="font-medium text-slate-600">All clear!</p>
-            <p className="text-sm text-slate-500">No urgent notifications</p>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-};
-
-// Quick Action Button
-const QuickAction: React.FC<{
-  icon: React.ReactNode;
-  label: string;
-  description: string;
-  color: string;
-  onClick: () => void;
-}> = ({ icon, label, description, color, onClick }) => (
-  <button 
-    onClick={onClick}
-    className="flex items-center gap-4 p-4 bg-white rounded-xl border-2 border-slate-100 hover:border-blue-200 hover:shadow-lg transition-all duration-300 text-left group w-full active:scale-[0.98]"
-  >
-    <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${color} transition-transform group-hover:scale-110`}>
-      {icon}
-    </div>
-    <div className="flex-1">
-      <p className="font-semibold text-slate-800 group-hover:text-blue-600 transition-colors">{label}</p>
-      <p className="text-sm text-slate-500">{description}</p>
-    </div>
-    <ChevronRight size={20} className="text-slate-300 group-hover:text-blue-500 transition-colors" />
-  </button>
-);
-
-// Main Component
+// ============================================================================
+// MAIN COMPONENT
+// ============================================================================
 export const LightDashboard: React.FC = () => {
   const [facilities, setFacilities] = useState<Facility[]>([]);
   const [stats, setStats] = useState<ComplianceStats | null>(null);
@@ -362,23 +926,20 @@ export const LightDashboard: React.FC = () => {
   const [isExporting, setIsExporting] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [filterStatus, setFilterStatus] = useState<string>('all');
-  const [showFilters, setShowFilters] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [viewMode, setViewMode] = useState<ViewMode>('table');
+  const [densityMode, setDensityMode] = useState<DensityMode>('compact');
+  const [activeSubTab, setActiveSubTab] = useState('all');
 
-  // Show toast notification
   const showToast = useCallback((message: string) => {
     setToastMessage(message);
     setTimeout(() => setToastMessage(null), 3000);
   }, []);
 
-  // Load data
   const loadData = useCallback(async () => {
     try {
       await seedDatabase();
-      const data = await safeDbOperation(
-        () => db.facilities.toArray(),
-        () => []
-      );
+      const data = await safeDbOperation(() => db.facilities.toArray(), () => []);
       setFacilities(data);
       setStats(calculateStats(data));
     } catch (error) {
@@ -389,117 +950,112 @@ export const LightDashboard: React.FC = () => {
 
   useEffect(() => {
     let mounted = true;
-    
     async function init() {
       await loadData();
       if (mounted) setLoading(false);
     }
-    
     init();
     return () => { mounted = false; };
   }, [loadData]);
 
-  // Refresh data
   const handleRefresh = async () => {
     setIsRefreshing(true);
     await loadData();
     setIsRefreshing(false);
-    showToast('Data refreshed successfully');
+    showToast('Data refreshed');
   };
 
-  // Export report
   const handleExport = async () => {
     if (!stats) return;
     setIsExporting(true);
     try {
-      await downloadComplianceReport(filteredFacilities, stats, undefined, {
-        title: 'DCIM Compliance Report',
-        maxFacilities: 100,
-      });
-      showToast('Report exported successfully');
-    } catch (error) {
-      console.error('Export failed:', error);
-      showToast('Export failed');
-    } finally {
-      setIsExporting(false);
-    }
+      await downloadComplianceReport(filteredFacilities, stats, undefined, { title: 'DCIM Compliance Report', maxFacilities: 100 });
+      showToast('Report exported');
+    } catch { showToast('Export failed'); }
+    finally { setIsExporting(false); }
   };
 
-  // Filter facilities
   const filteredFacilities = useMemo(() => {
     let result = [...facilities];
-    
-    // Apply search
     if (searchQuery.trim()) {
-      const query = searchQuery.toLowerCase();
+      const q = searchQuery.toLowerCase();
       result = result.filter(f => 
-        f.name.toLowerCase().includes(query) ||
-        f.operator.toLowerCase().includes(query) ||
-        f.city.toLowerCase().includes(query) ||
-        f.state.toLowerCase().includes(query)
+        f.name.toLowerCase().includes(q) || f.operator.toLowerCase().includes(q) ||
+        f.city.toLowerCase().includes(q) || f.state.toLowerCase().includes(q)
       );
     }
-    
-    // Apply status filter
-    if (filterStatus !== 'all') {
-      result = result.filter(f => f.complianceStatus === filterStatus);
-    }
-    
+    if (filterStatus !== 'all') result = result.filter(f => f.complianceStatus === filterStatus);
     return result;
   }, [facilities, searchQuery, filterStatus]);
 
-  // Display facilities based on section
   const displayFacilities = useMemo(() => {
-    if (activeSection === 'problems') {
-      return filteredFacilities.filter(f => f.complianceStatus === 'Non-Compliant').slice(0, 20);
-    }
-    return filteredFacilities.slice(0, 20);
-  }, [filteredFacilities, activeSection]);
+    let result = filteredFacilities;
+    if (activeSection === 'problems') result = result.filter(f => f.complianceStatus === 'Non-Compliant');
+    if (activeSubTab === 'compliant') result = result.filter(f => f.complianceStatus === 'Compliant');
+    if (activeSubTab === 'non-compliant') result = result.filter(f => f.complianceStatus === 'Non-Compliant');
+    if (activeSubTab === 'at-risk') result = result.filter(f => f.complianceStatus === 'At Risk');
+    return result;
+  }, [filteredFacilities, activeSection, activeSubTab]);
 
-  // Problem facilities for dashboard
-  const problemFacilities = useMemo(() => 
-    facilities.filter(f => f.complianceStatus === 'Non-Compliant').slice(0, 5)
-  , [facilities]);
+  // Group facilities by various dimensions
+  const groupedByOperator = useMemo(() => {
+    const groups = new Map<string, Facility[]>();
+    facilities.forEach(f => {
+      const op = f.operator || 'Unknown';
+      if (!groups.has(op)) groups.set(op, []);
+      groups.get(op)!.push(f);
+    });
+    return Array.from(groups.entries()).sort((a, b) => b[1].length - a[1].length);
+  }, [facilities]);
 
-  // Handle search submit
+  const groupedByState = useMemo(() => {
+    const groups = new Map<string, Facility[]>();
+    facilities.forEach(f => {
+      const st = f.state || 'Unknown';
+      if (!groups.has(st)) groups.set(st, []);
+      groups.get(st)!.push(f);
+    });
+    return Array.from(groups.entries()).sort((a, b) => b[1].length - a[1].length);
+  }, [facilities]);
+
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
-      showToast(`Searching for "${searchQuery}"...`);
+      showToast(`Searching "${searchQuery}"`);
       setActiveSection('facilities');
     }
   };
 
-  // Get section title
-  const getSectionTitle = () => {
-    const titles: Record<Section, string> = {
-      dashboard: 'Dashboard',
-      facilities: 'All Facilities',
-      geography: 'Geographic View',
-      problems: 'Problem Facilities',
-      intelligence: 'Intelligence Hub',
-      subsidies: 'Subsidy Tracking',
-      workers: 'Worker Safety',
-      timeline: 'Compliance Timeline',
-      reports: 'Reports',
-      osint: 'OSINT Tools',
-      network: 'Network Map'
-    };
-    return titles[activeSection];
-  };
+  const navSections = [
+    { title: 'Overview', items: [
+      { id: 'dashboard' as Section, label: 'Dashboard', icon: <BarChart3 size={16} /> },
+      { id: 'facilities' as Section, label: 'Facilities', icon: <Building2 size={16} />, badge: facilities.length },
+    ]},
+    { title: 'Analysis', items: [
+      { id: 'problems' as Section, label: 'Problems', icon: <AlertTriangle size={16} />, badge: stats?.nonCompliant },
+      { id: 'geography' as Section, label: 'Geography', icon: <Globe size={16} /> },
+      { id: 'intelligence' as Section, label: 'Intelligence', icon: <Zap size={16} /> },
+    ]},
+    { title: 'Tracking', items: [
+      { id: 'subsidies' as Section, label: 'Subsidies', icon: <DollarSign size={16} /> },
+      { id: 'workers' as Section, label: 'Workers', icon: <Shield size={16} /> },
+      { id: 'timeline' as Section, label: 'Timeline', icon: <Clock size={16} /> },
+    ]},
+    { title: 'Tools', items: [
+      { id: 'reports' as Section, label: 'Reports', icon: <FileText size={16} /> },
+      { id: 'osint' as Section, label: 'OSINT', icon: <Search size={16} /> },
+      { id: 'network' as Section, label: 'Network', icon: <Network size={16} /> },
+    ]},
+  ];
 
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-slate-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center mx-auto mb-6 animate-pulse shadow-xl shadow-blue-500/30">
-            <Building2 className="w-8 h-8 text-white" />
+          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center mx-auto mb-4 animate-pulse shadow-lg">
+            <Building2 className="w-6 h-6 text-white" />
           </div>
-          <h2 className="text-xl font-bold text-slate-800 mb-2">Loading Dashboard</h2>
-          <p className="text-slate-500">Preparing your data center accountability data...</p>
-          <div className="mt-6 w-48 h-1.5 bg-slate-200 rounded-full mx-auto overflow-hidden">
-            <div className="h-full bg-gradient-to-r from-blue-500 to-blue-600 rounded-full animate-pulse" style={{ width: '60%' }} />
-          </div>
+          <p className="text-sm text-slate-600">Loading...</p>
         </div>
       </div>
     );
@@ -507,137 +1063,88 @@ export const LightDashboard: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/20 to-slate-50">
-      {/* Toast Notification */}
+      {/* Toast */}
       {toastMessage && (
-        <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[100] animate-slide-down">
-          <div className="px-6 py-3 bg-slate-800 text-white rounded-full shadow-xl flex items-center gap-3">
-            <Check size={18} className="text-emerald-400" />
-            <span className="font-medium">{toastMessage}</span>
+        <div className="fixed top-2 left-1/2 -translate-x-1/2 z-[100] animate-slide-down">
+          <div className="px-4 py-2 bg-slate-800 text-white rounded-full shadow-xl flex items-center gap-2 text-xs">
+            <Check size={14} className="text-emerald-400" />
+            {toastMessage}
           </div>
         </div>
       )}
 
-      {/* Facility Modal */}
-      {selectedFacility && (
-        <FacilityModal 
-          facility={selectedFacility} 
-          onClose={() => setSelectedFacility(null)} 
-        />
-      )}
+      {/* Modal */}
+      {selectedFacility && <FacilityModal facility={selectedFacility} onClose={() => setSelectedFacility(null)} />}
 
-      {/* Header */}
-      <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-xl border-b border-slate-200/80 shadow-sm">
-        <div className="px-6 py-4">
-          <div className="flex items-center justify-between gap-6">
+      {/* Header - Compact */}
+      <header className="sticky top-0 z-50 bg-white/90 backdrop-blur-xl border-b border-slate-200 shadow-sm">
+        <div className="px-3 py-2">
+          <div className="flex items-center gap-3">
             {/* Logo */}
-            <div className="flex items-center gap-4">
-              <button 
-                onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-                className="p-2.5 hover:bg-slate-100 rounded-xl transition-colors lg:hidden active:bg-slate-200"
-              >
-                <Menu size={20} className="text-slate-600" />
-              </button>
-              
-              <button 
-                onClick={() => setActiveSection('dashboard')}
-                className="flex items-center gap-3 hover:opacity-80 transition-opacity"
-              >
-                <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center shadow-lg shadow-blue-500/30">
-                  <Building2 className="w-6 h-6 text-white" />
-                </div>
-                <div className="hidden sm:block">
-                  <h1 className="text-lg font-bold font-display text-slate-800 tracking-tight">
-                    DCIM Compliance
-                  </h1>
-                  <p className="text-xs text-slate-500 font-medium">Big Tech Accountability</p>
-                </div>
-              </button>
-            </div>
+            <button onClick={() => setSidebarCollapsed(!sidebarCollapsed)} className="p-1.5 hover:bg-slate-100 rounded-lg lg:hidden">
+              <Menu size={18} className="text-slate-600" />
+            </button>
+            <button onClick={() => setActiveSection('dashboard')} className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center shadow">
+                <Building2 className="w-4 h-4 text-white" />
+              </div>
+              <div className="hidden sm:block">
+                <h1 className="text-sm font-bold text-slate-800">DCIM Compliance</h1>
+              </div>
+            </button>
+
+            {/* Mini Stats */}
+            {stats && <div className="hidden md:block"><MiniStatsBar stats={stats} /></div>}
 
             {/* Search */}
-            <form onSubmit={handleSearch} className="flex-1 max-w-2xl">
+            <form onSubmit={handleSearch} className="flex-1 max-w-xl">
               <div className="relative">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                 <input
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Search facilities, operators, or locations..."
-                  className="
-                    w-full pl-12 pr-24 py-3.5
-                    bg-slate-50 border-2 border-slate-200 rounded-2xl
-                    text-slate-800 placeholder-slate-400
-                    focus:outline-none focus:border-blue-400 focus:bg-white focus:shadow-lg
-                    transition-all duration-300
-                  "
+                  placeholder="Search..."
+                  className="w-full pl-8 pr-16 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-400 focus:bg-white"
                 />
-                <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2">
-                  <kbd className="hidden sm:flex px-2.5 py-1.5 text-xs font-medium text-slate-400 bg-white rounded-lg border border-slate-200 shadow-sm">
-                    ⌘K
-                  </kbd>
-                  <button 
-                    type="submit"
-                    className="p-2 bg-blue-500 hover:bg-blue-600 active:bg-blue-700 rounded-xl text-white transition-colors shadow-md shadow-blue-500/30"
-                  >
-                    <Sparkles size={16} />
+                <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
+                  <kbd className="hidden sm:block px-1.5 py-0.5 text-[10px] text-slate-400 bg-white rounded border">⌘K</kbd>
+                  <button type="submit" className="p-1 bg-blue-500 hover:bg-blue-600 rounded text-white">
+                    <Sparkles size={12} />
                   </button>
                 </div>
               </div>
             </form>
 
             {/* Actions */}
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-1">
+              {/* Density Toggle */}
+              <div className="hidden sm:flex items-center gap-0.5 p-0.5 bg-slate-100 rounded-lg">
+                {(['compact', 'normal', 'comfortable'] as DensityMode[]).map(mode => (
+                  <button
+                    key={mode}
+                    onClick={() => setDensityMode(mode)}
+                    className={`px-2 py-1 rounded text-[10px] font-medium transition-colors ${
+                      densityMode === mode ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'
+                    }`}
+                  >
+                    {mode === 'compact' ? 'Dense' : mode === 'normal' ? 'Normal' : 'Comfy'}
+                  </button>
+                ))}
+              </div>
+
               <div className="relative">
-                <button 
-                  onClick={() => setShowNotifications(!showNotifications)}
-                  className="relative p-2.5 hover:bg-slate-100 active:bg-slate-200 rounded-xl transition-colors"
-                >
-                  <Bell size={20} className="text-slate-600" />
+                <button onClick={() => setShowNotifications(!showNotifications)} className="relative p-1.5 hover:bg-slate-100 rounded-lg">
+                  <Bell size={16} className="text-slate-600" />
                   {stats && stats.nonCompliant > 0 && (
-                    <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-rose-500 rounded-full animate-pulse shadow-lg shadow-rose-500/50" />
+                    <span className="absolute top-0.5 right-0.5 w-2 h-2 bg-rose-500 rounded-full animate-pulse" />
                   )}
                 </button>
-                
-                {showNotifications && (
-                  <NotificationPanel 
-                    stats={stats}
-                    facilities={facilities}
-                    onClose={() => setShowNotifications(false)}
-                    onViewProblems={() => {
-                      setActiveSection('problems');
-                      setShowNotifications(false);
-                    }}
-                  />
-                )}
               </div>
-              
-              <button 
-                onClick={handleExport}
-                disabled={isExporting}
-                className="
-                  flex items-center gap-2 px-5 py-2.5
-                  bg-gradient-to-r from-blue-500 to-blue-600 
-                  hover:from-blue-600 hover:to-blue-700
-                  active:from-blue-700 active:to-blue-800
-                  disabled:opacity-50 disabled:cursor-not-allowed
-                  text-white font-semibold rounded-xl
-                  transition-all duration-300 shadow-lg shadow-blue-500/30
-                  hover:shadow-xl hover:shadow-blue-500/40
-                "
-              >
-                {isExporting ? (
-                  <RefreshCw size={16} className="animate-spin" />
-                ) : (
-                  <Download size={16} />
-                )}
+
+              <button onClick={handleExport} disabled={isExporting} className="flex items-center gap-1 px-2.5 py-1.5 bg-blue-500 hover:bg-blue-600 text-white text-xs font-semibold rounded-lg disabled:opacity-50">
+                {isExporting ? <RefreshCw size={12} className="animate-spin" /> : <Download size={12} />}
                 <span className="hidden sm:inline">Export</span>
-              </button>
-              
-              <button 
-                onClick={() => showToast('Help center coming soon!')}
-                className="p-2.5 hover:bg-slate-100 active:bg-slate-200 rounded-xl transition-colors"
-              >
-                <HelpCircle size={20} className="text-slate-600" />
               </button>
             </div>
           </div>
@@ -645,235 +1152,199 @@ export const LightDashboard: React.FC = () => {
       </header>
 
       <div className="flex">
-        {/* Sidebar */}
+        {/* Sidebar - Compact */}
         <aside className={`
-          fixed lg:sticky top-[73px] left-0 z-40
-          h-[calc(100vh-73px)] w-72
-          bg-white/90 backdrop-blur-xl border-r border-slate-200
-          transform transition-all duration-300 ease-out
-          overflow-y-auto
+          fixed lg:sticky top-[49px] left-0 z-40
+          h-[calc(100vh-49px)] w-48
+          bg-white/95 backdrop-blur-xl border-r border-slate-200
+          transform transition-all duration-300 overflow-y-auto
           ${sidebarCollapsed ? '-translate-x-full lg:translate-x-0' : 'translate-x-0'}
         `}>
-          <div className="p-4 space-y-6">
+          <div className="p-2 space-y-3">
             {navSections.map((section) => (
               <div key={section.title}>
-                <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 px-3">
-                  {section.title}
-                </h3>
-                <nav className="space-y-1">
-                  {section.items.map((item) => {
-                    const Icon = item.icon;
-                    const isActive = activeSection === item.id;
-                    
-                    return (
-                      <button
-                        key={item.id}
-                        onClick={() => {
-                          setActiveSection(item.id);
-                          setSidebarCollapsed(true);
-                        }}
-                        className={`
-                          w-full flex items-center gap-3 px-3 py-2.5 rounded-xl
-                          transition-all duration-200
-                          ${isActive 
-                            ? 'bg-blue-50 text-blue-600 shadow-sm' 
-                            : 'text-slate-600 hover:bg-slate-50 hover:text-slate-800 active:bg-slate-100'
-                          }
-                        `}
-                      >
-                        <Icon size={20} className={isActive ? 'text-blue-500' : ''} />
-                        <span className="font-medium">{item.label}</span>
-                        {item.badge === 'hot' && stats && stats.nonCompliant > 0 && (
-                          <span className="ml-auto px-2 py-0.5 text-xs font-bold rounded-full bg-rose-100 text-rose-600">
-                            {stats.nonCompliant}
-                          </span>
-                        )}
-                      </button>
-                    );
-                  })}
+                <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1 px-2">{section.title}</h3>
+                <nav className="space-y-0.5">
+                  {section.items.map((item) => (
+                    <button
+                      key={item.id}
+                      onClick={() => { setActiveSection(item.id); setSidebarCollapsed(true); }}
+                      className={`w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                        activeSection === item.id 
+                          ? 'bg-blue-50 text-blue-600' 
+                          : 'text-slate-600 hover:bg-slate-50'
+                      }`}
+                    >
+                      {item.icon}
+                      <span>{item.label}</span>
+                      {item.badge !== undefined && (
+                        <span className={`ml-auto px-1.5 py-0.5 text-[10px] font-bold rounded-full ${
+                          item.id === 'problems' ? 'bg-rose-100 text-rose-600' : 'bg-slate-100 text-slate-600'
+                        }`}>
+                          {typeof item.badge === 'number' ? item.badge.toLocaleString() : item.badge}
+                        </span>
+                      )}
+                    </button>
+                  ))}
                 </nav>
               </div>
             ))}
           </div>
         </aside>
 
-        {/* Mobile sidebar overlay */}
         {!sidebarCollapsed && (
-          <div 
-            className="fixed inset-0 bg-black/20 backdrop-blur-sm z-30 lg:hidden"
-            onClick={() => setSidebarCollapsed(true)}
-          />
+          <div className="fixed inset-0 bg-black/20 backdrop-blur-sm z-30 lg:hidden" onClick={() => setSidebarCollapsed(true)} />
         )}
 
         {/* Main Content */}
-        <main className="flex-1 min-h-[calc(100vh-73px)] p-6">
-          {/* Page Title */}
-          <div className="mb-8">
-            <div className="flex items-center justify-between flex-wrap gap-4">
-              <div>
-                <h2 className="text-3xl font-bold font-display text-slate-800 tracking-tight">
-                  {getSectionTitle()}
-                </h2>
-                <p className="text-slate-500 mt-1 text-lg">
-                  {activeSection === 'problems' 
-                    ? `${stats?.nonCompliant || 0} facilities need attention`
-                    : `Tracking ${facilities.length.toLocaleString()} data center facilities`
-                  }
-                </p>
-              </div>
-              <div className="flex items-center gap-3">
-                <button 
-                  onClick={handleRefresh}
-                  disabled={isRefreshing}
-                  className="flex items-center gap-2 px-4 py-2.5 bg-white border-2 border-slate-200 hover:border-blue-300 active:bg-slate-50 rounded-xl font-medium text-slate-700 hover:text-blue-600 transition-all disabled:opacity-50"
-                >
-                  <RefreshCw size={16} className={isRefreshing ? 'animate-spin' : ''} />
-                  Refresh
-                </button>
-                <button 
-                  onClick={handleExport}
-                  disabled={isExporting}
-                  className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 active:from-blue-700 active:to-blue-800 rounded-xl font-semibold text-white shadow-lg shadow-blue-500/30 transition-all disabled:opacity-50"
-                >
-                  <FileText size={16} />
-                  Generate Report
-                </button>
-              </div>
-            </div>
-          </div>
-
-          {/* Stats Grid - Show on Dashboard */}
+        <main className="flex-1 min-h-[calc(100vh-49px)] p-3">
+          {/* Dashboard View */}
           {activeSection === 'dashboard' && stats && (
             <>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
-                <StatCard
-                  label="Total Facilities"
-                  value={stats.totalFacilities.toLocaleString()}
-                  subtext="Data centers tracked"
-                  change={2.5}
-                  icon={<Building2 size={26} />}
-                  color="blue"
-                  onClick={() => setActiveSection('facilities')}
-                />
-                <StatCard
-                  label="Compliant"
-                  value={stats.compliant.toLocaleString()}
-                  subtext="Meeting job promises"
-                  change={-1.2}
-                  icon={<CheckCircle size={26} />}
-                  color="green"
-                  onClick={() => {
-                    setFilterStatus('Compliant');
-                    setActiveSection('facilities');
-                  }}
-                />
-                <StatCard
-                  label="Non-Compliant"
-                  value={stats.nonCompliant.toLocaleString()}
-                  subtext="Breaking promises"
-                  change={3.8}
-                  icon={<XCircle size={26} />}
-                  color="red"
-                  onClick={() => setActiveSection('problems')}
-                />
-                <StatCard
-                  label="Subsidy Gap"
-                  value={formatCurrency(stats.totalSubsidyGap)}
-                  subtext="Unrecovered taxpayer money"
-                  icon={<DollarSign size={26} />}
-                  color="amber"
-                  onClick={() => setActiveSection('subsidies')}
-                />
+              {/* Stats Grid - Compact with expandable details */}
+              <div className="grid grid-cols-2 lg:grid-cols-4 xl:grid-cols-6 gap-2 mb-3">
+                <CompactStatCard label="Total" value={stats.totalFacilities.toLocaleString()} change={2.5} icon={<Building2 size={14} />} color="blue" onClick={() => setActiveSection('facilities')}>
+                  <div className="grid grid-cols-2 gap-1 text-[10px]">
+                    <div><span className="text-slate-500">States:</span> <span className="font-bold">{groupedByState.length}</span></div>
+                    <div><span className="text-slate-500">Operators:</span> <span className="font-bold">{groupedByOperator.length}</span></div>
+                  </div>
+                </CompactStatCard>
+                <CompactStatCard label="Compliant" value={stats.compliant.toLocaleString()} subvalue={`${Math.round(stats.compliant / stats.totalFacilities * 100)}%`} icon={<CheckCircle size={14} />} color="green" onClick={() => { setActiveSubTab('compliant'); setActiveSection('facilities'); }} />
+                <CompactStatCard label="Non-Compliant" value={stats.nonCompliant.toLocaleString()} subvalue={`${Math.round(stats.nonCompliant / stats.totalFacilities * 100)}%`} change={3.8} icon={<XCircle size={14} />} color="red" onClick={() => setActiveSection('problems')}>
+                  <div className="text-[10px] text-rose-700">Requires immediate attention</div>
+                </CompactStatCard>
+                <CompactStatCard label="At Risk" value={stats.atRisk.toLocaleString()} icon={<AlertTriangle size={14} />} color="amber" onClick={() => { setActiveSubTab('at-risk'); setActiveSection('facilities'); }} />
+                <CompactStatCard label="Subsidy Gap" value={formatCurrency(stats.totalSubsidyGap)} icon={<DollarSign size={14} />} color="purple" onClick={() => setActiveSection('subsidies')}>
+                  <div className="text-[10px]">
+                    <span className="text-slate-500">Avg per facility:</span>
+                    <span className="font-bold text-purple-700 ml-1">{formatCurrency(stats.totalSubsidyGap / stats.totalFacilities)}</span>
+                  </div>
+                </CompactStatCard>
+                <CompactStatCard label="Jobs Gap" value={((stats.totalJobsPromised || 0) - (stats.totalJobsCreated || 0)).toLocaleString()} icon={<Users size={14} />} color="cyan">
+                  <div className="grid grid-cols-2 gap-1 text-[10px]">
+                    <div><span className="text-slate-500">Created:</span> <span className="font-bold text-emerald-600">{(stats.totalJobsCreated || 0).toLocaleString()}</span></div>
+                    <div><span className="text-slate-500">Promised:</span> <span className="font-bold text-purple-600">{(stats.totalJobsPromised || 0).toLocaleString()}</span></div>
+                  </div>
+                </CompactStatCard>
               </div>
 
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-                {/* Quick Actions */}
-                <div className="lg:col-span-1 space-y-4">
-                  <h3 className="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
-                    <Zap className="text-amber-500" size={20} />
-                    Quick Actions
-                  </h3>
-                  <QuickAction
-                    icon={<Search className="text-blue-600" size={22} />}
-                    label="AI Search"
-                    description="Natural language facility queries"
-                    color="bg-blue-100"
-                    onClick={() => {
-                      document.querySelector('input')?.focus();
-                      showToast('Type your search query');
-                    }}
-                  />
-                  <QuickAction
-                    icon={<AlertTriangle className="text-rose-600" size={22} />}
-                    label="View Problems"
-                    description={`${stats?.nonCompliant || 0} facilities need attention`}
-                    color="bg-rose-100"
-                    onClick={() => setActiveSection('problems')}
-                  />
-                  <QuickAction
-                    icon={<Globe className="text-emerald-600" size={22} />}
-                    label="Geographic View"
-                    description="Interactive map visualization"
-                    color="bg-emerald-100"
-                    onClick={() => setActiveSection('geography')}
-                  />
-                  <QuickAction
-                    icon={<FileText className="text-purple-600" size={22} />}
-                    label="Export Report"
-                    description="PDF or CSV compliance report"
-                    color="bg-purple-100"
-                    onClick={handleExport}
-                  />
+              {/* Main Dashboard Content with Nested Tabs */}
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
+                {/* Left Column - Hierarchical View */}
+                <div className="lg:col-span-2">
+                  <div className="bg-white rounded-lg border border-slate-200 overflow-hidden">
+                    <div className="px-3 py-2 border-b border-slate-200 flex items-center justify-between">
+                      <h3 className="text-sm font-bold text-slate-800 flex items-center gap-2">
+                        <Layers size={14} className="text-blue-500" /> Facility Hierarchy
+                      </h3>
+                      <div className="flex items-center gap-1">
+                        {(['tree', 'table'] as ViewMode[]).map(mode => (
+                          <button
+                            key={mode}
+                            onClick={() => setViewMode(mode)}
+                            className={`px-2 py-1 rounded text-[10px] font-medium ${
+                              viewMode === mode ? 'bg-blue-100 text-blue-600' : 'text-slate-500 hover:bg-slate-100'
+                            }`}
+                          >
+                            {mode === 'tree' ? 'Tree' : 'Table'}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="max-h-[500px] overflow-y-auto">
+                      {viewMode === 'tree' ? (
+                        <HierarchicalView facilities={displayFacilities.slice(0, 500)} onSelect={setSelectedFacility} density={densityMode} />
+                      ) : (
+                        <DenseDataTable facilities={displayFacilities.slice(0, 100)} onSelect={setSelectedFacility} density={densityMode} />
+                      )}
+                    </div>
+                  </div>
                 </div>
 
-                {/* Problem Facilities */}
-                <div className="lg:col-span-2">
-                  <div className="bg-white rounded-2xl border-2 border-slate-100 shadow-sm overflow-hidden">
-                    <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
-                      <h3 className="text-lg font-bold text-slate-800 flex items-center gap-2">
-                        <AlertTriangle className="text-rose-500" size={20} />
-                        Facilities Needing Attention
+                {/* Right Column - Breakdowns */}
+                <div className="space-y-3">
+                  {/* By Operator */}
+                  <div className="bg-white rounded-lg border border-slate-200 overflow-hidden">
+                    <div className="px-3 py-2 border-b border-slate-200">
+                      <h3 className="text-xs font-bold text-slate-800 flex items-center gap-1">
+                        <Layers size={12} className="text-purple-500" /> Top Operators
                       </h3>
-                      <button 
-                        onClick={() => setActiveSection('problems')}
-                        className="text-sm font-semibold text-blue-600 hover:text-blue-700 flex items-center gap-1 transition-colors"
-                      >
-                        View All
-                        <ChevronRight size={16} />
-                      </button>
                     </div>
-                    <div className="divide-y divide-slate-100">
-                      {problemFacilities.length > 0 ? problemFacilities.map((facility) => (
-                        <button 
-                          key={facility.id}
-                          onClick={() => setSelectedFacility(facility)}
-                          className="w-full px-6 py-4 hover:bg-rose-50/50 active:bg-rose-100/50 transition-colors flex items-center justify-between group text-left"
+                    <div className="max-h-48 overflow-y-auto">
+                      {groupedByOperator.slice(0, 10).map(([operator, facs]) => {
+                        const nc = facs.filter(f => f.complianceStatus === 'Non-Compliant').length;
+                        const gap = facs.reduce((sum, f) => sum + (f.subsidyGap || 0), 0);
+                        return (
+                          <button
+                            key={operator}
+                            onClick={() => { setSearchQuery(operator); setActiveSection('facilities'); }}
+                            className="w-full px-3 py-1.5 flex items-center justify-between text-xs hover:bg-slate-50 border-b border-slate-100 last:border-0"
+                          >
+                            <div className="flex items-center gap-2">
+                              <span className="font-medium text-slate-800 truncate max-w-[100px]">{operator}</span>
+                              <span className="text-slate-400">{facs.length}</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              {nc > 0 && <span className="px-1 py-0.5 bg-rose-100 text-rose-700 rounded text-[10px] font-bold">{nc}</span>}
+                              <span className="font-mono text-slate-600">{formatCurrency(gap)}</span>
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* By State */}
+                  <div className="bg-white rounded-lg border border-slate-200 overflow-hidden">
+                    <div className="px-3 py-2 border-b border-slate-200">
+                      <h3 className="text-xs font-bold text-slate-800 flex items-center gap-1">
+                        <Globe size={12} className="text-emerald-500" /> Top States
+                      </h3>
+                    </div>
+                    <div className="max-h-48 overflow-y-auto">
+                      {groupedByState.slice(0, 10).map(([state, facs]) => {
+                        const nc = facs.filter(f => f.complianceStatus === 'Non-Compliant').length;
+                        const gap = facs.reduce((sum, f) => sum + (f.subsidyGap || 0), 0);
+                        return (
+                          <button
+                            key={state}
+                            onClick={() => { setSearchQuery(state); setActiveSection('facilities'); }}
+                            className="w-full px-3 py-1.5 flex items-center justify-between text-xs hover:bg-slate-50 border-b border-slate-100 last:border-0"
+                          >
+                            <div className="flex items-center gap-2">
+                              <span className="font-medium text-slate-800">{state}</span>
+                              <span className="text-slate-400">{facs.length}</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              {nc > 0 && <span className="px-1 py-0.5 bg-rose-100 text-rose-700 rounded text-[10px] font-bold">{nc}</span>}
+                              <span className="font-mono text-slate-600">{formatCurrency(gap)}</span>
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Quick Actions */}
+                  <div className="bg-white rounded-lg border border-slate-200 p-3">
+                    <h3 className="text-xs font-bold text-slate-800 mb-2 flex items-center gap-1">
+                      <Zap size={12} className="text-amber-500" /> Quick Actions
+                    </h3>
+                    <div className="grid grid-cols-2 gap-1">
+                      {[
+                        { label: 'Problems', icon: <AlertTriangle size={12} />, color: 'text-rose-600 bg-rose-50', action: () => setActiveSection('problems') },
+                        { label: 'Export', icon: <Download size={12} />, color: 'text-blue-600 bg-blue-50', action: handleExport },
+                        { label: 'Refresh', icon: <RefreshCw size={12} />, color: 'text-emerald-600 bg-emerald-50', action: handleRefresh },
+                        { label: 'Help', icon: <HelpCircle size={12} />, color: 'text-purple-600 bg-purple-50', action: () => showToast('Help coming soon!') },
+                      ].map(item => (
+                        <button
+                          key={item.label}
+                          onClick={item.action}
+                          className={`flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[10px] font-semibold ${item.color} hover:opacity-80 transition-opacity`}
                         >
-                          <div className="flex items-center gap-4">
-                            <div className="w-10 h-10 rounded-xl bg-rose-100 flex items-center justify-center">
-                              <Building2 className="text-rose-600" size={20} />
-                            </div>
-                            <div>
-                              <p className="font-semibold text-slate-800 group-hover:text-rose-600 transition-colors">
-                                {facility.name}
-                              </p>
-                              <p className="text-sm text-slate-500">{facility.operator} • {facility.state}</p>
-                            </div>
-                          </div>
-                          <div className="text-right flex items-center gap-3">
-                            <div>
-                              <p className="font-bold text-rose-600">{formatCurrency(facility.subsidyGap)}</p>
-                              <p className="text-xs text-slate-500">subsidy gap</p>
-                            </div>
-                            <ArrowUpRight size={16} className="text-slate-300 group-hover:text-rose-500 transition-colors" />
-                          </div>
+                          {item.icon} {item.label}
                         </button>
-                      )) : (
-                        <div className="px-6 py-12 text-center">
-                          <CheckCircle className="w-12 h-12 text-emerald-400 mx-auto mb-3" />
-                          <p className="text-slate-600 font-medium">All facilities are compliant!</p>
-                        </div>
-                      )}
+                      ))}
                     </div>
                   </div>
                 </div>
@@ -881,169 +1352,80 @@ export const LightDashboard: React.FC = () => {
             </>
           )}
 
-          {/* Facilities List - Show on Facilities/Problems sections */}
+          {/* Facilities/Problems View with Nested Tabs */}
           {(activeSection === 'facilities' || activeSection === 'problems') && (
-            <div className="bg-white rounded-2xl border-2 border-slate-100 shadow-sm overflow-hidden">
-              <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between flex-wrap gap-4">
-                <h3 className="text-lg font-bold text-slate-800 flex items-center gap-2">
-                  <Database size={20} className="text-blue-500" />
-                  {activeSection === 'problems' ? 'Problem Facilities' : 'All Facilities'}
-                  <span className="text-slate-400 font-normal">({displayFacilities.length})</span>
-                </h3>
-                <div className="flex items-center gap-3">
-                  <div className="relative">
-                    <button 
-                      onClick={() => setShowFilters(!showFilters)}
-                      className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-slate-600 hover:text-slate-800 hover:bg-slate-100 active:bg-slate-200 rounded-lg transition-all"
-                    >
-                      <Filter size={16} />
-                      Filter
-                      <ChevronDown size={14} className={`transition-transform ${showFilters ? 'rotate-180' : ''}`} />
+            <div className="bg-white rounded-lg border border-slate-200 overflow-hidden">
+              {/* Section Header with Nested Tabs */}
+              <div className="px-3 py-2 border-b border-slate-200">
+                <div className="flex items-center justify-between mb-2">
+                  <h2 className="text-sm font-bold text-slate-800">
+                    {activeSection === 'problems' ? 'Problem Facilities' : 'All Facilities'}
+                    <span className="ml-2 text-slate-400 font-normal">({displayFacilities.length})</span>
+                  </h2>
+                  <div className="flex items-center gap-2">
+                    <button onClick={handleRefresh} disabled={isRefreshing} className="p-1.5 hover:bg-slate-100 rounded-lg">
+                      <RefreshCw size={14} className={`text-slate-500 ${isRefreshing ? 'animate-spin' : ''}`} />
                     </button>
-                    
-                    {showFilters && (
-                      <div className="absolute top-full right-0 mt-2 w-48 bg-white rounded-xl shadow-xl border border-slate-200 p-2 z-20 animate-scale-in">
-                        {['all', 'Compliant', 'Non-Compliant', 'At Risk'].map((status) => (
-                          <button
-                            key={status}
-                            onClick={() => {
-                              setFilterStatus(status);
-                              setShowFilters(false);
-                            }}
-                            className={`w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                              filterStatus === status 
-                                ? 'bg-blue-50 text-blue-600' 
-                                : 'text-slate-600 hover:bg-slate-50'
-                            }`}
-                          >
-                            {status === 'all' ? 'All Statuses' : status}
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                  {filterStatus !== 'all' && (
-                    <button 
-                      onClick={() => setFilterStatus('all')}
-                      className="text-sm text-slate-500 hover:text-rose-500 transition-colors"
-                    >
-                      Clear filter
-                    </button>
-                  )}
-                </div>
-              </div>
-              
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead className="bg-slate-50 border-b border-slate-100">
-                    <tr>
-                      <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Facility</th>
-                      <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Location</th>
-                      <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Status</th>
-                      <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Subsidy Gap</th>
-                      <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider"></th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100">
-                    {displayFacilities.map((facility) => {
-                      const statusColors = {
-                        'Compliant': 'bg-emerald-100 text-emerald-700 border-emerald-200',
-                        'Non-Compliant': 'bg-rose-100 text-rose-700 border-rose-200',
-                        'At Risk': 'bg-amber-100 text-amber-700 border-amber-200',
-                        'Unknown': 'bg-slate-100 text-slate-600 border-slate-200',
-                      };
-                      
-                      return (
-                        <tr 
-                          key={facility.id}
-                          onClick={() => setSelectedFacility(facility)}
-                          className="hover:bg-blue-50/50 active:bg-blue-100/50 transition-colors cursor-pointer group"
+                    <div className="flex items-center gap-0.5 p-0.5 bg-slate-100 rounded-lg">
+                      {(['tree', 'table'] as ViewMode[]).map(mode => (
+                        <button
+                          key={mode}
+                          onClick={() => setViewMode(mode)}
+                          className={`px-2 py-1 rounded text-[10px] font-medium ${
+                            viewMode === mode ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-500'
+                          }`}
                         >
-                          <td className="px-6 py-4">
-                            <div className="flex items-center gap-3">
-                              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white font-bold shadow-md shadow-blue-500/20">
-                                {facility.name.charAt(0)}
-                              </div>
-                              <div>
-                                <p className="font-semibold text-slate-800 group-hover:text-blue-600 transition-colors">
-                                  {facility.name}
-                                </p>
-                                <p className="text-sm text-slate-500">{facility.operator}</p>
-                              </div>
-                            </div>
-                          </td>
-                          <td className="px-6 py-4">
-                            <div className="flex items-center gap-2 text-slate-600">
-                              <MapPin size={14} className="text-slate-400" />
-                              {facility.city}, {facility.state}
-                            </div>
-                          </td>
-                          <td className="px-6 py-4">
-                            <span className={`
-                              inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold border
-                              ${statusColors[facility.complianceStatus] || statusColors['Unknown']}
-                            `}>
-                              {facility.complianceStatus === 'Compliant' && <CheckCircle size={12} className="mr-1.5" />}
-                              {facility.complianceStatus === 'Non-Compliant' && <XCircle size={12} className="mr-1.5" />}
-                              {facility.complianceStatus === 'At Risk' && <AlertTriangle size={12} className="mr-1.5" />}
-                              {facility.complianceStatus}
-                            </span>
-                          </td>
-                          <td className="px-6 py-4">
-                            <span className={`font-semibold ${facility.subsidyGap > 0 ? 'text-rose-600' : 'text-slate-600'}`}>
-                              {formatCurrency(facility.subsidyGap)}
-                            </span>
-                          </td>
-                          <td className="px-6 py-4">
-                            <div className="opacity-0 group-hover:opacity-100 transition-opacity p-2 hover:bg-blue-100 rounded-lg">
-                              <ArrowRight size={16} className="text-blue-600" />
-                            </div>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-              
-              {displayFacilities.length === 0 && (
-                <div className="p-12 text-center">
-                  <Search className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-                  <p className="font-medium text-slate-600">No facilities found</p>
-                  <p className="text-sm text-slate-500 mt-1">Try adjusting your search or filters</p>
+                          {mode === 'tree' ? 'Tree' : 'Table'}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
                 </div>
-              )}
+
+                {/* Sub-tabs for filtering */}
+                <NestedTabs
+                  density={densityMode}
+                  tabs={[
+                    { id: 'all', label: 'All', badge: filteredFacilities.length },
+                    { id: 'compliant', label: 'Compliant', icon: <CheckCircle size={10} />, badge: filteredFacilities.filter(f => f.complianceStatus === 'Compliant').length },
+                    { id: 'non-compliant', label: 'Non-Compliant', icon: <XCircle size={10} />, badge: filteredFacilities.filter(f => f.complianceStatus === 'Non-Compliant').length },
+                    { id: 'at-risk', label: 'At Risk', icon: <AlertTriangle size={10} />, badge: filteredFacilities.filter(f => f.complianceStatus === 'At Risk').length },
+                  ]}
+                  onTabChange={(id) => setActiveSubTab(id)}
+                />
+              </div>
+
+              {/* Content */}
+              <div className="max-h-[calc(100vh-200px)] overflow-y-auto">
+                {viewMode === 'tree' ? (
+                  <HierarchicalView facilities={displayFacilities} onSelect={setSelectedFacility} density={densityMode} />
+                ) : (
+                  <DenseDataTable facilities={displayFacilities} onSelect={setSelectedFacility} density={densityMode} />
+                )}
+              </div>
             </div>
           )}
 
-          {/* Placeholder for other sections */}
+          {/* Other Sections Placeholder */}
           {!['dashboard', 'facilities', 'problems'].includes(activeSection) && (
-            <div className="bg-white rounded-2xl border-2 border-slate-100 shadow-sm p-12 text-center">
-              <div className="w-16 h-16 rounded-2xl bg-blue-100 flex items-center justify-center mx-auto mb-4">
-                <Info className="w-8 h-8 text-blue-500" />
+            <div className="bg-white rounded-lg border border-slate-200 p-8 text-center">
+              <div className="w-12 h-12 rounded-xl bg-blue-100 flex items-center justify-center mx-auto mb-3">
+                <Info className="w-6 h-6 text-blue-500" />
               </div>
-              <h3 className="text-xl font-bold text-slate-800 mb-2">{getSectionTitle()}</h3>
-              <p className="text-slate-500 max-w-md mx-auto">
-                This section is coming soon. For now, explore the Dashboard, Facilities, and Problems sections for full functionality.
-              </p>
-              <button 
-                onClick={() => setActiveSection('dashboard')}
-                className="mt-6 px-6 py-3 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 rounded-xl font-semibold text-white shadow-lg shadow-blue-500/30 transition-all"
-              >
+              <h3 className="text-lg font-bold text-slate-800 mb-1">{activeSection.charAt(0).toUpperCase() + activeSection.slice(1)}</h3>
+              <p className="text-sm text-slate-500 mb-4">Coming soon. Explore Dashboard and Facilities for now.</p>
+              <button onClick={() => setActiveSection('dashboard')} className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white text-sm font-semibold rounded-lg">
                 Go to Dashboard
               </button>
             </div>
           )}
 
           {/* Footer */}
-          <footer className="mt-12 pt-8 border-t border-slate-200">
-            <div className="flex items-center justify-between text-sm text-slate-500 flex-wrap gap-4">
-              <p>© 2026 DCIM Compliance Dashboard — Built for Labor Organizers</p>
-              <div className="flex items-center gap-6">
-                <button onClick={() => showToast('Documentation coming soon!')} className="hover:text-blue-600 transition-colors">Documentation</button>
-                <button onClick={() => showToast('Support coming soon!')} className="hover:text-blue-600 transition-colors">Support</button>
-                <button onClick={() => showToast('Privacy policy coming soon!')} className="hover:text-blue-600 transition-colors">Privacy</button>
-              </div>
+          <footer className="mt-6 pt-4 border-t border-slate-200 flex items-center justify-between text-[10px] text-slate-500">
+            <p>© 2026 DCIM Compliance — Built for Labor Organizers</p>
+            <div className="flex items-center gap-4">
+              <button onClick={() => showToast('Docs coming soon!')} className="hover:text-blue-600">Docs</button>
+              <button onClick={() => showToast('Support coming soon!')} className="hover:text-blue-600">Support</button>
             </div>
           </footer>
         </main>
