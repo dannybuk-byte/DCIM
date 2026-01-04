@@ -34,7 +34,10 @@ export interface SearchState {
   queryDescription: string;
   
   // Method used
-  conversionMethod: 'api' | 'keywords' | 'cached' | null;
+  conversionMethod: 'adaptive' | 'api' | 'keywords' | 'cached' | null;
+  provider?: string;  // More specific: 'adaptive-semantic', 'adaptive-learned', 'ollama', etc.
+  confidence?: number; // 0-1 confidence score
+  suggestions?: string[]; // Alternative query suggestions
   
   // Error handling
   error: string | null;
@@ -58,6 +61,9 @@ const initialState: SearchState = {
   structuredQuery: null,
   queryDescription: '',
   conversionMethod: null,
+  provider: undefined,
+  confidence: undefined,
+  suggestions: undefined,
   error: null,
   warning: null
 };
@@ -138,6 +144,7 @@ export function useNaturalLanguageSearch(): [SearchState, SearchActions] {
   
   /**
    * Search using natural language
+   * Now uses multi-layered adaptive NLP with confidence tracking
    */
   const search = useCallback(async (naturalLanguage: string) => {
     if (!naturalLanguage.trim()) {
@@ -152,40 +159,48 @@ export function useNaturalLanguageSearch(): [SearchState, SearchActions] {
       isLoading: true,
       naturalLanguage,
       error: null,
-      warning: null
+      warning: null,
+      provider: undefined,
+      confidence: undefined,
+      suggestions: undefined,
     }));
     
     try {
       let structuredQuery: FacilityQuery;
-      let conversionMethod: 'api' | 'keywords' | 'cached';
+      let conversionMethod: 'adaptive' | 'api' | 'keywords' | 'cached';
       let warning: string | null = null;
-      let apiProvider: string | undefined;
+      let provider: string | undefined;
+      let confidence: number | undefined;
+      let suggestions: string[] | undefined;
       
       // Check cache first
       const cached = getCachedNLQuery(naturalLanguage);
       if (cached) {
         structuredQuery = cached.query;
         conversionMethod = 'cached';
+        confidence = 1.0; // Cached results are trusted
       } else {
-        // Convert natural language to structured query
+        // Convert natural language to structured query (now uses adaptive NLP)
         const conversion = await convertNLToQueryWithFallback(naturalLanguage);
         structuredQuery = conversion.query;
         conversionMethod = conversion.method === 'error' ? 'keywords' : conversion.method;
-        apiProvider = conversion.provider;
+        provider = conversion.provider;
+        confidence = conversion.confidence;
+        suggestions = conversion.suggestions;
         
         if (conversion.error) {
           warning = conversion.error;
         }
         
-        // Cache the conversion
-        if (conversionMethod !== 'error') {
-          cacheNLQuery(naturalLanguage, structuredQuery, conversionMethod);
+        // Cache the conversion (only if successful)
+        if (conversion.method !== 'error') {
+          cacheNLQuery(naturalLanguage, structuredQuery, conversionMethod === 'adaptive' ? 'api' : conversionMethod);
         }
       }
 
-      // Track API usage if we used a paid API (avoid counting local providers/cached/keywords)
-      if (conversionMethod === 'api' && apiProvider === 'openai') {
-        trackAPIUsage(500, 'openai'); // Estimate 500 tokens for query conversion
+      // Track API usage if we used a paid external API
+      if (provider === 'openai' || provider === 'cloudflare-worker') {
+        trackAPIUsage(500, provider); // Estimate 500 tokens for query conversion
       }
       
       setState(prev => ({
@@ -193,6 +208,9 @@ export function useNaturalLanguageSearch(): [SearchState, SearchActions] {
         isConverting: false,
         structuredQuery,
         conversionMethod,
+        provider,
+        confidence,
+        suggestions,
         queryDescription: describeQuery(structuredQuery),
         warning
       }));

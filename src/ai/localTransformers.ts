@@ -65,9 +65,11 @@ async function loadPipeline(): Promise<boolean> {
   if (pipeline) return true;
   
   try {
-    // Dynamic import - only loads when needed
-    // If @huggingface/transformers is not installed, this will fail gracefully
-    const transformers = await import('@huggingface/transformers');
+    // Dynamic import with workaround to prevent Vite from pre-analyzing
+    // The variable assignment prevents static analysis
+    const packageName = '@huggingface/transformers';
+    // @ts-expect-error - Dynamic import of optional dependency
+    const transformers = await import(/* @vite-ignore */ packageName);
     pipeline = transformers.pipeline;
     console.log('[LocalTransformers] Pipeline loaded');
     return true;

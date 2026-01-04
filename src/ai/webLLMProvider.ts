@@ -147,11 +147,13 @@ export async function initializeWebLLM(
     state.progressText = 'Initializing...';
     onProgress?.(0, 'Initializing...');
     
-    // Dynamic import of WebLLM
+    // Dynamic import of WebLLM with Vite ignore comment
     // If @mlc-ai/web-llm is not installed, this will fail gracefully
     let webllm;
     try {
-      webllm = await import('@mlc-ai/web-llm');
+      const packageName = '@mlc-ai/web-llm';
+      // @ts-expect-error - Dynamic import of optional dependency
+      webllm = await import(/* @vite-ignore */ packageName);
     } catch (importError) {
       console.info('[WebLLM] Package not installed. Install with: npm install @mlc-ai/web-llm');
       state.state = 'error';

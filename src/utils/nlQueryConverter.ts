@@ -1,14 +1,39 @@
 /**
  * Natural Language to Structured Query Converter
- * Converts user's natural language into structured facility queries
- * Prefers local/OpenAI-compatible providers when available; validates outputs with Zod.
+ * 
+ * Multi-layered, self-learning query conversion with automatic fallback:
+ * 1. Adaptive NLP (semantic + learned patterns + entity extraction)
+ * 2. External AI (Ollama/OpenAI/Cloudflare)
+ * 3. Keyword matching (always works)
+ * 
+ * Learns from successful queries to improve over time.
  */
 
 import { FacilityQuerySchema, type FacilityQuery, EXAMPLE_QUERIES } from '../schemas/facilityQuery';
 import { SYSTEM_PROMPTS } from '../ai/config';
 import { askAIText } from '../ai/engine';
+import { 
+  adaptiveConvert, 
+  learnFromSuccess, 
+  updateContext, 
+  generateSuggestions,
+  initAdaptiveNLP,
+  type ExtractedQueryInfo,
+  extractQueryInfo,
+  getSynonyms,
+  expandQueryWithSynonyms,
+} from '../ai/adaptiveNLP';
 
-type NLQueryProvider = 'ollama' | 'anyway' | 'cloudflare-worker' | 'openai' | 'keywords';
+export type NLQueryProvider = 'adaptive-semantic' | 'adaptive-learned' | 'adaptive-extracted' | 'ollama' | 'anyway' | 'cloudflare-worker' | 'openai' | 'keywords';
+
+// Initialize adaptive NLP on module load
+let adaptiveInitialized = false;
+async function ensureAdaptiveInit(): Promise<void> {
+  if (!adaptiveInitialized) {
+    await initAdaptiveNLP();
+    adaptiveInitialized = true;
+  }
+}
 
 function extractLikelyJsonObject(text: string): string | null {
   const first = text.indexOf('{');
@@ -288,17 +313,60 @@ export function convertNLToQueryKeywords(naturalLanguage: string): FacilityQuery
 }
 
 /**
- * Convert with automatic fallback
- * Tries API first, falls back to keywords on failure
+ * Convert with automatic fallback (multi-layered)
+ * 
+ * Conversion layers (in priority order):
+ * 1. Adaptive NLP (semantic, learned, or extracted)
+ * 2. External AI API (Ollama/OpenAI/Cloudflare)
+ * 3. Keyword matching (always works)
+ * 
+ * Learns from successful conversions to improve over time.
  */
 export async function convertNLToQueryWithFallback(
   naturalLanguage: string
 ): Promise<{
   query: FacilityQuery;
-  method: 'api' | 'keywords' | 'error';
+  method: 'adaptive' | 'api' | 'keywords' | 'error';
   provider?: NLQueryProvider;
+  confidence?: number;
   error?: string;
+  suggestions?: string[];
 }> {
+  // Ensure adaptive NLP is initialized
+  await ensureAdaptiveInit();
+  
+  // LAYER 1: Adaptive NLP (semantic search + learned patterns + entity extraction)
+  try {
+    const adaptiveResult = await adaptiveConvert(naturalLanguage);
+    
+    // If high confidence, use adaptive result
+    if (adaptiveResult.confidence >= 0.7) {
+      // Update context for conversational queries
+      updateContext(naturalLanguage, adaptiveResult.query);
+      
+      // Learn from this if it came from extraction (API fallback will teach later)
+      if (adaptiveResult.method === 'extracted') {
+        await learnFromSuccess(naturalLanguage, adaptiveResult.query, 'api');
+      }
+      
+      console.log(`[NLQueryConverter] Adaptive conversion (${adaptiveResult.method}): confidence=${adaptiveResult.confidence.toFixed(2)}`);
+      
+      return {
+        query: adaptiveResult.query,
+        method: 'adaptive',
+        provider: `adaptive-${adaptiveResult.method}` as NLQueryProvider,
+        confidence: adaptiveResult.confidence,
+        suggestions: adaptiveResult.suggestions,
+      };
+    }
+    
+    // Low confidence adaptive result - continue to API
+    console.log(`[NLQueryConverter] Adaptive confidence low (${adaptiveResult.confidence.toFixed(2)}), trying API...`);
+  } catch (adaptiveError) {
+    console.warn('[NLQueryConverter] Adaptive conversion failed:', adaptiveError);
+  }
+  
+  // LAYER 2: External AI API
   try {
     const userMessage =
       'Convert the following natural language request into a JSON object that matches the FacilityQuery schema. ' +
@@ -314,29 +382,89 @@ export async function convertNLToQueryWithFallback(
     });
 
     const query = parseAndValidateFacilityQuery(result.text);
-    return { query, method: 'api', provider: result.provider as NLQueryProvider };
-  } catch (error) {
-    console.warn('API conversion failed, using keyword matching:', error);
     
-    // Try keyword fallback
+    // Learn from successful API conversion
+    await learnFromSuccess(naturalLanguage, query, 'api');
+    updateContext(naturalLanguage, query);
+    
+    console.log(`[NLQueryConverter] API conversion successful (${result.provider})`);
+    
+    return { 
+      query, 
+      method: 'api', 
+      provider: result.provider as NLQueryProvider,
+      confidence: 0.9,
+    };
+  } catch (error) {
+    console.warn('[NLQueryConverter] API conversion failed, using keyword matching:', error);
+    
+    // LAYER 3: Keyword matching
     try {
       const query = convertNLToQueryKeywords(naturalLanguage);
+      updateContext(naturalLanguage, query);
+      
       return { 
         query, 
         method: 'keywords',
         provider: 'keywords',
-        error: error instanceof Error ? error.message : 'API conversion failed'
+        confidence: 0.5,
+        error: error instanceof Error ? error.message : 'API conversion failed',
+        suggestions: generateSuggestions(naturalLanguage),
       };
     } catch (fallbackError) {
-      // Both failed - return empty query
+      // All methods failed - return empty query with suggestions
       return {
         query: { limit: 100 },
         method: 'error',
         provider: 'keywords',
-        error: 'Could not parse query. Try being more specific (e.g., "Show me facilities in Texas").'
+        confidence: 0.1,
+        error: 'Could not parse query. Try being more specific (e.g., "Show me facilities in Texas").',
+        suggestions: getExampleQueries(),
       };
     }
   }
+}
+
+/**
+ * Advanced query conversion with full metadata
+ * Use this for detailed debugging and UI feedback
+ */
+export async function convertNLToQueryAdvanced(
+  naturalLanguage: string
+): Promise<{
+  query: FacilityQuery;
+  method: 'adaptive' | 'api' | 'keywords' | 'error';
+  provider: NLQueryProvider;
+  confidence: number;
+  extractedInfo: ExtractedQueryInfo | null;
+  suggestions: string[];
+  synonymsExpanded: string[];
+  error?: string;
+}> {
+  await ensureAdaptiveInit();
+  
+  // Extract full information regardless of method
+  let extractedInfo: ExtractedQueryInfo | null = null;
+  try {
+    extractedInfo = await extractQueryInfo(naturalLanguage);
+  } catch (e) {
+    console.warn('[NLQueryConverter] Entity extraction failed:', e);
+  }
+  
+  // Get synonyms expansion
+  const synonymsExpanded = expandQueryWithSynonyms(naturalLanguage);
+  
+  // Run main conversion
+  const result = await convertNLToQueryWithFallback(naturalLanguage);
+  
+  return {
+    ...result,
+    provider: result.provider || 'keywords',
+    confidence: result.confidence || 0.5,
+    extractedInfo,
+    suggestions: result.suggestions || generateSuggestions(naturalLanguage),
+    synonymsExpanded,
+  };
 }
 
 /**
@@ -345,6 +473,18 @@ export async function convertNLToQueryWithFallback(
 export function getExampleQueries(): string[] {
   return EXAMPLE_QUERIES.map(eq => eq.nl);
 }
+
+/**
+ * Get smart suggestions based on partial input
+ */
+export function getSmartSuggestions(partialQuery: string): string[] {
+  return generateSuggestions(partialQuery);
+}
+
+/**
+ * Get synonyms for a term (useful for query expansion)
+ */
+export { getSynonyms, expandQueryWithSynonyms };
 
 /**
  * Validate and normalize a query
@@ -376,4 +516,21 @@ export function normalizeQuery(query: FacilityQuery): FacilityQuery {
   
   return query;
 }
+
+/**
+ * Provide user feedback to improve learning
+ * Call this when user confirms a query worked well
+ */
+export async function provideFeedback(
+  naturalLanguage: string, 
+  query: FacilityQuery, 
+  wasSuccessful: boolean
+): Promise<void> {
+  if (wasSuccessful) {
+    await learnFromSuccess(naturalLanguage, query, 'user-feedback');
+  }
+}
+
+// Re-export adaptive NLP types for consumers
+export type { ExtractedQueryInfo } from '../ai/adaptiveNLP';
 

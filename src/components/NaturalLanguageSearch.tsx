@@ -1,7 +1,8 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { Search, Loader, AlertCircle, Sparkles, ChevronRight, X, TrendingUp, TrendingDown, MapPin, Building2, DollarSign } from 'lucide-react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
+import { Search, Loader, AlertCircle, Sparkles, ChevronRight, X, TrendingUp, TrendingDown, MapPin, Building2, DollarSign, Brain, Cpu, Zap, ThumbsUp, Info } from 'lucide-react';
 import { useNaturalLanguageSearch, useSearchSuggestions } from '../hooks/useNaturalLanguageSearch';
 import { getRecentSearches } from '../utils/queryCache';
+import { getSmartSuggestions, provideFeedback } from '../utils/nlQueryConverter';
 import type { Facility } from '../types';
 
 interface NaturalLanguageSearchProps {
@@ -9,16 +10,60 @@ interface NaturalLanguageSearchProps {
   onFacilityClick: (facility: Facility) => void;
 }
 
+// Confidence indicator component
+const ConfidenceIndicator: React.FC<{ confidence: number; method: string }> = ({ confidence, method }) => {
+  const getConfidenceColor = () => {
+    if (confidence >= 0.8) return 'text-green-400';
+    if (confidence >= 0.6) return 'text-yellow-400';
+    return 'text-orange-400';
+  };
+  
+  const getMethodIcon = () => {
+    if (method.includes('semantic')) return <Brain size={12} className="text-purple-400" />;
+    if (method.includes('learned')) return <Zap size={12} className="text-cyan-400" />;
+    if (method.includes('api')) return <Cpu size={12} className="text-green-400" />;
+    return <Search size={12} className="text-gray-400" />;
+  };
+  
+  const getMethodLabel = () => {
+    if (method.includes('semantic')) return 'Semantic Match';
+    if (method.includes('learned')) return 'Learned Pattern';
+    if (method.includes('extracted')) return 'Entity Extraction';
+    if (method.includes('api')) return 'AI Processed';
+    if (method === 'cached') return 'Cached';
+    return 'Keyword Match';
+  };
+  
+  return (
+    <div className="flex items-center gap-2 text-xs">
+      {getMethodIcon()}
+      <span className="text-gray-400">{getMethodLabel()}</span>
+      <span className={`font-mono ${getConfidenceColor()}`}>
+        {(confidence * 100).toFixed(0)}%
+      </span>
+    </div>
+  );
+};
+
 export const NaturalLanguageSearch: React.FC<NaturalLanguageSearchProps> = ({
   onResults,
   onFacilityClick
 }) => {
   const [searchState, { search, clear }] = useNaturalLanguageSearch();
-  const suggestions = useSearchSuggestions();
+  const defaultSuggestions = useSearchSuggestions();
   const [inputValue, setInputValue] = useState('');
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [recentSearches, setRecentSearches] = useState<string[]>([]);
+  const [hasGivenFeedback, setHasGivenFeedback] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+  
+  // Smart suggestions based on current input
+  const suggestions = useMemo(() => {
+    if (inputValue.trim().length >= 2) {
+      return getSmartSuggestions(inputValue);
+    }
+    return defaultSuggestions;
+  }, [inputValue, defaultSuggestions]);
   
   // Load recent searches on mount
   useEffect(() => {
@@ -167,10 +212,12 @@ export const NaturalLanguageSearch: React.FC<NaturalLanguageSearchProps> = ({
         )}
       </div>
       
-      {/* Status Messages */}
+      {/* Status Messages - Enhanced with confidence and feedback */}
       {searchState.conversionMethod && !searchState.error && (
         <div className={`mt-3 p-3 rounded-lg border ${
-          searchState.conversionMethod === 'api' 
+          searchState.conversionMethod === 'adaptive'
+            ? 'bg-purple-500/10 border-purple-500/30'
+            : searchState.conversionMethod === 'api' 
             ? 'bg-[#2ed573]/10 border-[#2ed573]/30' 
             : searchState.conversionMethod === 'cached'
             ? 'bg-[#00d2d3]/10 border-[#00d2d3]/30'
@@ -178,19 +225,53 @@ export const NaturalLanguageSearch: React.FC<NaturalLanguageSearchProps> = ({
         }`}>
           <div className="flex items-start gap-2">
             <Sparkles size={16} className={
+              searchState.conversionMethod === 'adaptive' ? 'text-purple-400' :
               searchState.conversionMethod === 'api' ? 'text-[#2ed573]' :
               searchState.conversionMethod === 'cached' ? 'text-[#00d2d3]' :
               'text-[#ffa502]'
             } />
             <div className="flex-1">
-              <div className="text-xs font-semibold text-white mb-1">
-                {searchState.conversionMethod === 'api' && 'AI-Powered Search'}
-                {searchState.conversionMethod === 'cached' && 'Cached Search'}
-                {searchState.conversionMethod === 'keywords' && 'Keyword Search'}
+              <div className="flex items-center justify-between mb-1">
+                <div className="text-xs font-semibold text-white">
+                  {searchState.conversionMethod === 'adaptive' && '🧠 Adaptive NLP Search'}
+                  {searchState.conversionMethod === 'api' && '🤖 AI-Powered Search'}
+                  {searchState.conversionMethod === 'cached' && '⚡ Cached Search'}
+                  {searchState.conversionMethod === 'keywords' && '🔤 Keyword Search'}
+                </div>
+                {/* Confidence indicator */}
+                {searchState.confidence !== undefined && (
+                  <ConfidenceIndicator 
+                    confidence={searchState.confidence} 
+                    method={searchState.provider || searchState.conversionMethod || 'keywords'} 
+                  />
+                )}
               </div>
-              <div className="text-xs text-gray-300">
+              <div className="text-xs text-gray-300 mb-2">
                 {searchState.queryDescription}
               </div>
+              
+              {/* Feedback button - helps the system learn */}
+              {searchState.results.length > 0 && searchState.structuredQuery && !hasGivenFeedback && (
+                <button
+                  onClick={async () => {
+                    if (searchState.structuredQuery) {
+                      await provideFeedback(searchState.naturalLanguage, searchState.structuredQuery, true);
+                      setHasGivenFeedback(true);
+                    }
+                  }}
+                  className="flex items-center gap-1 text-xs text-gray-400 hover:text-green-400 transition-colors"
+                  title="This helps improve search for everyone"
+                >
+                  <ThumbsUp size={12} />
+                  <span>Results look good</span>
+                </button>
+              )}
+              {hasGivenFeedback && (
+                <div className="flex items-center gap-1 text-xs text-green-400">
+                  <ThumbsUp size={12} />
+                  <span>Thanks! This helps improve future searches.</span>
+                </div>
+              )}
             </div>
           </div>
         </div>
