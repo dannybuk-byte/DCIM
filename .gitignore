@@ -1,4 +1,5 @@
 node_modules
+<<<<<<< HEAD
 node_modules/
 dist/
 .next/
@@ -7,3 +8,8 @@ dist/
 .next/
 dist/
 .vite/
+=======
+dist
+.mcp-memory.jsonl
+*.log
+>>>>>>> origin/main
