@@ -1,0 +1,19 @@
+---
+description: TypeScript and React patterns for DCIM
+alwaysApply: true
+---
+
+# TypeScript/React Patterns
+
+## State Management
+- Use Jotai for atomic state
+- Prefer useMemo/useCallback for expensive operations
+- Virtual scrolling for lists > 100 items (TanStack Virtual)
+
+## Error Boundaries
+Wrap major sections in error boundaries to prevent full-page crashes.
+
+## Performance
+- Lazy load heavy components
+- Use Suspense for code splitting
+- Debounce search inputs (300ms)
