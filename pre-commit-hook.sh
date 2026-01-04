@@ -10,6 +10,14 @@
 echo "🛡️  Running pre-commit safety checks..."
 echo ""
 
+# ============================================================================
+# UPDATE AGENT STATUS (for AI agent continuity)
+# ============================================================================
+if [ -f "/Users/danielbuk/Desktop/DCIM/update-agent-status.sh" ]; then
+  /Users/danielbuk/Desktop/DCIM/update-agent-status.sh "$(git diff --cached --name-only | head -1)"
+fi
+echo ""
+
 # Color codes for output
 RED='\033[0;31m'
 YELLOW='\033[1;33m'
