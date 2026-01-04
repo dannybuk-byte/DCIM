@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback, createContext, useContext } from 'react';
 import DCIMCommandCenter from './components/DCIMCommandCenter';
 import ChatInterface from './components/ChatInterface';
 import ReportModal from './components/ReportModal';
@@ -8,6 +8,7 @@ import { DynamicActionButtons } from './components/DynamicActionButtons';
 import { NavigationHelper } from './components/NavigationHelper';
 import { MissionControlGridTest } from './components/MissionControlGridTest';
 import { OmniscientCommandInterface } from './components/OmniscientCommandInterface';
+import { LightDashboard } from './components/LightDashboard';
 import { initClickToScrollEverywhere } from './utils/clickToScrollEverywhere';
 import { db } from './db/database';
 import { Facility } from './types';
@@ -18,10 +19,19 @@ import { DensityProvider } from './contexts/DensityContext';
 import { getSettings, saveSettings, settingsKey } from './utils/settingsPersistence';
 import { OfflineIndicator } from './hooks/useOfflineStatus';
 import { EnhancedCapabilitiesBanner } from './components/EnhancedCapabilitiesBanner';
+import { Sun, Moon, Palette } from 'lucide-react';
+
+// Theme Context
+type Theme = 'light' | 'dark';
+const ThemeContext = createContext<{ theme: Theme; setTheme: (t: Theme) => void }>({ 
+  theme: 'light', 
+  setTheme: () => {} 
+});
+export const useTheme = () => useContext(ThemeContext);
 
 function App() {
-  type AppShell = 'omniscient' | 'commandCenter' | 'missionControlTest';
-  const [appShell, setAppShell] = useState<AppShell>('omniscient');
+  type AppShell = 'light' | 'omniscient' | 'commandCenter' | 'missionControlTest';
+  const [appShell, setAppShell] = useState<AppShell>('light'); // Default to light theme for demos
   const [shellMenuOpen, setShellMenuOpen] = useState(false);
   const [chatOpen, setChatOpen] = useState(false);
   const [reportOpen, setReportOpen] = useState(false);
@@ -29,6 +39,23 @@ function App() {
   const [sourceManagerOpen, setSourceManagerOpen] = useState(false); // NotebookLM Source Manager
   const [facilities, setFacilities] = useState<Facility[]>([]);
   const [sourceManagerFacilityId, setSourceManagerFacilityId] = useState<number | null>(null);
+  
+  // Theme State - Default to LIGHT (demo-ready)
+  const [theme, setTheme] = useState<Theme>('light');
+  
+  // Load persisted theme
+  useEffect(() => {
+    const saved = localStorage.getItem('dcim:theme') as Theme;
+    if (saved === 'light' || saved === 'dark') {
+      setTheme(saved);
+    }
+  }, []);
+  
+  // Save theme and apply to document
+  useEffect(() => {
+    localStorage.setItem('dcim:theme', theme);
+    document.documentElement.classList.toggle('dark', theme === 'dark');
+  }, [theme]);
 
   const preselectedFacility = useMemo(() => {
     if (!sourceManagerFacilityId) return undefined;
@@ -75,7 +102,7 @@ function App() {
       try {
         const saved = await getSettings<AppShell>(settingsKey('appShell'));
         if (cancelled) return;
-        if (saved === 'omniscient' || saved === 'commandCenter' || saved === 'missionControlTest') {
+        if (saved === 'light' || saved === 'omniscient' || saved === 'commandCenter' || saved === 'missionControlTest') {
           setAppShell(saved);
         }
       } catch {
@@ -165,6 +192,7 @@ function App() {
   ];
 
   const shellLabel = useMemo(() => {
+    if (appShell === 'light') return '✨ Light Dashboard';
     if (appShell === 'omniscient') return 'Omniscient';
     if (appShell === 'commandCenter') return 'Command Center';
     return 'Mission Control (Test)';
@@ -176,34 +204,86 @@ function App() {
   }, []);
 
   return (
+    <ThemeContext.Provider value={{ theme, setTheme }}>
     <DensityProvider>
       <ProvenanceModeProvider>
-      <div className="relative">
+      <div className={`relative ${theme === 'light' ? 'bg-gradient-to-br from-neutral-50 via-primary-50/30 to-neutral-50' : ''}`}>
         {/* ENHANCED CAPABILITIES BANNER - Always visible at top */}
-        <EnhancedCapabilitiesBanner />
+        {theme === 'dark' && <EnhancedCapabilitiesBanner />}
+        
+        {/* Theme Toggle - Floating */}
+        <div className="fixed top-4 right-4 z-[9999]">
+          <button
+            onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
+            className={`
+              p-3 rounded-xl shadow-lg transition-all duration-300 group
+              ${theme === 'light' 
+                ? 'bg-white border border-neutral-200 hover:shadow-xl hover:border-primary-300' 
+                : 'bg-gray-800 border border-gray-700 hover:bg-gray-700'
+              }
+            `}
+            title={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
+          >
+            {theme === 'light' ? (
+              <Moon className="w-5 h-5 text-neutral-600 group-hover:text-primary-600 transition-colors" />
+            ) : (
+              <Sun className="w-5 h-5 text-amber-400 group-hover:text-amber-300 transition-colors" />
+            )}
+          </button>
+        </div>
+        
         {/* Always-available interface switcher (some features live in different shells) */}
         <div className="fixed bottom-4 right-4 z-[9999]">
-          <div className="bg-gray-950/90 backdrop-blur border border-gray-800 rounded-lg shadow-2xl overflow-hidden">
+          <div className={`
+            backdrop-blur rounded-xl shadow-2xl overflow-hidden
+            ${theme === 'light' 
+              ? 'bg-white/90 border border-neutral-200' 
+              : 'bg-gray-950/90 border border-gray-800'
+            }
+          `}>
             <button
               type="button"
               onClick={() => setShellMenuOpen((v) => !v)}
-              className="px-3 py-2 text-xs text-gray-200 hover:text-white hover:bg-gray-900 flex items-center gap-2 w-full"
+              className={`
+                px-4 py-3 text-sm flex items-center gap-3 w-full transition-colors
+                ${theme === 'light'
+                  ? 'text-neutral-700 hover:bg-neutral-50'
+                  : 'text-gray-200 hover:text-white hover:bg-gray-900'
+                }
+              `}
               aria-haspopup="menu"
               aria-expanded={shellMenuOpen}
               title="Switch between interface shells"
             >
-              <span className="text-gray-400">Interface:</span>
+              <Palette className="w-4 h-4" />
+              <span className={theme === 'light' ? 'text-neutral-500' : 'text-gray-400'}>Interface:</span>
               <span className="font-semibold">{shellLabel}</span>
-              <span className="ml-auto text-gray-500">{shellMenuOpen ? '▲' : '▼'}</span>
+              <span className={`ml-auto ${theme === 'light' ? 'text-neutral-400' : 'text-gray-500'}`}>
+                {shellMenuOpen ? '▲' : '▼'}
+              </span>
             </button>
             {shellMenuOpen && (
-              <div role="menu" className="border-t border-gray-800">
+              <div role="menu" className={`border-t ${theme === 'light' ? 'border-neutral-200' : 'border-gray-800'}`}>
+                <button
+                  type="button"
+                  role="menuitem"
+                  onClick={() => setShellAndCloseMenu('light')}
+                  className={`w-full text-left px-4 py-2.5 text-sm transition-colors ${
+                    theme === 'light'
+                      ? `hover:bg-primary-50 ${appShell === 'light' ? 'text-primary-600 bg-primary-50 font-semibold' : 'text-neutral-700'}`
+                      : `hover:bg-gray-900 ${appShell === 'light' ? 'text-cyan-300' : 'text-gray-200'}`
+                  }`}
+                >
+                  ✨ Light Dashboard (Professional, Demo-Ready)
+                </button>
                 <button
                   type="button"
                   role="menuitem"
                   onClick={() => setShellAndCloseMenu('omniscient')}
-                  className={`w-full text-left px-3 py-2 text-xs hover:bg-gray-900 ${
-                    appShell === 'omniscient' ? 'text-cyan-300' : 'text-gray-200'
+                  className={`w-full text-left px-4 py-2.5 text-sm transition-colors ${
+                    theme === 'light'
+                      ? `hover:bg-primary-50 ${appShell === 'omniscient' ? 'text-primary-600 bg-primary-50' : 'text-neutral-700'}`
+                      : `hover:bg-gray-900 ${appShell === 'omniscient' ? 'text-cyan-300' : 'text-gray-200'}`
                   }`}
                 >
                   Omniscient (Dashboard / Tracker / Full Report)
@@ -212,8 +292,10 @@ function App() {
                   type="button"
                   role="menuitem"
                   onClick={() => setShellAndCloseMenu('commandCenter')}
-                  className={`w-full text-left px-3 py-2 text-xs hover:bg-gray-900 ${
-                    appShell === 'commandCenter' ? 'text-cyan-300' : 'text-gray-200'
+                  className={`w-full text-left px-4 py-2.5 text-sm transition-colors ${
+                    theme === 'light'
+                      ? `hover:bg-primary-50 ${appShell === 'commandCenter' ? 'text-primary-600 bg-primary-50' : 'text-neutral-700'}`
+                      : `hover:bg-gray-900 ${appShell === 'commandCenter' ? 'text-cyan-300' : 'text-gray-200'}`
                   }`}
                 >
                   Command Center (Tabs: OSINT, Connectography, Predictive Intel…)
@@ -222,8 +304,10 @@ function App() {
                   type="button"
                   role="menuitem"
                   onClick={() => setShellAndCloseMenu('missionControlTest')}
-                  className={`w-full text-left px-3 py-2 text-xs hover:bg-gray-900 ${
-                    appShell === 'missionControlTest' ? 'text-cyan-300' : 'text-gray-200'
+                  className={`w-full text-left px-4 py-2.5 text-sm transition-colors ${
+                    theme === 'light'
+                      ? `hover:bg-primary-50 ${appShell === 'missionControlTest' ? 'text-primary-600 bg-primary-50' : 'text-neutral-700'}`
+                      : `hover:bg-gray-900 ${appShell === 'missionControlTest' ? 'text-cyan-300' : 'text-gray-200'}`
                   }`}
                 >
                   Mission Control Grid (Test)
@@ -233,7 +317,9 @@ function App() {
           </div>
         </div>
 
-        {appShell === 'missionControlTest' ? (
+        {appShell === 'light' ? (
+          <LightDashboard />
+        ) : appShell === 'missionControlTest' ? (
           <MissionControlGridTest />
         ) : appShell === 'omniscient' ? (
           <OmniscientCommandInterface />
@@ -277,6 +363,7 @@ function App() {
       </div>
       </ProvenanceModeProvider>
     </DensityProvider>
+    </ThemeContext.Provider>
   );
 }
 
