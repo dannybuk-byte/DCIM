@@ -74,50 +74,103 @@ export async function convertNLToQuery(
 /**
  * Fallback: Convert natural language to query using keyword matching
  * Used when API is not available or fails
+ * ENHANCED: Comprehensive state/operator coverage + text search
  */
 export function convertNLToQueryKeywords(naturalLanguage: string): FacilityQuery {
   const query: FacilityQuery = {};
   const lower = naturalLanguage.toLowerCase();
   
-  // Extract states (US state codes or full names)
+  // ALL 50 US states + territories
   const stateMap: Record<string, string> = {
-    'texas': 'TX', 'tx': 'TX',
-    'california': 'CA', 'ca': 'CA',
-    'new york': 'NY', 'ny': 'NY',
-    'florida': 'FL', 'fl': 'FL',
-    'illinois': 'IL', 'il': 'IL',
-    'virginia': 'VA', 'va': 'VA',
-    'ohio': 'OH', 'oh': 'OH',
-    'iowa': 'IA', 'ia': 'IA',
-    'oregon': 'OR', 'or': 'OR',
-    'washington': 'WA', 'wa': 'WA',
-    'georgia': 'GA', 'ga': 'GA',
-    'michigan': 'MI', 'mi': 'MI',
-    'arizona': 'AZ', 'az': 'AZ',
-    'nevada': 'NV', 'nv': 'NV'
+    'alabama': 'AL', 'al': 'AL', 'alaska': 'AK', 'ak': 'AK',
+    'arizona': 'AZ', 'az': 'AZ', 'arkansas': 'AR', 'ar': 'AR',
+    'california': 'CA', 'ca': 'CA', 'colorado': 'CO', 'co': 'CO',
+    'connecticut': 'CT', 'ct': 'CT', 'delaware': 'DE', 'de': 'DE',
+    'florida': 'FL', 'fl': 'FL', 'georgia': 'GA', 'ga': 'GA',
+    'hawaii': 'HI', 'hi': 'HI', 'idaho': 'ID', 'id': 'ID',
+    'illinois': 'IL', 'il': 'IL', 'indiana': 'IN', 'in': 'IN',
+    'iowa': 'IA', 'ia': 'IA', 'kansas': 'KS', 'ks': 'KS',
+    'kentucky': 'KY', 'ky': 'KY', 'louisiana': 'LA', 'la': 'LA',
+    'maine': 'ME', 'me': 'ME', 'maryland': 'MD', 'md': 'MD',
+    'massachusetts': 'MA', 'ma': 'MA', 'michigan': 'MI', 'mi': 'MI',
+    'minnesota': 'MN', 'mn': 'MN', 'mississippi': 'MS', 'ms': 'MS',
+    'missouri': 'MO', 'mo': 'MO', 'montana': 'MT', 'mt': 'MT',
+    'nebraska': 'NE', 'ne': 'NE', 'nevada': 'NV', 'nv': 'NV',
+    'new hampshire': 'NH', 'nh': 'NH', 'new jersey': 'NJ', 'nj': 'NJ',
+    'new mexico': 'NM', 'nm': 'NM', 'new york': 'NY', 'ny': 'NY',
+    'north carolina': 'NC', 'nc': 'NC', 'north dakota': 'ND', 'nd': 'ND',
+    'ohio': 'OH', 'oh': 'OH', 'oklahoma': 'OK', 'ok': 'OK',
+    'oregon': 'OR', 'pennsylvania': 'PA', 'pa': 'PA',
+    'rhode island': 'RI', 'ri': 'RI', 'south carolina': 'SC', 'sc': 'SC',
+    'south dakota': 'SD', 'sd': 'SD', 'tennessee': 'TN', 'tn': 'TN',
+    'texas': 'TX', 'tx': 'TX', 'utah': 'UT', 'ut': 'UT',
+    'vermont': 'VT', 'vt': 'VT', 'virginia': 'VA', 'va': 'VA',
+    'washington': 'WA', 'wa': 'WA', 'west virginia': 'WV', 'wv': 'WV',
+    'wisconsin': 'WI', 'wi': 'WI', 'wyoming': 'WY', 'wy': 'WY',
+    'puerto rico': 'PR', 'pr': 'PR', 'dc': 'DC', 'district of columbia': 'DC',
   };
   
   const foundStates: string[] = [];
-  for (const [name, code] of Object.entries(stateMap)) {
-    if (lower.includes(name)) {
-      foundStates.push(code);
+  // Sort by length descending to match "new york" before "or" in "oregon"
+  const sortedStateNames = Object.keys(stateMap).sort((a, b) => b.length - a.length);
+  for (const name of sortedStateNames) {
+    // Use word boundary to avoid false matches (e.g., "in" in "mining")
+    const regex = new RegExp(`\\b${name}\\b`, 'i');
+    if (regex.test(lower)) {
+      foundStates.push(stateMap[name]);
     }
   }
   if (foundStates.length > 0) {
     query.states = [...new Set(foundStates)]; // Remove duplicates
   }
   
-  // Extract operators
-  const operators = ['google', 'amazon', 'microsoft', 'meta', 'apple', 'switch', 'aws', 'facebook'];
+  // COMPREHENSIVE operator list (all major data center operators)
+  const operatorMap: Record<string, string> = {
+    'google': 'Google', 'alphabet': 'Google',
+    'amazon': 'Amazon', 'aws': 'Amazon', 'amazon web services': 'Amazon',
+    'microsoft': 'Microsoft', 'azure': 'Microsoft', 'msft': 'Microsoft',
+    'meta': 'Meta', 'facebook': 'Meta', 'fb': 'Meta',
+    'apple': 'Apple',
+    'oracle': 'Oracle', 'oci': 'Oracle',
+    'ibm': 'IBM',
+    'equinix': 'Equinix',
+    'digital realty': 'Digital Realty', 'dlr': 'Digital Realty',
+    'cyrusone': 'CyrusOne',
+    'coresite': 'CoreSite',
+    'qts': 'QTS', 'qts realty': 'QTS',
+    'vantage': 'Vantage',
+    'switch': 'Switch',
+    'flexential': 'Flexential',
+    'stack infrastructure': 'Stack Infrastructure',
+    'compass': 'Compass Datacenters',
+    'aligned': 'Aligned Data Centers',
+    'prime': 'Prime Data Centers',
+    'edgeconnex': 'EdgeConneX',
+    'datacenter': 'DataCenter', // Generic
+  };
+  
   const foundOperators: string[] = [];
-  for (const op of operators) {
-    if (lower.includes(op)) {
-      // Capitalize first letter
-      foundOperators.push(op.charAt(0).toUpperCase() + op.slice(1));
+  const sortedOperatorNames = Object.keys(operatorMap).sort((a, b) => b.length - a.length);
+  for (const name of sortedOperatorNames) {
+    const regex = new RegExp(`\\b${name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i');
+    if (regex.test(lower)) {
+      foundOperators.push(operatorMap[name]);
     }
   }
   if (foundOperators.length > 0) {
-    query.operator = foundOperators;
+    query.operator = [...new Set(foundOperators)];
+  }
+  
+  // TEXT SEARCH: Extract quoted terms or facility names
+  const quotedMatch = naturalLanguage.match(/"([^"]+)"/);
+  if (quotedMatch) {
+    query.textSearch = quotedMatch[1];
+  } else {
+    // Look for "named X" or "called X" patterns
+    const namedMatch = lower.match(/(?:named|called|name)\s+([a-zA-Z0-9\s]+?)(?:\s+in|\s+with|\s+that|$)/i);
+    if (namedMatch) {
+      query.textSearch = namedMatch[1].trim();
+    }
   }
   
   // Extract compliance status

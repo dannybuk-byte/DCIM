@@ -52,6 +52,7 @@ export const SortFieldSchema = z.enum([
 export const FacilityQuerySchema = z.object({
   // Text filters
   name: z.string().optional().describe('Facility name (partial match)'),
+  textSearch: z.string().optional().describe('Free text search across name, operator, city'),
   operator: z.array(z.string()).optional().describe('Operator/company names'),
   city: z.string().optional().describe('City name'),
   states: z.array(z.string()).optional().describe('US state codes (e.g., "TX", "CA")'),
@@ -186,6 +187,7 @@ export function isEmptyQuery(query: FacilityQuery): boolean {
 export function describeQuery(query: FacilityQuery): string {
   const parts: string[] = [];
   
+  if (query.textSearch) parts.push(`matching "${query.textSearch}"`);
   if (query.name) parts.push(`name contains "${query.name}"`);
   if (query.operator?.length) parts.push(`operated by ${query.operator.join(' or ')}`);
   if (query.city) parts.push(`in ${query.city}`);

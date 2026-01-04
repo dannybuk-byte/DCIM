@@ -36,6 +36,15 @@ export async function executeQuery(query: FacilityQuery): Promise<Facility[]> {
     
     // Apply remaining filters in memory
     facilities = facilities.filter(facility => {
+      // Text search (searches across name, operator, city)
+      if (query.textSearch) {
+        const searchLower = query.textSearch.toLowerCase();
+        const nameMatch = facility.name?.toLowerCase().includes(searchLower);
+        const operatorMatch = facility.operator?.toLowerCase().includes(searchLower);
+        const cityMatch = facility.city?.toLowerCase().includes(searchLower);
+        if (!nameMatch && !operatorMatch && !cityMatch) return false;
+      }
+      
       // Name filter (case-insensitive partial match)
       if (query.name) {
         const nameMatch = facility.name?.toLowerCase().includes(query.name.toLowerCase());
