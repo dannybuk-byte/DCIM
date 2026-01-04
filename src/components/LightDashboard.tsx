@@ -29,9 +29,10 @@ import { safeDbOperation } from '../utils/dbOperations';
 import { formatCurrency } from '../utils/formatting';
 import { downloadComplianceReport } from '../services/PDFReportGenerator';
 import { DetailedFacilityModal, ExpandableSection, DataRow } from './DetailedFacilityView';
+import { DataSovereigntyHub } from './DataSovereigntyHub';
 
 // Types
-type Section = 'dashboard' | 'facilities' | 'geography' | 'problems' | 'intelligence' | 'subsidies' | 'workers' | 'timeline' | 'reports' | 'osint' | 'network';
+type Section = 'dashboard' | 'facilities' | 'geography' | 'problems' | 'intelligence' | 'subsidies' | 'workers' | 'timeline' | 'reports' | 'osint' | 'network' | 'sovereignty';
 type ViewMode = 'table' | 'tree' | 'cards';
 type DensityMode = 'compact' | 'normal' | 'comfortable';
 
@@ -1368,6 +1369,9 @@ export const LightDashboard: React.FC = () => {
       { id: 'osint' as Section, label: 'OSINT', icon: <Search size={16} /> },
       { id: 'network' as Section, label: 'Network', icon: <Network size={16} /> },
     ]},
+    { title: 'Sovereignty', items: [
+      { id: 'sovereignty' as Section, label: 'Data Freedom', icon: <Unlock size={16} />, badge: '🔓' },
+    ]},
   ];
 
   if (loading) {
@@ -1728,8 +1732,13 @@ export const LightDashboard: React.FC = () => {
             </div>
           )}
 
+          {/* Data Sovereignty Hub - Inspired by Cory Doctorow's 39C3 Talk */}
+          {activeSection === 'sovereignty' && (
+            <DataSovereigntyHub />
+          )}
+
           {/* Other Sections Placeholder */}
-          {!['dashboard', 'facilities', 'problems'].includes(activeSection) && (
+          {!['dashboard', 'facilities', 'problems', 'sovereignty'].includes(activeSection) && (
             <div className="bg-white rounded-lg border border-slate-200 p-8 text-center">
               <div className="w-12 h-12 rounded-xl bg-blue-100 flex items-center justify-center mx-auto mb-3">
                 <Info className="w-6 h-6 text-blue-500" />
