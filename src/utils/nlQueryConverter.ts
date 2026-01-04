@@ -113,11 +113,24 @@ export function convertNLToQueryKeywords(naturalLanguage: string): FacilityQuery
   const foundStates: string[] = [];
   // Sort by length descending to match "new york" before "or" in "oregon"
   const sortedStateNames = Object.keys(stateMap).sort((a, b) => b.length - a.length);
+  
+  // Common words that shouldn't match state codes
+  const excludeShortCodes = new Set(['in', 'or', 'ok', 'me', 'hi', 'de', 'al', 'la', 'pa', 'id', 'co', 'nd', 'sd', 'mt', 'ne', 'md', 'ma', 'mi', 'mn', 'mo', 'oh']);
+  
   for (const name of sortedStateNames) {
-    // Use word boundary to avoid false matches (e.g., "in" in "mining")
-    const regex = new RegExp(`\\b${name}\\b`, 'i');
-    if (regex.test(lower)) {
-      foundStates.push(stateMap[name]);
+    // Skip 2-letter codes that are common English words when not preceded by comma or "state"
+    if (name.length === 2 && excludeShortCodes.has(name)) {
+      // Only match if it looks like a state reference: "TX" or ", TX" or "state: TX"
+      const stateRefRegex = new RegExp(`(?:,\\s*|state[:\\s]+|^)${name}(?:\\s|$|,)`, 'i');
+      if (stateRefRegex.test(naturalLanguage)) {
+        foundStates.push(stateMap[name]);
+      }
+    } else {
+      // Full state names and non-ambiguous codes use word boundary
+      const regex = new RegExp(`\\b${name}\\b`, 'i');
+      if (regex.test(lower)) {
+        foundStates.push(stateMap[name]);
+      }
     }
   }
   if (foundStates.length > 0) {
