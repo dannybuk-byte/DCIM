@@ -17,7 +17,9 @@ import {
   Shield, Activity, RefreshCw, Clock, ArrowRight, Database, Network,
   ChevronDown, ExternalLink, Info, Copy, Check, ArrowUpRight,
   Layers, Hash, Calendar, Target, Eye, EyeOff, Maximize2, Minimize2,
-  Plus, Minus, FolderOpen, Folder, ChevronUp
+  Plus, Minus, FolderOpen, Folder, ChevronUp, Server, Briefcase,
+  Factory, Thermometer, Wifi, Power, Gauge, PieChart, Award, Flag,
+  Link, Lock, Unlock, ArrowDownRight, HardDrive, Cpu
 } from 'lucide-react';
 import { db } from '../db/database';
 import { seedDatabase } from '../db/seedData';
@@ -26,6 +28,7 @@ import { calculateStats } from '../utils/stats';
 import { safeDbOperation } from '../utils/dbOperations';
 import { formatCurrency } from '../utils/formatting';
 import { downloadComplianceReport } from '../services/PDFReportGenerator';
+import { DetailedFacilityModal, ExpandableSection, DataRow } from './DetailedFacilityView';
 
 // Types
 type Section = 'dashboard' | 'facilities' | 'geography' | 'problems' | 'intelligence' | 'subsidies' | 'workers' | 'timeline' | 'reports' | 'osint' | 'network';
@@ -499,49 +502,12 @@ const DenseDataTable: React.FC<{
                       )}
                     </td>
                   </tr>
-                  {/* Expanded Row Details */}
+                  {/* Expanded Row Details - Ultra-Detailed with Deep Nesting */}
                   {isExpanded && (
                     <tr className="bg-slate-50">
                       <td colSpan={11} className="p-0">
-                        <div className="p-3 border-l-4 border-blue-400">
-                          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
-                            <div className="bg-white p-2 rounded border border-slate-200">
-                              <p className="text-slate-400 font-semibold uppercase text-[10px]">Full Name</p>
-                              <p className="text-slate-800 font-medium">{facility.name}</p>
-                            </div>
-                            <div className="bg-white p-2 rounded border border-slate-200">
-                              <p className="text-slate-400 font-semibold uppercase text-[10px]">Location</p>
-                              <p className="text-slate-800 font-medium">{facility.city}, {facility.state}</p>
-                            </div>
-                            <div className="bg-white p-2 rounded border border-slate-200">
-                              <p className="text-slate-400 font-semibold uppercase text-[10px]">Jobs Gap</p>
-                              <p className="text-rose-600 font-bold">
-                                {((facility.jobsPromised ?? 0) - (facility.jobsCreated ?? 0)).toLocaleString()}
-                              </p>
-                            </div>
-                            <div className="bg-white p-2 rounded border border-slate-200">
-                              <p className="text-slate-400 font-semibold uppercase text-[10px]">Facility ID</p>
-                              <p className="text-slate-600 font-mono">{facility.id}</p>
-                            </div>
-                          </div>
-                          {facility.issues && facility.issues.length > 0 && (
-                            <div className="mt-3">
-                              <p className="text-slate-500 font-semibold text-[10px] uppercase mb-1">Issues</p>
-                              <div className="flex flex-wrap gap-1">
-                                {facility.issues.map((issue, i) => (
-                                  <span key={i} className="px-2 py-1 bg-amber-100 text-amber-800 rounded text-[10px]">
-                                    {issue}
-                                  </span>
-                                ))}
-                              </div>
-                            </div>
-                          )}
-                          <button
-                            onClick={(e) => { e.stopPropagation(); onSelect(facility); }}
-                            className="mt-3 px-3 py-1.5 bg-blue-500 hover:bg-blue-600 text-white text-xs font-semibold rounded transition-colors"
-                          >
-                            View Full Details →
-                          </button>
+                        <div className="p-2 border-l-4 border-blue-400">
+                          <ExpandedRowDetails facility={facility} onViewFull={() => onSelect(facility)} />
                         </div>
                       </td>
                     </tr>
@@ -552,6 +518,269 @@ const DenseDataTable: React.FC<{
           </tbody>
         </table>
       </div>
+    </div>
+  );
+};
+
+// ============================================================================
+// EXPANDED ROW DETAILS - Deep nested detail view for table rows
+// ============================================================================
+const ExpandedRowDetails: React.FC<{ facility: Facility; onViewFull: () => void }> = ({ facility, onViewFull }) => {
+  const [activeSection, setActiveSection] = useState<string>('basic');
+  
+  // Generate synthetic detailed data
+  const seed = facility.id || 1;
+  const random = (min: number, max: number) => Math.floor((seed * 9301 + 49297) % 233280 / 233280 * (max - min + 1)) + min;
+  
+  const syntheticData = {
+    powerCapacity: `${random(10, 100)} MW`,
+    rackCount: random(500, 3000).toLocaleString(),
+    pue: (1.2 + (random(0, 80) / 100)).toFixed(2),
+    uptime: `${99 + random(0, 99) / 100}%`,
+    redundancy: ['N+1', '2N', '2N+1'][random(0, 2)],
+    buildYear: 2010 + random(0, 14),
+    sqft: random(50000, 500000).toLocaleString(),
+    certifications: ['SOC 2', 'ISO 27001', 'HIPAA', 'PCI-DSS'].slice(0, random(2, 4)),
+    fiberProviders: ['Level 3', 'Cogent', 'AT&T', 'Verizon'].slice(0, random(2, 4)),
+    lastAudit: new Date(Date.now() - random(30, 180) * 86400000).toISOString().split('T')[0],
+    nextReview: new Date(Date.now() + random(30, 180) * 86400000).toISOString().split('T')[0],
+    riskScore: random(10, 90),
+    complianceRate: facility.complianceStatus === 'Compliant' ? random(85, 100) : random(30, 70),
+    employees: random(50, 500),
+    contractors: random(20, 150),
+    avgSalary: random(50000, 100000),
+    subsidyTypes: {
+      federal: random(100000, 2000000),
+      state: random(200000, 3000000),
+      local: random(50000, 500000),
+    }
+  };
+
+  const sections = [
+    { id: 'basic', label: 'Basic', icon: <Building2 size={10} /> },
+    { id: 'infrastructure', label: 'Infrastructure', icon: <Server size={10} /> },
+    { id: 'compliance', label: 'Compliance', icon: <Shield size={10} /> },
+    { id: 'financial', label: 'Financial', icon: <DollarSign size={10} /> },
+    { id: 'workforce', label: 'Workforce', icon: <Users size={10} /> },
+    { id: 'issues', label: `Issues (${facility.issues?.length || 0})`, icon: <AlertTriangle size={10} /> },
+  ];
+
+  return (
+    <div className="space-y-2">
+      {/* Section Tabs */}
+      <div className="flex flex-wrap gap-1 border-b border-slate-200 pb-1">
+        {sections.map(section => (
+          <button
+            key={section.id}
+            onClick={() => setActiveSection(section.id)}
+            className={`px-2 py-1 rounded text-[10px] font-medium flex items-center gap-1 transition-colors ${
+              activeSection === section.id 
+                ? 'bg-blue-500 text-white' 
+                : 'text-slate-600 hover:bg-slate-100'
+            }`}
+          >
+            {section.icon}
+            {section.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Section Content */}
+      <div className="bg-white rounded-lg border border-slate-200 p-2">
+        {activeSection === 'basic' && (
+          <div className="space-y-2">
+            <ExpandableSection title="Identification" icon={<Hash size={10} />} defaultOpen>
+              <div className="grid grid-cols-3 gap-2 text-[10px]">
+                <div><span className="text-slate-400">ID:</span> <span className="font-mono">{facility.id}</span></div>
+                <div><span className="text-slate-400">Name:</span> {facility.name}</div>
+                <div><span className="text-slate-400">Operator:</span> {facility.operator}</div>
+                <div><span className="text-slate-400">Type:</span> {facility.type || 'Data Center'}</div>
+                <div><span className="text-slate-400">Status:</span> {facility.complianceStatus}</div>
+                <div><span className="text-slate-400">Built:</span> {syntheticData.buildYear}</div>
+              </div>
+            </ExpandableSection>
+            <ExpandableSection title="Location Details" icon={<MapPin size={10} />} defaultOpen>
+              <div className="grid grid-cols-3 gap-2 text-[10px]">
+                <div><span className="text-slate-400">City:</span> {facility.city || 'Unknown'}</div>
+                <div><span className="text-slate-400">State:</span> {facility.state || 'Unknown'}</div>
+                <div><span className="text-slate-400">Country:</span> United States</div>
+                <div><span className="text-slate-400">Timezone:</span> EST</div>
+                <div><span className="text-slate-400">Region:</span> {['Northeast', 'Southeast', 'Midwest', 'West'][random(0, 3)]}</div>
+              </div>
+            </ExpandableSection>
+          </div>
+        )}
+
+        {activeSection === 'infrastructure' && (
+          <div className="space-y-2">
+            <ExpandableSection title="Facility Specs" icon={<Building2 size={10} />} defaultOpen>
+              <div className="grid grid-cols-4 gap-2 text-[10px]">
+                <div><span className="text-slate-400">Sq Ft:</span> <span className="font-semibold">{syntheticData.sqft}</span></div>
+                <div><span className="text-slate-400">Racks:</span> <span className="font-semibold">{syntheticData.rackCount}</span></div>
+                <div><span className="text-slate-400">Floors:</span> <span className="font-semibold">{random(1, 5)}</span></div>
+                <div><span className="text-slate-400">Raised Floor:</span> <span className="font-semibold">{random(18, 36)}"</span></div>
+              </div>
+            </ExpandableSection>
+            <ExpandableSection title="Power Systems" icon={<Zap size={10} />} defaultOpen>
+              <div className="grid grid-cols-4 gap-2 text-[10px]">
+                <div><span className="text-slate-400">Capacity:</span> <span className="font-semibold">{syntheticData.powerCapacity}</span></div>
+                <div><span className="text-slate-400">PUE:</span> <span className="font-semibold">{syntheticData.pue}</span></div>
+                <div><span className="text-slate-400">Uptime:</span> <span className="font-semibold">{syntheticData.uptime}</span></div>
+                <div><span className="text-slate-400">Redundancy:</span> <span className="font-semibold">{syntheticData.redundancy}</span></div>
+                <div><span className="text-slate-400">UPS:</span> <span className="font-semibold">{random(500, 5000)} kVA</span></div>
+                <div><span className="text-slate-400">Generators:</span> <span className="font-semibold">{random(2, 10)}</span></div>
+                <div><span className="text-slate-400">Fuel Reserve:</span> <span className="font-semibold">{random(24, 168)}h</span></div>
+              </div>
+            </ExpandableSection>
+            <ExpandableSection title="Network" icon={<Wifi size={10} />}>
+              <div className="grid grid-cols-3 gap-2 text-[10px]">
+                <div><span className="text-slate-400">Bandwidth:</span> <span className="font-semibold">{random(100, 1000)} Gbps</span></div>
+                <div><span className="text-slate-400">Latency:</span> <span className="font-semibold">{random(1, 10)}ms</span></div>
+                <div><span className="text-slate-400">IX Points:</span> <span className="font-semibold">{random(2, 8)}</span></div>
+                <div className="col-span-3">
+                  <span className="text-slate-400">Providers:</span>{' '}
+                  {syntheticData.fiberProviders.map((p, i) => (
+                    <span key={i} className="inline-block mx-0.5 px-1 py-0.5 bg-slate-100 rounded text-[9px]">{p}</span>
+                  ))}
+                </div>
+              </div>
+            </ExpandableSection>
+            <ExpandableSection title="Certifications" icon={<Award size={10} />}>
+              <div className="flex flex-wrap gap-1">
+                {syntheticData.certifications.map((cert, i) => (
+                  <span key={i} className="px-1.5 py-0.5 bg-emerald-100 text-emerald-700 rounded text-[9px] font-semibold">{cert}</span>
+                ))}
+              </div>
+            </ExpandableSection>
+          </div>
+        )}
+
+        {activeSection === 'compliance' && (
+          <div className="space-y-2">
+            <ExpandableSection title="Current Status" icon={<Shield size={10} />} defaultOpen>
+              <div className="grid grid-cols-3 gap-2 text-[10px]">
+                <div><span className="text-slate-400">Status:</span> <span className={`font-semibold ${facility.complianceStatus === 'Compliant' ? 'text-emerald-600' : facility.complianceStatus === 'Non-Compliant' ? 'text-rose-600' : 'text-amber-600'}`}>{facility.complianceStatus}</span></div>
+                <div><span className="text-slate-400">Compliance Rate:</span> <span className="font-semibold">{syntheticData.complianceRate}%</span></div>
+                <div><span className="text-slate-400">Risk Score:</span> <span className={`font-semibold ${syntheticData.riskScore > 60 ? 'text-rose-600' : syntheticData.riskScore > 30 ? 'text-amber-600' : 'text-emerald-600'}`}>{syntheticData.riskScore}/100</span></div>
+              </div>
+            </ExpandableSection>
+            <ExpandableSection title="Jobs Analysis" icon={<Users size={10} />} defaultOpen>
+              <div className="grid grid-cols-4 gap-2 text-[10px]">
+                <div><span className="text-slate-400">Promised:</span> <span className="font-semibold">{(facility.jobsPromised ?? 0).toLocaleString()}</span></div>
+                <div><span className="text-slate-400">Created:</span> <span className="font-semibold">{(facility.jobsCreated ?? 0).toLocaleString()}</span></div>
+                <div><span className="text-slate-400">Gap:</span> <span className="font-semibold text-rose-600">{((facility.jobsPromised ?? 0) - (facility.jobsCreated ?? 0)).toLocaleString()}</span></div>
+                <div><span className="text-slate-400">Fulfillment:</span> <span className="font-semibold">{facility.jobsPromised ? Math.round((facility.jobsCreated ?? 0) / facility.jobsPromised * 100) : 0}%</span></div>
+              </div>
+            </ExpandableSection>
+            <ExpandableSection title="Audit History" icon={<Calendar size={10} />}>
+              <div className="grid grid-cols-2 gap-2 text-[10px]">
+                <div><span className="text-slate-400">Last Audit:</span> <span className="font-semibold">{syntheticData.lastAudit}</span></div>
+                <div><span className="text-slate-400">Next Review:</span> <span className="font-semibold">{syntheticData.nextReview}</span></div>
+                <div><span className="text-slate-400">Auditor:</span> <span className="font-semibold">{['Deloitte', 'KPMG', 'EY', 'PwC'][random(0, 3)]}</span></div>
+                <div><span className="text-slate-400">Last Score:</span> <span className="font-semibold">{random(60, 100)}/100</span></div>
+              </div>
+            </ExpandableSection>
+          </div>
+        )}
+
+        {activeSection === 'financial' && (
+          <div className="space-y-2">
+            <ExpandableSection title="Subsidy Overview" icon={<DollarSign size={10} />} defaultOpen>
+              <div className="grid grid-cols-2 gap-2 text-[10px]">
+                <div><span className="text-slate-400">Total Gap:</span> <span className="font-bold text-rose-600">{formatCurrency(facility.subsidyGap || 0)}</span></div>
+                <div><span className="text-slate-400">Cost/Job Created:</span> <span className="font-semibold">{facility.jobsCreated ? formatCurrency((facility.subsidyGap || 0) / facility.jobsCreated) : 'N/A'}</span></div>
+              </div>
+            </ExpandableSection>
+            <ExpandableSection title="Subsidy Breakdown" icon={<PieChart size={10} />} defaultOpen>
+              <div className="grid grid-cols-3 gap-2 text-[10px]">
+                <div><span className="text-slate-400">Federal:</span> <span className="font-semibold">{formatCurrency(syntheticData.subsidyTypes.federal)}</span></div>
+                <div><span className="text-slate-400">State:</span> <span className="font-semibold">{formatCurrency(syntheticData.subsidyTypes.state)}</span></div>
+                <div><span className="text-slate-400">Local:</span> <span className="font-semibold">{formatCurrency(syntheticData.subsidyTypes.local)}</span></div>
+              </div>
+            </ExpandableSection>
+            <ExpandableSection title="Tax Incentives" icon={<Briefcase size={10} />}>
+              <div className="grid grid-cols-2 gap-2 text-[10px]">
+                <div><span className="text-slate-400">Property Tax Abatement:</span> <span className="font-semibold">{formatCurrency(random(100000, 2000000))}</span></div>
+                <div><span className="text-slate-400">Sales Tax Exemption:</span> <span className="font-semibold">{formatCurrency(random(50000, 500000))}</span></div>
+                <div><span className="text-slate-400">Duration:</span> <span className="font-semibold">{random(5, 20)} years</span></div>
+                <div><span className="text-slate-400">Utility Discounts:</span> <span className="font-semibold">{formatCurrency(random(50000, 300000))}/yr</span></div>
+              </div>
+            </ExpandableSection>
+          </div>
+        )}
+
+        {activeSection === 'workforce' && (
+          <div className="space-y-2">
+            <ExpandableSection title="Employment" icon={<Users size={10} />} defaultOpen>
+              <div className="grid grid-cols-3 gap-2 text-[10px]">
+                <div><span className="text-slate-400">Total:</span> <span className="font-semibold">{syntheticData.employees + syntheticData.contractors}</span></div>
+                <div><span className="text-slate-400">Direct:</span> <span className="font-semibold">{syntheticData.employees}</span></div>
+                <div><span className="text-slate-400">Contractors:</span> <span className="font-semibold">{syntheticData.contractors}</span></div>
+                <div><span className="text-slate-400">Avg Salary:</span> <span className="font-semibold">{formatCurrency(syntheticData.avgSalary)}</span></div>
+                <div><span className="text-slate-400">Turnover:</span> <span className="font-semibold">{random(5, 25)}%</span></div>
+                <div><span className="text-slate-400">Open Positions:</span> <span className="font-semibold">{random(0, 30)}</span></div>
+              </div>
+            </ExpandableSection>
+            <ExpandableSection title="Job Categories" icon={<Briefcase size={10} />}>
+              <div className="space-y-1 text-[10px]">
+                {['Operations', 'Engineering', 'Security', 'Admin', 'Management'].map(cat => (
+                  <div key={cat} className="flex items-center justify-between">
+                    <span className="text-slate-500">{cat}</span>
+                    <span className="font-semibold">{random(5, 100)}</span>
+                  </div>
+                ))}
+              </div>
+            </ExpandableSection>
+            <ExpandableSection title="Benefits" icon={<Award size={10} />}>
+              <div className="grid grid-cols-2 gap-2 text-[10px]">
+                <div><span className="text-slate-400">Health Insurance:</span> <span className="font-semibold text-emerald-600">Yes</span></div>
+                <div><span className="text-slate-400">401k Match:</span> <span className="font-semibold">{random(3, 6)}%</span></div>
+                <div><span className="text-slate-400">PTO Days:</span> <span className="font-semibold">{random(15, 30)}</span></div>
+                <div><span className="text-slate-400">Remote Work:</span> <span className="font-semibold">{random(0, 1) ? 'Hybrid' : 'On-site'}</span></div>
+              </div>
+            </ExpandableSection>
+          </div>
+        )}
+
+        {activeSection === 'issues' && (
+          <div className="space-y-2">
+            {facility.issues && facility.issues.length > 0 ? (
+              facility.issues.map((issue, i) => (
+                <ExpandableSection 
+                  key={i} 
+                  title={issue} 
+                  icon={<AlertTriangle size={10} className="text-amber-500" />} 
+                  badge={['Critical', 'High', 'Medium', 'Low'][random(0, 3)]}
+                  badgeColor={i === 0 ? 'bg-rose-100 text-rose-700' : 'bg-amber-100 text-amber-700'}
+                  defaultOpen={i === 0}
+                >
+                  <div className="grid grid-cols-3 gap-2 text-[10px]">
+                    <div><span className="text-slate-400">Issue ID:</span> <span className="font-mono">ISS-{facility.id}-{i + 1}</span></div>
+                    <div><span className="text-slate-400">Reported:</span> {new Date(Date.now() - random(10, 90) * 86400000).toISOString().split('T')[0]}</div>
+                    <div><span className="text-slate-400">Days Open:</span> {random(10, 90)}</div>
+                    <div><span className="text-slate-400">Assigned To:</span> {['John Smith', 'Jane Doe', 'Bob Wilson'][random(0, 2)]}</div>
+                    <div><span className="text-slate-400">Status:</span> {['Open', 'In Progress', 'Under Review'][random(0, 2)]}</div>
+                    <div><span className="text-slate-400">Financial Impact:</span> <span className="text-rose-600 font-semibold">{formatCurrency(random(10000, 200000))}</span></div>
+                  </div>
+                </ExpandableSection>
+              ))
+            ) : (
+              <div className="text-center py-4">
+                <CheckCircle className="w-8 h-8 text-emerald-400 mx-auto mb-2" />
+                <p className="text-xs text-slate-600">No active issues</p>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Action Button */}
+      <button
+        onClick={(e) => { e.stopPropagation(); onViewFull(); }}
+        className="w-full px-3 py-1.5 bg-blue-500 hover:bg-blue-600 text-white text-xs font-semibold rounded transition-colors flex items-center justify-center gap-1"
+      >
+        Open Full Detail Modal <ArrowRight size={12} />
+      </button>
     </div>
   );
 };
@@ -602,24 +831,117 @@ const HierarchicalView: React.FC<{
           stateSubsidyGap += citySubsidyGap;
           operatorTotal += facilities.length;
 
-          const facilityNodes: TreeNode[] = facilities.map(f => ({
-            id: `facility-${f.id}`,
-            label: f.name,
-            sublabel: f.type || '',
-            icon: <Building2 size={12} />,
-            value: formatCurrency(f.subsidyGap || 0),
-            badge: f.complianceStatus === 'Non-Compliant' 
-              ? { text: 'NC', color: 'bg-rose-100 text-rose-700' }
-              : f.complianceStatus === 'Compliant'
-              ? { text: 'OK', color: 'bg-emerald-100 text-emerald-700' }
-              : { text: 'AR', color: 'bg-amber-100 text-amber-700' },
-            onClick: () => onSelect(f),
-            children: f.issues && f.issues.length > 0 ? f.issues.map((issue, i) => ({
-              id: `issue-${f.id}-${i}`,
-              label: issue,
-              icon: <AlertTriangle size={10} className="text-amber-500" />,
-            })) : undefined,
-          }));
+          const facilityNodes: TreeNode[] = facilities.map(f => {
+            const seed = f.id || 1;
+            const random = (min: number, max: number) => Math.floor((seed * 9301 + 49297) % 233280 / 233280 * (max - min + 1)) + min;
+            
+            // Build detailed facility children nodes
+            const facilityChildren: TreeNode[] = [
+              {
+                id: `info-${f.id}`,
+                label: 'Basic Information',
+                icon: <Info size={10} className="text-blue-500" />,
+                children: [
+                  { id: `info-${f.id}-id`, label: `ID: ${f.id}`, icon: <Hash size={9} /> },
+                  { id: `info-${f.id}-type`, label: `Type: ${f.type || 'Data Center'}`, icon: <Building2 size={9} /> },
+                  { id: `info-${f.id}-operator`, label: `Operator: ${f.operator}`, icon: <Briefcase size={9} /> },
+                  { id: `info-${f.id}-built`, label: `Built: ${2010 + random(0, 14)}`, icon: <Calendar size={9} /> },
+                ]
+              },
+              {
+                id: `location-${f.id}`,
+                label: 'Location',
+                icon: <MapPin size={10} className="text-emerald-500" />,
+                children: [
+                  { id: `loc-${f.id}-city`, label: `City: ${f.city || 'Unknown'}`, icon: <Building2 size={9} /> },
+                  { id: `loc-${f.id}-state`, label: `State: ${f.state || 'Unknown'}`, icon: <Globe size={9} /> },
+                  { id: `loc-${f.id}-region`, label: `Region: ${['Northeast', 'Southeast', 'Midwest', 'West'][random(0, 3)]}`, icon: <Flag size={9} /> },
+                ]
+              },
+              {
+                id: `infra-${f.id}`,
+                label: 'Infrastructure',
+                icon: <Server size={10} className="text-purple-500" />,
+                children: [
+                  { id: `infra-${f.id}-power`, label: `Power: ${random(10, 100)} MW`, icon: <Zap size={9} /> },
+                  { id: `infra-${f.id}-racks`, label: `Racks: ${random(500, 3000).toLocaleString()}`, icon: <Server size={9} /> },
+                  { id: `infra-${f.id}-pue`, label: `PUE: ${(1.2 + random(0, 80) / 100).toFixed(2)}`, icon: <Gauge size={9} /> },
+                  { id: `infra-${f.id}-sqft`, label: `Size: ${random(50000, 500000).toLocaleString()} sq ft`, icon: <Maximize2 size={9} /> },
+                  { id: `infra-${f.id}-redun`, label: `Redundancy: ${['N+1', '2N', '2N+1'][random(0, 2)]}`, icon: <Shield size={9} /> },
+                ]
+              },
+              {
+                id: `compliance-${f.id}`,
+                label: 'Compliance',
+                icon: <Shield size={10} className="text-amber-500" />,
+                badge: f.complianceStatus === 'Non-Compliant' ? { text: 'NC', color: 'bg-rose-100 text-rose-700' } : undefined,
+                children: [
+                  { id: `comp-${f.id}-status`, label: `Status: ${f.complianceStatus}`, icon: f.complianceStatus === 'Compliant' ? <CheckCircle size={9} className="text-emerald-500" /> : <XCircle size={9} className="text-rose-500" /> },
+                  { id: `comp-${f.id}-rate`, label: `Rate: ${f.complianceStatus === 'Compliant' ? random(85, 100) : random(30, 70)}%`, icon: <BarChart3 size={9} /> },
+                  { id: `comp-${f.id}-risk`, label: `Risk: ${f.complianceStatus === 'Non-Compliant' ? 'High' : f.complianceStatus === 'At Risk' ? 'Medium' : 'Low'}`, icon: <Target size={9} /> },
+                  { id: `comp-${f.id}-audit`, label: `Last Audit: ${new Date(Date.now() - random(30, 180) * 86400000).toISOString().split('T')[0]}`, icon: <Calendar size={9} /> },
+                ]
+              },
+              {
+                id: `jobs-${f.id}`,
+                label: 'Workforce',
+                icon: <Users size={10} className="text-cyan-500" />,
+                value: `${(f.jobsCreated ?? 0).toLocaleString()} jobs`,
+                children: [
+                  { id: `jobs-${f.id}-created`, label: `Created: ${(f.jobsCreated ?? 0).toLocaleString()}`, icon: <CheckCircle size={9} className="text-emerald-500" /> },
+                  { id: `jobs-${f.id}-promised`, label: `Promised: ${(f.jobsPromised ?? 0).toLocaleString()}`, icon: <Target size={9} /> },
+                  { id: `jobs-${f.id}-gap`, label: `Gap: ${((f.jobsPromised ?? 0) - (f.jobsCreated ?? 0)).toLocaleString()}`, icon: <TrendingDown size={9} className="text-rose-500" /> },
+                  { id: `jobs-${f.id}-rate`, label: `Fulfillment: ${f.jobsPromised ? Math.round((f.jobsCreated ?? 0) / f.jobsPromised * 100) : 0}%`, icon: <BarChart3 size={9} /> },
+                  { id: `jobs-${f.id}-salary`, label: `Avg Salary: ${formatCurrency(random(50000, 100000))}`, icon: <DollarSign size={9} /> },
+                ]
+              },
+              {
+                id: `financial-${f.id}`,
+                label: 'Financial',
+                icon: <DollarSign size={10} className="text-rose-500" />,
+                value: formatCurrency(f.subsidyGap || 0),
+                children: [
+                  { id: `fin-${f.id}-gap`, label: `Subsidy Gap: ${formatCurrency(f.subsidyGap || 0)}`, icon: <TrendingDown size={9} className="text-rose-500" /> },
+                  { id: `fin-${f.id}-federal`, label: `Federal: ${formatCurrency(random(100000, 2000000))}`, icon: <Flag size={9} /> },
+                  { id: `fin-${f.id}-state`, label: `State: ${formatCurrency(random(200000, 3000000))}`, icon: <Globe size={9} /> },
+                  { id: `fin-${f.id}-local`, label: `Local: ${formatCurrency(random(50000, 500000))}`, icon: <MapPin size={9} /> },
+                  { id: `fin-${f.id}-cost`, label: `Cost/Job: ${f.jobsCreated ? formatCurrency((f.subsidyGap || 0) / f.jobsCreated) : 'N/A'}`, icon: <Users size={9} /> },
+                ]
+              },
+            ];
+
+            // Add issues as separate child node if present
+            if (f.issues && f.issues.length > 0) {
+              facilityChildren.push({
+                id: `issues-${f.id}`,
+                label: `Issues (${f.issues.length})`,
+                icon: <AlertTriangle size={10} className="text-amber-500" />,
+                badge: { text: String(f.issues.length), color: 'bg-amber-100 text-amber-700' },
+                children: f.issues.map((issue, i) => ({
+                  id: `issue-${f.id}-${i}`,
+                  label: issue,
+                  sublabel: `${['Critical', 'High', 'Medium', 'Low'][random(0, 3)]} • ${random(1, 90)} days open`,
+                  icon: <AlertTriangle size={9} className="text-amber-500" />,
+                  badge: { text: ['Critical', 'High', 'Medium', 'Low'][random(0, 3)], color: i === 0 ? 'bg-rose-100 text-rose-700' : 'bg-amber-100 text-amber-700' },
+                })),
+              });
+            }
+            
+            return {
+              id: `facility-${f.id}`,
+              label: f.name,
+              sublabel: `${f.type || 'Data Center'} • ${f.city || 'Unknown'}`,
+              icon: <Building2 size={12} />,
+              value: formatCurrency(f.subsidyGap || 0),
+              badge: f.complianceStatus === 'Non-Compliant' 
+                ? { text: 'NC', color: 'bg-rose-100 text-rose-700' }
+                : f.complianceStatus === 'Compliant'
+                ? { text: 'OK', color: 'bg-emerald-100 text-emerald-700' }
+                : { text: 'AR', color: 'bg-amber-100 text-amber-700' },
+              onClick: () => onSelect(f),
+              children: facilityChildren,
+            };
+          });
 
           cityNodes.push({
             id: `city-${operator}-${state}-${city}`,
@@ -1073,8 +1395,8 @@ export const LightDashboard: React.FC = () => {
         </div>
       )}
 
-      {/* Modal */}
-      {selectedFacility && <FacilityModal facility={selectedFacility} onClose={() => setSelectedFacility(null)} />}
+      {/* Modal - Ultra-Detailed with Deep Nesting */}
+      {selectedFacility && <DetailedFacilityModal facility={selectedFacility} onClose={() => setSelectedFacility(null)} />}
 
       {/* Header - Compact */}
       <header className="sticky top-0 z-50 bg-white/90 backdrop-blur-xl border-b border-slate-200 shadow-sm">
