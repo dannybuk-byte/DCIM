@@ -319,21 +319,34 @@ export const DataSovereigntyHub: React.FC = () => {
   const [isExporting, setIsExporting] = useState(false);
   const [localDataSize, setLocalDataSize] = useState('127.4 MB');
   const [lastSync, setLastSync] = useState(new Date());
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'info' | 'warning' } | null>(null);
+  const [runningTools, setRunningTools] = useState<Set<string>>(new Set());
+  const [connectedStorages, setConnectedStorages] = useState<Set<string>>(new Set(['local-first']));
+  const [enabledTools, setEnabledTools] = useState<Set<string>>(new Set(['sec-scraper', 'epa-bridge']));
+
+  // Toast notification helper
+  const showToast = useCallback((message: string, type: 'success' | 'info' | 'warning' = 'success') => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 3000);
+  }, []);
 
   const copyToClipboard = useCallback((text: string, id: string) => {
     navigator.clipboard.writeText(text).then(() => {
       setCopied(id);
+      showToast('Copied to clipboard!', 'success');
       setTimeout(() => setCopied(null), 2000);
     });
-  }, []);
+  }, [showToast]);
 
   const toggleExportFormat = (formatId: string) => {
     setSelectedExports(prev => {
       const next = new Set(prev);
       if (next.has(formatId)) {
         next.delete(formatId);
+        showToast(`${formatId.toUpperCase()} removed from export`, 'info');
       } else {
         next.add(formatId);
+        showToast(`${formatId.toUpperCase()} added to export`, 'success');
       }
       return next;
     });
@@ -341,11 +354,39 @@ export const DataSovereigntyHub: React.FC = () => {
 
   const handleExport = useCallback(async () => {
     setIsExporting(true);
+    showToast('Starting export...', 'info');
     // Simulate export
     await new Promise(resolve => setTimeout(resolve, 2000));
     setIsExporting(false);
-    alert(`Exported data in ${selectedExports.size} formats: ${Array.from(selectedExports).join(', ')}`);
-  }, [selectedExports]);
+    showToast(`✅ Exported ${selectedExports.size} formats: ${Array.from(selectedExports).join(', ')}`, 'success');
+  }, [selectedExports, showToast]);
+
+  const runTool = useCallback(async (toolId: string, toolName: string) => {
+    setRunningTools(prev => new Set(prev).add(toolId));
+    showToast(`🔄 Running ${toolName}...`, 'info');
+    await new Promise(resolve => setTimeout(resolve, 2500));
+    setRunningTools(prev => {
+      const next = new Set(prev);
+      next.delete(toolId);
+      return next;
+    });
+    showToast(`✅ ${toolName} completed! Found 47 new records.`, 'success');
+  }, [showToast]);
+
+  const enableTool = useCallback(async (toolId: string, toolName: string) => {
+    showToast(`🔧 Enabling ${toolName}...`, 'info');
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    setEnabledTools(prev => new Set(prev).add(toolId));
+    showToast(`✅ ${toolName} is now enabled!`, 'success');
+  }, [showToast]);
+
+  const connectStorage = useCallback(async (storageId: string, storageName: string) => {
+    showToast(`🔌 Connecting to ${storageName}...`, 'info');
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    setConnectedStorages(prev => new Set(prev).add(storageId));
+    showToast(`✅ Connected to ${storageName}!`, 'success');
+    setLastSync(new Date());
+  }, [showToast]);
 
   // Calculate overall sovereignty score
   const overallSovereignty = Math.round(
@@ -357,6 +398,20 @@ export const DataSovereigntyHub: React.FC = () => {
 
   return (
     <div className="max-w-6xl mx-auto p-6 space-y-6">
+      {/* Toast Notification */}
+      {toast && (
+        <div className={`fixed top-4 right-4 z-50 px-4 py-3 rounded-xl shadow-2xl flex items-center gap-3 animate-slide-down ${
+          toast.type === 'success' ? 'bg-emerald-500 text-white' :
+          toast.type === 'warning' ? 'bg-amber-500 text-white' :
+          'bg-blue-500 text-white'
+        }`}>
+          {toast.type === 'success' && <CheckCircle size={18} />}
+          {toast.type === 'info' && <Info size={18} />}
+          {toast.type === 'warning' && <AlertTriangle size={18} />}
+          <span className="text-sm font-medium">{toast.message}</span>
+        </div>
+      )}
+
       {/* Header */}
       <div className="bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-500 rounded-2xl p-6 text-white">
         <div className="flex items-start justify-between">
@@ -545,13 +600,27 @@ export const DataSovereigntyHub: React.FC = () => {
                     <span className="text-[10px] text-slate-400 capitalize">{tool.category}</span>
                   </div>
                 </div>
-                {tool.status === 'active' && (
-                  <button className="mt-2 w-full py-1.5 text-xs font-medium text-emerald-700 bg-emerald-100 rounded-lg hover:bg-emerald-200 transition-colors">
-                    Run Scraper →
+                {(tool.status === 'active' || enabledTools.has(tool.id)) && (
+                  <button 
+                    onClick={() => runTool(tool.id, tool.name)}
+                    disabled={runningTools.has(tool.id)}
+                    className="mt-2 w-full py-1.5 text-xs font-medium text-emerald-700 bg-emerald-100 rounded-lg hover:bg-emerald-200 transition-colors disabled:opacity-50 disabled:cursor-wait flex items-center justify-center gap-2"
+                  >
+                    {runningTools.has(tool.id) ? (
+                      <>
+                        <RefreshCw size={12} className="animate-spin" />
+                        Running...
+                      </>
+                    ) : (
+                      <>Run Scraper →</>
+                    )}
                   </button>
                 )}
-                {tool.status === 'available' && (
-                  <button className="mt-2 w-full py-1.5 text-xs font-medium text-blue-700 bg-blue-100 rounded-lg hover:bg-blue-200 transition-colors">
+                {tool.status === 'available' && !enabledTools.has(tool.id) && (
+                  <button 
+                    onClick={() => enableTool(tool.id, tool.name)}
+                    className="mt-2 w-full py-1.5 text-xs font-medium text-blue-700 bg-blue-100 rounded-lg hover:bg-blue-200 transition-colors flex items-center justify-center gap-2"
+                  >
                     Enable Tool →
                   </button>
                 )}
@@ -592,14 +661,18 @@ export const DataSovereigntyHub: React.FC = () => {
                   </div>
                   <StatusBadge status={option.status} />
                 </div>
-                {option.status === 'connected' && (
+                {(option.status === 'connected' || connectedStorages.has(option.id)) && (
                   <div className="mt-2 flex items-center gap-2 text-emerald-600">
                     <CheckCircle size={12} />
                     <span className="text-xs font-medium">Connected & Syncing</span>
                   </div>
                 )}
-                {option.status === 'available' && (
-                  <button className="mt-2 w-full py-1.5 text-xs font-medium text-blue-700 bg-blue-100 rounded-lg hover:bg-blue-200 transition-colors">
+                {option.status === 'available' && !connectedStorages.has(option.id) && (
+                  <button 
+                    onClick={() => connectStorage(option.id, option.name)}
+                    className="mt-2 w-full py-1.5 text-xs font-medium text-blue-700 bg-blue-100 rounded-lg hover:bg-blue-200 transition-colors flex items-center justify-center gap-2"
+                  >
+                    <Wifi size={12} />
                     Connect →
                   </button>
                 )}
@@ -670,11 +743,23 @@ export const DataSovereigntyHub: React.FC = () => {
             </div>
           </div>
           <div className="flex items-center gap-3">
-            <button className="px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-sm font-medium transition-colors flex items-center gap-2">
+            <button 
+              onClick={() => {
+                copyToClipboard('docker-compose up -d dcim-compliance', 'docker');
+                showToast('📋 Docker command copied to clipboard!', 'success');
+              }}
+              className="px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-sm font-medium transition-colors flex items-center gap-2"
+            >
               <Terminal size={16} />
               Docker Compose
             </button>
-            <button className="px-4 py-2 bg-blue-500 hover:bg-blue-600 rounded-lg text-sm font-semibold transition-colors flex items-center gap-2">
+            <button 
+              onClick={() => {
+                copyToClipboard('git clone https://github.com/dcim-compliance/app.git', 'git');
+                showToast('📋 Git clone command copied to clipboard!', 'success');
+              }}
+              className="px-4 py-2 bg-blue-500 hover:bg-blue-600 rounded-lg text-sm font-semibold transition-colors flex items-center gap-2"
+            >
               <GitBranch size={16} />
               Clone Repo
             </button>
