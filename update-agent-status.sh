@@ -4,7 +4,8 @@
 # Runs during pre-commit to keep AGENT_STATUS.md current
 #
 
-STATUS_FILE="/Users/danielbuk/Desktop/DCIM/AGENT_STATUS.md"
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+STATUS_FILE="$SCRIPT_DIR/AGENT_STATUS.md"
 TIMESTAMP=$(date "+%Y-%m-%d %H:%M %Z")
 COMMIT_MSG="$1"
 

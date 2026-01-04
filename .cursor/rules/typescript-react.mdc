@@ -1,0 +1,22 @@
+---
+description: TypeScript + React patterns for DCIM
+globs: ["**/*.ts", "**/*.tsx"]
+alwaysApply: false
+---
+
+## TypeScript
+- Prefer `unknown` over `any`.
+- Keep types in `DCIM Compliance App/src/types.ts` (or colocate for small local types).
+- Avoid broad unions that erase meaning; model domain concepts (facility, compliance status, evidence package).
+
+## React 18 patterns
+- Use `useMemo` / `useDeferredValue` for expensive filtering.
+- Use `useCallback` for handlers passed into memoized children.
+- Prefer conditional rendering (`{show && <X/>}`), not `display: none`.
+- Always add `useEffect` cleanup.
+
+## UI constraints (important)
+- No dynamic Tailwind class generation.
+- Prefer inline styles for dynamic colors.
+- Avoid huge components; split if files approach ~50KB.
+

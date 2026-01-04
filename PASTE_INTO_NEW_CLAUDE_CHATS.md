@@ -8,7 +8,8 @@ Copy/paste this EXACT text into any new Claude conversation:
 I'm continuing work on the DCIM Compliance App. Please read the current status:
 
 1. Read /Users/danielbuk/Desktop/DCIM/AGENT_STATUS.md (this is auto-updated with every commit)
-2. Then read /Users/danielbuk/Desktop/DCIM/.cursorrules (critical constraints)
+2. Then read /Users/danielbuk/Desktop/DCIM/PROJECT_STATUS.md (auto-generated snapshot)
+3. Then read /Users/danielbuk/Desktop/DCIM/DCIM Compliance App/.cursorrules (critical constraints)
 3. Continue from where the last agent left off
 
 The project enforces these constraints:
@@ -25,7 +26,7 @@ Tech stack: React 18 + TypeScript + Tailwind + IndexedDB + Cloudflare Pages
 ## 📋 Alternative Short Version
 
 ```
-Continue DCIM app work. Read /Users/danielbuk/Desktop/DCIM/AGENT_STATUS.md first.
+Continue DCIM app work. Read /Users/danielbuk/Desktop/DCIM/AGENT_STATUS.md and PROJECT_STATUS.md first.
 ```
 
 ---

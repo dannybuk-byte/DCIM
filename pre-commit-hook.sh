@@ -10,12 +10,29 @@
 echo "🛡️  Running pre-commit safety checks..."
 echo ""
 
+# Resolve repo root (works for Cursor worktrees and normal clones)
+REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null)"
+if [ -z "$REPO_ROOT" ]; then
+  REPO_ROOT="."
+fi
+
 # ============================================================================
 # UPDATE AGENT STATUS (for AI agent continuity)
 # ============================================================================
-if [ -f "/Users/danielbuk/Desktop/DCIM/update-agent-status.sh" ]; then
-  /Users/danielbuk/Desktop/DCIM/update-agent-status.sh "$(git diff --cached --name-only | head -1)"
+if [ -f "$REPO_ROOT/update-agent-status.sh" ]; then
+  "$REPO_ROOT/update-agent-status.sh" "$(git diff --cached --name-only | head -1)"
 fi
+
+# ============================================================================
+# UPDATE AI CONTEXT ARTIFACTS (Cursor context persistence)
+# ============================================================================
+if [ -f "$REPO_ROOT/scripts/update-ai-context.cjs" ]; then
+  node "$REPO_ROOT/scripts/update-ai-context.cjs" >/dev/null 2>&1 || true
+  git add "$REPO_ROOT/PROJECT_STATUS.md" "$REPO_ROOT/.cursor/rules/current-context.mdc" 2>/dev/null || true
+fi
+
+# Ensure AGENT_STATUS stays staged if modified by updater
+git add "$REPO_ROOT/AGENT_STATUS.md" 2>/dev/null || true
 echo ""
 
 # Color codes for output
