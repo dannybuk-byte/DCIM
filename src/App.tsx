@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import DCIMCommandCenter from './components/DCIMCommandCenter';
 import ChatInterface from './components/ChatInterface';
 import ReportModal from './components/ReportModal';
@@ -6,20 +6,23 @@ import NetworkTraceModal from './components/NetworkTraceModal';
 import SourceManager from './components/SourceManager'; // NotebookLM-inspired
 import { DynamicActionButtons } from './components/DynamicActionButtons';
 import { NavigationHelper } from './components/NavigationHelper';
-import { MissionControlGrid } from './components/MissionControlGrid';
 import { MissionControlGridTest } from './components/MissionControlGridTest';
 import { OmniscientCommandInterface } from './components/OmniscientCommandInterface';
 import { initClickToScrollEverywhere } from './utils/clickToScrollEverywhere';
 import { db } from './db/database';
 import { Facility } from './types';
-import { ErrorBoundary } from './components/ErrorBoundary';
 import { safeDbOperation } from './utils/dbOperations';
 import { trackError } from './utils/errorTracking';
 import { ProvenanceModeProvider } from './components/shared/ProvenanceMode';
+import { DensityProvider } from './contexts/DensityContext';
+import { getSettings, saveSettings, settingsKey } from './utils/settingsPersistence';
+import { OfflineIndicator } from './hooks/useOfflineStatus';
+import { EnhancedCapabilitiesBanner } from './components/EnhancedCapabilitiesBanner';
 
 function App() {
-  const [useNewArchitecture, setUseNewArchitecture] = useState(true); // Toggle between old and new
-  const [useTestVersion, setUseTestVersion] = useState(false); // Test version for debugging
+  type AppShell = 'omniscient' | 'commandCenter' | 'missionControlTest';
+  const [appShell, setAppShell] = useState<AppShell>('omniscient');
+  const [shellMenuOpen, setShellMenuOpen] = useState(false);
   const [chatOpen, setChatOpen] = useState(false);
   const [reportOpen, setReportOpen] = useState(false);
   const [networkTraceOpen, setNetworkTraceOpen] = useState(false);
@@ -65,11 +68,53 @@ function App() {
     };
   }, []);
 
+  // Persisted UI shell selection (so features aren't "lost" across shells)
+  useEffect(() => {
+    let cancelled = false;
+    async function loadShell() {
+      try {
+        const saved = await getSettings<AppShell>(settingsKey('appShell'));
+        if (cancelled) return;
+        if (saved === 'omniscient' || saved === 'commandCenter' || saved === 'missionControlTest') {
+          setAppShell(saved);
+        }
+      } catch {
+        // ignore
+      }
+    }
+    loadShell();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    saveSettings(settingsKey('appShell'), appShell).catch(() => {});
+  }, [appShell]);
+
   // Initialize smooth scrolling and click-to-scroll
   useEffect(() => {
-    const cleanup3 = initClickToScrollEverywhere();
+    let cleanup: (() => void) | null = null;
+    let cancelled = false;
+
+    async function init() {
+      try {
+        const display = await getSettings<{ enhancedScrolling?: boolean }>(settingsKey('display'));
+        const enabled = display?.enhancedScrolling === true;
+        if (cancelled) return;
+        if (enabled) {
+          cleanup = initClickToScrollEverywhere();
+        }
+      } catch {
+        // Default: do nothing (native scrolling)
+      }
+    }
+
+    init();
+
     return () => {
-      cleanup3();
+      cancelled = true;
+      cleanup?.();
     };
   }, []);
 
@@ -119,22 +164,81 @@ function App() {
     { key: 'Click + Home/End', description: 'Click any section, then jump to top/bottom', keys: ['Click', 'Home'] },
   ];
 
+  const shellLabel = useMemo(() => {
+    if (appShell === 'omniscient') return 'Omniscient';
+    if (appShell === 'commandCenter') return 'Command Center';
+    return 'Mission Control (Test)';
+  }, [appShell]);
+
+  const setShellAndCloseMenu = useCallback((next: AppShell) => {
+    setAppShell(next);
+    setShellMenuOpen(false);
+  }, []);
+
   return (
-    <ProvenanceModeProvider>
+    <DensityProvider>
+      <ProvenanceModeProvider>
       <div className="relative">
-        {useTestVersion ? (
-          <>
-            {console.log('🧪 Rendering Test Version')}
-            <MissionControlGridTest />
-          </>
-        ) : useNewArchitecture ? (
-          <>
-            {console.log('🌌 Rendering Omniscient Command Interface')}
-            <OmniscientCommandInterface />
-          </>
+        {/* ENHANCED CAPABILITIES BANNER - Always visible at top */}
+        <EnhancedCapabilitiesBanner />
+        {/* Always-available interface switcher (some features live in different shells) */}
+        <div className="fixed bottom-4 right-4 z-[9999]">
+          <div className="bg-gray-950/90 backdrop-blur border border-gray-800 rounded-lg shadow-2xl overflow-hidden">
+            <button
+              type="button"
+              onClick={() => setShellMenuOpen((v) => !v)}
+              className="px-3 py-2 text-xs text-gray-200 hover:text-white hover:bg-gray-900 flex items-center gap-2 w-full"
+              aria-haspopup="menu"
+              aria-expanded={shellMenuOpen}
+              title="Switch between interface shells"
+            >
+              <span className="text-gray-400">Interface:</span>
+              <span className="font-semibold">{shellLabel}</span>
+              <span className="ml-auto text-gray-500">{shellMenuOpen ? '▲' : '▼'}</span>
+            </button>
+            {shellMenuOpen && (
+              <div role="menu" className="border-t border-gray-800">
+                <button
+                  type="button"
+                  role="menuitem"
+                  onClick={() => setShellAndCloseMenu('omniscient')}
+                  className={`w-full text-left px-3 py-2 text-xs hover:bg-gray-900 ${
+                    appShell === 'omniscient' ? 'text-cyan-300' : 'text-gray-200'
+                  }`}
+                >
+                  Omniscient (Dashboard / Tracker / Full Report)
+                </button>
+                <button
+                  type="button"
+                  role="menuitem"
+                  onClick={() => setShellAndCloseMenu('commandCenter')}
+                  className={`w-full text-left px-3 py-2 text-xs hover:bg-gray-900 ${
+                    appShell === 'commandCenter' ? 'text-cyan-300' : 'text-gray-200'
+                  }`}
+                >
+                  Command Center (Tabs: OSINT, Connectography, Predictive Intel…)
+                </button>
+                <button
+                  type="button"
+                  role="menuitem"
+                  onClick={() => setShellAndCloseMenu('missionControlTest')}
+                  className={`w-full text-left px-3 py-2 text-xs hover:bg-gray-900 ${
+                    appShell === 'missionControlTest' ? 'text-cyan-300' : 'text-gray-200'
+                  }`}
+                >
+                  Mission Control Grid (Test)
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {appShell === 'missionControlTest' ? (
+          <MissionControlGridTest />
+        ) : appShell === 'omniscient' ? (
+          <OmniscientCommandInterface />
         ) : (
           <>
-            {console.log('📊 Rendering Old Dashboard')}
             <DCIMCommandCenter 
               onActionRequested={handleDashboardAction}
               onOpenChat={() => setChatOpen(true)}
@@ -165,10 +269,14 @@ function App() {
             />
 
             <NavigationHelper shortcuts={navigationShortcuts} />
+            
+            {/* Global offline indicator */}
+            <OfflineIndicator />
           </>
         )}
       </div>
-    </ProvenanceModeProvider>
+      </ProvenanceModeProvider>
+    </DensityProvider>
   );
 }
 

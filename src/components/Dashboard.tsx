@@ -13,6 +13,7 @@ import { Search, Sparkles, X } from 'lucide-react';
 import { AutocompleteInput } from './shared/AutocompleteInput';
 import { useNLPSearchSuggestions } from '../hooks/useNLPSearchSuggestions';
 import { recordSearch } from '../db/searchHistory';
+import { askAIText } from '../ai/engine';
 
 export interface DashboardFilters {
   state?: string;
@@ -36,9 +37,8 @@ export default function Dashboard({ onActionRequested }: DashboardProps = {}) {
   const [filters, setFilters] = useState<DashboardFilters>({});
   const [aiSearchQuery, setAiSearchQuery] = useState('');
   const [isAiProcessing, setIsAiProcessing] = useState(false);
+  const [aiFeedback, setAiFeedback] = useState<string | null>(null);
   
-  const WORKER_URL = 'https://claude-api-proxy.dannybuk.workers.dev';
-
   const aiSuggestions = useNLPSearchSuggestions({
     context: 'ai',
     facilities,
@@ -142,6 +142,7 @@ export default function Dashboard({ onActionRequested }: DashboardProps = {}) {
   const handleAiSearch = useCallback(async (query: string) => {
     setAiSearchQuery(query);
     setIsAiProcessing(true);
+    setAiFeedback(null);
     recordSearch(query, 'ai');
     
     // Detect dashboard action
@@ -191,19 +192,19 @@ export default function Dashboard({ onActionRequested }: DashboardProps = {}) {
         currentTab: activeTab,
       });
       
-      const r = await fetch(WORKER_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          model: 'claude-sonnet-4-20250514',
-          max_tokens: 1024,
-          system: `You are a compliance dashboard assistant. The user is querying the dashboard. Current tab: ${activeTab}, Current filters: ${JSON.stringify(filters)}. Data: ${data}. Provide a brief response confirming the action taken.`,
-          messages: [{ role: 'user', content: query }]
-        })
+      const system = `You are a compliance dashboard assistant helping labor organizers explore corporate accountability data.
+Current tab: ${activeTab}
+Current filters: ${JSON.stringify(filters)}
+Data: ${data}
+
+Provide a brief (1-2 sentence) confirmation of what changed and one suggested next step.`;
+
+      const result = await askAIText(system, query, {
+        maxTokens: 256,
+        temperature: 0.4,
+        timeoutMs: 15000,
       });
-      const j = await r.json();
-      const response = j.content?.[0]?.text || '';
-      console.log('AI Response:', response);
+      setAiFeedback(result.text);
     } catch (error) {
       console.error('Error calling AI:', error);
     } finally {
@@ -288,6 +289,13 @@ export default function Dashboard({ onActionRequested }: DashboardProps = {}) {
             </button>
           )}
         </div>
+
+        {aiFeedback && (
+          <div className="mt-2 text-xs text-gray-300 bg-gray-900/60 border border-gray-700 rounded px-3 py-2">
+            <span className="text-gray-400 font-semibold mr-2">AI:</span>
+            {aiFeedback}
+          </div>
+        )}
         
         {/* Active Filters Display */}
         {Object.keys(filters).length > 0 && (

@@ -159,6 +159,7 @@ export function useNaturalLanguageSearch(): [SearchState, SearchActions] {
       let structuredQuery: FacilityQuery;
       let conversionMethod: 'api' | 'keywords' | 'cached';
       let warning: string | null = null;
+      let apiProvider: string | undefined;
       
       // Check cache first
       const cached = getCachedNLQuery(naturalLanguage);
@@ -170,6 +171,7 @@ export function useNaturalLanguageSearch(): [SearchState, SearchActions] {
         const conversion = await convertNLToQueryWithFallback(naturalLanguage);
         structuredQuery = conversion.query;
         conversionMethod = conversion.method === 'error' ? 'keywords' : conversion.method;
+        apiProvider = conversion.provider;
         
         if (conversion.error) {
           warning = conversion.error;
@@ -179,11 +181,11 @@ export function useNaturalLanguageSearch(): [SearchState, SearchActions] {
         if (conversionMethod !== 'error') {
           cacheNLQuery(naturalLanguage, structuredQuery, conversionMethod);
         }
-        
-        // Track API usage if we used the API
-        if (conversionMethod === 'api') {
-          trackAPIUsage(500, 'openai'); // Estimate 500 tokens for query conversion
-        }
+      }
+
+      // Track API usage if we used a paid API (avoid counting local providers/cached/keywords)
+      if (conversionMethod === 'api' && apiProvider === 'openai') {
+        trackAPIUsage(500, 'openai'); // Estimate 500 tokens for query conversion
       }
       
       setState(prev => ({

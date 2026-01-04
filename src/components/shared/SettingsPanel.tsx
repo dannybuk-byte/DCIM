@@ -12,7 +12,7 @@ import { useState, useEffect, useCallback } from 'react';
 import {
   Settings, X, Bell, MapPin, Download, Eye, Plus, Trash2,
   Check, AlertTriangle, ExternalLink, TestTube, ChevronDown,
-  ChevronRight, Globe, Webhook, FileDown, Palette, Keyboard, Database, Activity
+  ChevronRight, Globe, Webhook, FileDown, Palette, Keyboard, Database, Activity, Zap
 } from 'lucide-react';
 import { 
   getWebhooks, addWebhook, updateWebhook, deleteWebhook, testWebhook,
@@ -21,6 +21,14 @@ import {
 import { getSettings, saveSettings, settingsKey } from '../../utils/settingsPersistence';
 import { DatabaseHealthMonitor } from '../DatabaseHealthMonitor';
 import { SystemHealthDashboard } from '../SystemHealthDashboard';
+import {
+  getOrganizerProfile,
+  resetOrganizerProfile,
+  saveOrganizerProfile,
+  type OrganizerProfile,
+} from '../../ai/organizerProfile';
+import { DensityToggle } from './DensityToggle';
+import { FeatureFlagsPanel } from './FeatureFlagsPanel';
 
 const COLORS = {
   bg: '#0a0e17',
@@ -41,7 +49,16 @@ interface SettingsPanelProps {
   onClose: () => void;
 }
 
-type SettingsTab = 'webhooks' | 'mapbox' | 'export' | 'display' | 'shortcuts' | 'database' | 'health';
+type SettingsTab =
+  | 'webhooks'
+  | 'mapbox'
+  | 'export'
+  | 'display'
+  | 'personalization'
+  | 'shortcuts'
+  | 'database'
+  | 'health'
+  | 'experimental';
 
 interface MapboxSettings {
   accessToken: string;
@@ -63,6 +80,7 @@ interface DisplaySettings {
   animationsEnabled: boolean;
   showTooltips: boolean;
   defaultTab: string;
+  enhancedScrolling: boolean;
 }
 
 const DEFAULT_MAPBOX: MapboxSettings = {
@@ -85,6 +103,7 @@ const DEFAULT_DISPLAY: DisplaySettings = {
   animationsEnabled: true,
   showTooltips: true,
   defaultTab: 'Overview',
+  enhancedScrolling: false,
 };
 
 const WEBHOOK_PROVIDERS: { id: WebhookProvider; name: string; icon: string }[] = [
@@ -109,6 +128,12 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
   const [mapboxSettings, setMapboxSettings] = useState<MapboxSettings>(DEFAULT_MAPBOX);
   const [exportSettings, setExportSettings] = useState<ExportSettings>(DEFAULT_EXPORT);
   const [displaySettings, setDisplaySettings] = useState<DisplaySettings>(DEFAULT_DISPLAY);
+  const [organizerProfile, setOrganizerProfile] = useState<OrganizerProfile>({
+    dataSensitivity: 'high',
+    shareWithExternalAI: false,
+    tone: 'strategic',
+    updatedAt: new Date().toISOString(),
+  });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [testingWebhook, setTestingWebhook] = useState<string | null>(null);
@@ -127,16 +152,18 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
   useEffect(() => {
     async function load() {
       try {
-        const [wh, mapbox, exp, disp] = await Promise.all([
+        const [wh, mapbox, exp, disp, profile] = await Promise.all([
           getWebhooks(),
           getSettings<MapboxSettings>(settingsKey('mapbox')),
           getSettings<ExportSettings>(settingsKey('export')),
           getSettings<DisplaySettings>(settingsKey('display')),
+          getOrganizerProfile(),
         ]);
         setWebhooks(wh);
         if (mapbox) setMapboxSettings({ ...DEFAULT_MAPBOX, ...mapbox });
         if (exp) setExportSettings({ ...DEFAULT_EXPORT, ...exp });
         if (disp) setDisplaySettings({ ...DEFAULT_DISPLAY, ...disp });
+        if (profile) setOrganizerProfile(profile);
       } catch (error) {
         console.error('Failed to load settings:', error);
       } finally {
@@ -145,6 +172,16 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
     }
     if (isOpen) load();
   }, [isOpen]);
+
+  const saveProfile = useCallback(async (profile: OrganizerProfile) => {
+    setSaving(true);
+    try {
+      await saveOrganizerProfile(profile);
+      setOrganizerProfile(profile);
+    } finally {
+      setSaving(false);
+    }
+  }, []);
 
   // Save mapbox settings
   const saveMapbox = useCallback(async (settings: MapboxSettings) => {
@@ -254,11 +291,13 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
 
   const tabs: { id: SettingsTab; label: string; icon: typeof Settings }[] = [
     { id: 'health', label: 'Health', icon: Activity },
+    { id: 'experimental', label: 'Experimental', icon: Zap },
     { id: 'webhooks', label: 'Webhooks', icon: Bell },
     { id: 'database', label: 'Database', icon: Database },
     { id: 'mapbox', label: 'Mapbox', icon: MapPin },
     { id: 'export', label: 'Export', icon: Download },
     { id: 'display', label: 'Display', icon: Eye },
+    { id: 'personalization', label: 'Personalization', icon: Palette },
     { id: 'shortcuts', label: 'Shortcuts', icon: Keyboard },
   ];
 
@@ -687,6 +726,32 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
                       <label className="flex items-center gap-3 cursor-pointer">
                         <input
                           type="checkbox"
+                          checked={displaySettings.enhancedScrolling}
+                          onChange={e => {
+                            const updated = { ...displaySettings, enhancedScrolling: e.target.checked };
+                            setDisplaySettings(updated);
+                            saveDisplay(updated);
+                          }}
+                          className="w-4 h-4 rounded border-gray-600 bg-gray-800 text-cyan-500 focus:ring-cyan-500"
+                        />
+                        <div>
+                          <div className="text-sm text-white">Enhanced Scrolling (Click-to-scroll)</div>
+                          <div className="text-xs text-gray-500">
+                            Off by default for performance. Enables click-to-focus + keyboard scrolling on long panels.
+                          </div>
+                        </div>
+                      </label>
+
+                      {/* UI Density Selector */}
+                      <div className="mb-4">
+                        <label className="block text-sm font-medium text-white mb-2">UI Density</label>
+                        <p className="text-xs text-gray-500 mb-2">Controls spacing, font sizes, and row heights across all drill-down views</p>
+                        <DensityToggle showLabel={false} />
+                      </div>
+
+                      <label className="flex items-center gap-3 cursor-pointer">
+                        <input
+                          type="checkbox"
                           checked={displaySettings.compactMode}
                           onChange={e => {
                             const updated = { ...displaySettings, compactMode: e.target.checked };
@@ -696,8 +761,8 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
                           className="w-4 h-4 rounded border-gray-600 bg-gray-800 text-cyan-500 focus:ring-cyan-500"
                         />
                         <div>
-                          <div className="text-sm text-white">Compact Mode</div>
-                          <div className="text-xs text-gray-500">Maximize data density with smaller UI elements</div>
+                          <div className="text-sm text-white">Compact Mode (Legacy)</div>
+                          <div className="text-xs text-gray-500">Older toggle – use UI Density above for more control</div>
                         </div>
                       </label>
 
@@ -757,6 +822,187 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
                   </div>
                 )}
 
+                {/* Personalization Tab */}
+                {activeTab === 'personalization' && (
+                  <div className="space-y-6">
+                    <p className="text-sm text-gray-400">
+                      Personalize AI responses for your organizing context. Stored locally in IndexedDB. By default,
+                      this profile is <span className="text-white font-semibold">not</span> sent to external AI.
+                    </p>
+
+                    <div className="bg-gray-800 rounded-lg p-4 border border-gray-700 space-y-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-xs text-gray-400 mb-1">Organization</label>
+                          <input
+                            type="text"
+                            value={organizerProfile.organization || ''}
+                            onChange={e =>
+                              setOrganizerProfile(prev => ({ ...prev, organization: e.target.value }))
+                            }
+                            placeholder="e.g., CODE-CWA, Tech Workers Coalition..."
+                            className="w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded text-white text-sm focus:border-cyan-500 focus:outline-none"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs text-gray-400 mb-1">Role</label>
+                          <input
+                            type="text"
+                            value={organizerProfile.role || ''}
+                            onChange={e => setOrganizerProfile(prev => ({ ...prev, role: e.target.value }))}
+                            placeholder="e.g., organizer, researcher, volunteer..."
+                            className="w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded text-white text-sm focus:border-cyan-500 focus:outline-none"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs text-gray-400 mb-1">Region</label>
+                          <input
+                            type="text"
+                            value={organizerProfile.region || ''}
+                            onChange={e => setOrganizerProfile(prev => ({ ...prev, region: e.target.value }))}
+                            placeholder="e.g., Bay Area, Northern Virginia, Phoenix..."
+                            className="w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded text-white text-sm focus:border-cyan-500 focus:outline-none"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs text-gray-400 mb-1">Tone</label>
+                          <select
+                            value={organizerProfile.tone || 'strategic'}
+                            onChange={e =>
+                              setOrganizerProfile(prev => ({
+                                ...prev,
+                                tone: e.target.value as OrganizerProfile['tone'],
+                              }))
+                            }
+                            className="w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded text-white text-sm focus:border-cyan-500 focus:outline-none"
+                          >
+                            <option value="strategic">Strategic</option>
+                            <option value="direct">Direct</option>
+                            <option value="narrative">Narrative</option>
+                          </select>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-1 gap-4">
+                        <div>
+                          <label className="block text-xs text-gray-400 mb-1">Campaigns / objectives</label>
+                          <textarea
+                            value={organizerProfile.campaigns || ''}
+                            onChange={e =>
+                              setOrganizerProfile(prev => ({ ...prev, campaigns: e.target.value }))
+                            }
+                            placeholder="What are you trying to win? What’s the current campaign goal?"
+                            rows={3}
+                            className="w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded text-white text-sm focus:border-cyan-500 focus:outline-none"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs text-gray-400 mb-1">Target companies</label>
+                          <input
+                            type="text"
+                            value={organizerProfile.targetCompanies || ''}
+                            onChange={e =>
+                              setOrganizerProfile(prev => ({ ...prev, targetCompanies: e.target.value }))
+                            }
+                            placeholder='e.g., Amazon, Google, Microsoft (comma-separated)'
+                            className="w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded text-white text-sm focus:border-cyan-500 focus:outline-none"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs text-gray-400 mb-1">Preferred outputs</label>
+                          <input
+                            type="text"
+                            value={organizerProfile.preferredOutputs || ''}
+                            onChange={e =>
+                              setOrganizerProfile(prev => ({ ...prev, preferredOutputs: e.target.value }))
+                            }
+                            placeholder="e.g., talking points, one-pagers, FOIA templates, bargaining evidence..."
+                            className="w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded text-white text-sm focus:border-cyan-500 focus:outline-none"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2 border-t border-gray-700">
+                        <div>
+                          <label className="block text-xs text-gray-400 mb-1">Data sensitivity</label>
+                          <select
+                            value={organizerProfile.dataSensitivity}
+                            onChange={e =>
+                              setOrganizerProfile(prev => ({
+                                ...prev,
+                                dataSensitivity: e.target.value as OrganizerProfile['dataSensitivity'],
+                              }))
+                            }
+                            className="w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded text-white text-sm focus:border-cyan-500 focus:outline-none"
+                          >
+                            <option value="high">High (organizing-sensitive)</option>
+                            <option value="medium">Medium</option>
+                            <option value="low">Low</option>
+                          </select>
+                          <p className="text-[11px] text-gray-500 mt-1">
+                            Used only for labeling; you control whether external AI can see this profile.
+                          </p>
+                        </div>
+
+                        <label className="flex items-start gap-3 cursor-pointer bg-gray-900/40 border border-gray-700 rounded p-3">
+                          <input
+                            type="checkbox"
+                            checked={organizerProfile.shareWithExternalAI}
+                            onChange={e =>
+                              setOrganizerProfile(prev => ({
+                                ...prev,
+                                shareWithExternalAI: e.target.checked,
+                              }))
+                            }
+                            className="w-4 h-4 mt-1 rounded border-gray-600 bg-gray-800 text-cyan-500 focus:ring-cyan-500"
+                          />
+                          <div>
+                            <div className="text-sm text-white">Allow sending this profile to external AI</div>
+                            <div className="text-xs text-gray-500">
+                              If disabled, the profile is only used for local AI (Ollama/Anyway). Safer default.
+                            </div>
+                          </div>
+                        </label>
+                      </div>
+
+                      <div className="flex items-center justify-between pt-2">
+                        <button
+                          onClick={async () => {
+                            if (!confirm('Reset personalization profile? This will delete it from IndexedDB.')) return;
+                            setSaving(true);
+                            try {
+                              await resetOrganizerProfile();
+                              setOrganizerProfile({
+                                dataSensitivity: 'high',
+                                shareWithExternalAI: false,
+                                tone: 'strategic',
+                                updatedAt: new Date().toISOString(),
+                              });
+                            } finally {
+                              setSaving(false);
+                            }
+                          }}
+                          className="px-3 py-2 text-sm text-red-300 hover:text-red-200 hover:bg-red-500/10 rounded transition-colors"
+                        >
+                          Reset
+                        </button>
+                        <button
+                          onClick={() =>
+                            saveProfile({
+                              ...organizerProfile,
+                              updatedAt: new Date().toISOString(),
+                            })
+                          }
+                          disabled={saving}
+                          className="px-4 py-2 bg-cyan-600 hover:bg-cyan-500 disabled:opacity-50 disabled:cursor-not-allowed rounded text-sm font-semibold text-black transition-colors"
+                        >
+                          Save
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 {/* Shortcuts Tab */}
                 {activeTab === 'shortcuts' && (
                   <div className="space-y-4">
@@ -810,6 +1056,11 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
                 {/* Health Tab */}
                 {activeTab === 'health' && (
                   <SystemHealthDashboard />
+                )}
+
+                {/* Experimental Features Tab */}
+                {activeTab === 'experimental' && (
+                  <FeatureFlagsPanel />
                 )}
               </>
             )}

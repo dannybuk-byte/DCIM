@@ -1,14 +1,44 @@
 /**
  * Natural Language to Structured Query Converter
  * Converts user's natural language into structured facility queries
- * Uses OpenAI GPT-4 with structured outputs (Zod schema)
+ * Prefers local/OpenAI-compatible providers when available; validates outputs with Zod.
  */
 
-import OpenAI from 'openai';
-import { zodResponseFormat } from 'openai/helpers/zod';
 import { FacilityQuerySchema, type FacilityQuery, EXAMPLE_QUERIES } from '../schemas/facilityQuery';
-import { loadAIConfig } from './apiKeyManager';
 import { SYSTEM_PROMPTS } from '../ai/config';
+import { askAIText } from '../ai/engine';
+
+type NLQueryProvider = 'ollama' | 'anyway' | 'cloudflare-worker' | 'openai' | 'keywords';
+
+function extractLikelyJsonObject(text: string): string | null {
+  const first = text.indexOf('{');
+  const last = text.lastIndexOf('}');
+  if (first === -1 || last === -1 || last <= first) return null;
+  return text.slice(first, last + 1);
+}
+
+function parseAndValidateFacilityQuery(rawText: string): FacilityQuery {
+  const trimmed = rawText.trim();
+  const candidate = trimmed.startsWith('{') ? trimmed : (extractLikelyJsonObject(trimmed) ?? trimmed);
+
+  let obj: unknown;
+  try {
+    obj = JSON.parse(candidate);
+  } catch (e) {
+    throw new Error(
+      'AI returned non-JSON for query conversion. Please try a shorter, more specific query.'
+    );
+  }
+
+  const validated = FacilityQuerySchema.safeParse(obj);
+  if (!validated.success) {
+    const firstIssue = validated.error.issues[0];
+    const at = firstIssue?.path?.length ? ` at ${firstIssue.path.join('.')}` : '';
+    throw new Error(`AI returned an invalid query${at}: ${firstIssue?.message ?? 'Unknown issue'}`);
+  }
+
+  return validated.data;
+}
 
 /**
  * Convert natural language query to structured query using OpenAI
@@ -16,61 +46,24 @@ import { SYSTEM_PROMPTS } from '../ai/config';
 export async function convertNLToQuery(
   naturalLanguage: string
 ): Promise<FacilityQuery> {
-  // Load API configuration
-  const config = loadAIConfig();
-  
-  if (!config || !config.enabled || !config.apiKey) {
-    throw new Error('AI features not configured. Please add your API key in Settings.');
-  }
-  
-  if (config.provider !== 'openai') {
-    throw new Error('Natural language search currently only supports OpenAI. Please configure OpenAI in Settings.');
-  }
-  
-  // Initialize OpenAI client
-  const openai = new OpenAI({
-    apiKey: config.apiKey,
-    dangerouslyAllowBrowser: true // Client-side usage
-  });
-  
   try {
-    // Call OpenAI with structured output
-    const completion = await openai.beta.chat.completions.parse({
-      model: config.model || 'gpt-4-turbo-preview',
-      messages: [
-        {
-          role: 'system',
-          content: SYSTEM_PROMPTS.query
-        },
-        {
-          role: 'user',
-          content: `Convert this natural language query into a structured facility query:\n\n"${naturalLanguage}"\n\nReturn a JSON object matching the FacilityQuery schema. If the user doesn't specify sorting, use sensible defaults (e.g., sort by subsidyGap desc for compliance queries, by name asc otherwise). Default limit to 100 unless specified.`
-        }
-      ],
-      response_format: zodResponseFormat(FacilityQuerySchema, 'facility_query'),
-      temperature: 0 // Deterministic for consistent parsing
+    const userMessage =
+      'Convert the following natural language request into a JSON object that matches the FacilityQuery schema. ' +
+      'Return ONLY a JSON object (no markdown, no commentary, no code fences). ' +
+      'If sorting is not specified, use sensible defaults (e.g., sortBy=subsidyGap desc for compliance queries, ' +
+      'sortBy=name asc otherwise). Default limit to 100 unless specified.\n\n' +
+      `User request: "${naturalLanguage}"`;
+
+    const { text } = await askAIText(SYSTEM_PROMPTS.query, userMessage, {
+      maxTokens: 800,
+      temperature: 0,
+      timeoutMs: 30000,
     });
-    
-    const parsed = completion.choices[0].message.parsed;
-    
-    if (!parsed) {
-      throw new Error('Failed to parse query from AI response');
-    }
-    
-    return parsed;
+
+    return parseAndValidateFacilityQuery(text);
   } catch (error) {
-    console.error('OpenAI API error:', error);
-    
+    console.error('AI query conversion error:', error);
     if (error instanceof Error) {
-      // Check for common error types
-      if (error.message.includes('401')) {
-        throw new Error('Invalid API key. Please check your Settings.');
-      } else if (error.message.includes('429')) {
-        throw new Error('Rate limit exceeded. Please try again in a moment.');
-      } else if (error.message.includes('quota')) {
-        throw new Error('API quota exceeded. Please check your OpenAI account.');
-      }
-      
       throw new Error(`AI query conversion failed: ${error.message}`);
     }
     
@@ -234,10 +227,28 @@ export function convertNLToQueryKeywords(naturalLanguage: string): FacilityQuery
  */
 export async function convertNLToQueryWithFallback(
   naturalLanguage: string
-): Promise<{ query: FacilityQuery; method: 'api' | 'keywords' | 'error'; error?: string }> {
+): Promise<{
+  query: FacilityQuery;
+  method: 'api' | 'keywords' | 'error';
+  provider?: NLQueryProvider;
+  error?: string;
+}> {
   try {
-    const query = await convertNLToQuery(naturalLanguage);
-    return { query, method: 'api' };
+    const userMessage =
+      'Convert the following natural language request into a JSON object that matches the FacilityQuery schema. ' +
+      'Return ONLY a JSON object (no markdown, no commentary, no code fences). ' +
+      'If sorting is not specified, use sensible defaults (e.g., sortBy=subsidyGap desc for compliance queries, ' +
+      'sortBy=name asc otherwise). Default limit to 100 unless specified.\n\n' +
+      `User request: "${naturalLanguage}"`;
+
+    const result = await askAIText(SYSTEM_PROMPTS.query, userMessage, {
+      maxTokens: 800,
+      temperature: 0,
+      timeoutMs: 30000,
+    });
+
+    const query = parseAndValidateFacilityQuery(result.text);
+    return { query, method: 'api', provider: result.provider as NLQueryProvider };
   } catch (error) {
     console.warn('API conversion failed, using keyword matching:', error);
     
@@ -247,6 +258,7 @@ export async function convertNLToQueryWithFallback(
       return { 
         query, 
         method: 'keywords',
+        provider: 'keywords',
         error: error instanceof Error ? error.message : 'API conversion failed'
       };
     } catch (fallbackError) {
@@ -254,6 +266,7 @@ export async function convertNLToQueryWithFallback(
       return {
         query: { limit: 100 },
         method: 'error',
+        provider: 'keywords',
         error: 'Could not parse query. Try being more specific (e.g., "Show me facilities in Texas").'
       };
     }

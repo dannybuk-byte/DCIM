@@ -5,11 +5,12 @@
  * Compliant with FRE 902(13)-(14) for federal court submission.
  */
 
-import React, { memo, useState } from 'react';
-import { Shield, Download, Trash2, CheckCircle2, AlertTriangle, ChevronDown, ChevronRight, Minimize2, Maximize2 } from 'lucide-react';
+import React, { memo, useState, useEffect } from 'react';
+import { Shield, Download, Trash2, CheckCircle2, AlertTriangle, ChevronDown, ChevronRight, Minimize2, Maximize2, GitBranch, Clock, Zap, Link2, Sparkles } from 'lucide-react';
 import { useEvidence } from '../hooks/useEvidence';
 import { truncateHash } from '../utils/evidenceIntegrity';
 import type { EvidencePackage, VerificationResult } from '../utils/evidenceIntegrity';
+import { loadFeatureFlags, FeatureFlags, DEFAULT_FEATURE_FLAGS } from '../config/featureFlags';
 
 interface EvidencePanelProps {
   className?: string;
@@ -29,6 +30,18 @@ const EvidencePanel: React.FC<EvidencePanelProps> = memo(({ className = '' }) =>
   const [expandedPackages, setExpandedPackages] = useState<Set<string>>(new Set());
   const [verificationResults, setVerificationResults] = useState<Map<string, VerificationResult>>(new Map());
   const [verifying, setVerifying] = useState<Set<string>>(new Set());
+  const [featureFlags, setFeatureFlags] = useState<FeatureFlags>(DEFAULT_FEATURE_FLAGS);
+
+  // Load feature flags on mount and when panel opens
+  useEffect(() => {
+    async function loadFlags() {
+      const flags = await loadFeatureFlags();
+      setFeatureFlags(flags);
+    }
+    loadFlags();
+  }, [isMinimized]);
+
+  const hasEnhancedEvidence = featureFlags.merkleTreeEvidence || featureFlags.openTimestamps;
 
   const toggleExpand = (evidenceId: string) => {
     setExpandedPackages(prev => {
@@ -93,9 +106,27 @@ const EvidencePanel: React.FC<EvidencePanelProps> = memo(({ className = '' }) =>
           <div className="flex items-center gap-3">
             <Shield className="w-5 h-5 text-green-400" />
             <div>
-              <h3 className="text-lg font-semibold text-white">Evidence Integrity</h3>
-              <p className="text-sm text-slate-400">
-                FRE 902(13)-(14) Compliant • SHA-256
+              <h3 className="text-lg font-semibold text-white flex items-center gap-2">
+                Evidence Integrity
+                {hasEnhancedEvidence && (
+                  <span className="px-1.5 py-0.5 text-[10px] bg-purple-500/20 border border-purple-500/30 rounded text-purple-300 flex items-center gap-1">
+                    <Sparkles className="w-3 h-3" />
+                    ENHANCED
+                  </span>
+                )}
+              </h3>
+              <p className="text-sm text-slate-400 flex items-center gap-2">
+                <span>FRE 902(13)-(14) Compliant • SHA-256</span>
+                {featureFlags.merkleTreeEvidence && (
+                  <span className="text-emerald-400 flex items-center gap-1">
+                    <GitBranch className="w-3 h-3" /> Merkle
+                  </span>
+                )}
+                {featureFlags.openTimestamps && (
+                  <span className="text-amber-400 flex items-center gap-1">
+                    <Clock className="w-3 h-3" /> OTS
+                  </span>
+                )}
               </p>
             </div>
           </div>
@@ -148,6 +179,62 @@ const EvidencePanel: React.FC<EvidencePanelProps> = memo(({ className = '' }) =>
                 <Shield className="w-12 h-12 mx-auto mb-3 opacity-50" />
                 <p className="text-sm">No evidence packages collected yet</p>
                 <p className="text-xs mt-1">Packages will appear here when facilities are analyzed</p>
+                
+                {/* Enhanced Features Status Card */}
+                <div className="mt-6 p-4 bg-slate-900/50 border border-slate-700 rounded-lg max-w-md mx-auto">
+                  <h4 className="text-xs font-bold text-white mb-3 flex items-center justify-center gap-2">
+                    <Zap className="w-3 h-3 text-amber-400" />
+                    Enhanced Evidence Capabilities
+                  </h4>
+                  <div className="space-y-2 text-left">
+                    <div className={`flex items-center gap-2 p-2 rounded ${featureFlags.merkleTreeEvidence ? 'bg-emerald-900/30 border border-emerald-700/50' : 'bg-slate-800'}`}>
+                      <GitBranch className={`w-4 h-4 ${featureFlags.merkleTreeEvidence ? 'text-emerald-400' : 'text-slate-500'}`} />
+                      <div className="flex-1">
+                        <div className={`text-xs font-medium ${featureFlags.merkleTreeEvidence ? 'text-emerald-300' : 'text-slate-400'}`}>
+                          Merkle Tree Chains
+                        </div>
+                        <div className="text-[10px] text-slate-500">
+                          {featureFlags.merkleTreeEvidence ? '✓ Tamper-evident evidence collections' : 'Verify entire evidence chain with single hash'}
+                        </div>
+                      </div>
+                      <span className={`text-[10px] px-1.5 py-0.5 rounded ${featureFlags.merkleTreeEvidence ? 'bg-emerald-500/30 text-emerald-300' : 'bg-slate-700 text-slate-400'}`}>
+                        {featureFlags.merkleTreeEvidence ? 'ON' : 'OFF'}
+                      </span>
+                    </div>
+                    
+                    <div className={`flex items-center gap-2 p-2 rounded ${featureFlags.openTimestamps ? 'bg-amber-900/30 border border-amber-700/50' : 'bg-slate-800'}`}>
+                      <Clock className={`w-4 h-4 ${featureFlags.openTimestamps ? 'text-amber-400' : 'text-slate-500'}`} />
+                      <div className="flex-1">
+                        <div className={`text-xs font-medium ${featureFlags.openTimestamps ? 'text-amber-300' : 'text-slate-400'}`}>
+                          OpenTimestamps (OTS)
+                        </div>
+                        <div className="text-[10px] text-slate-500">
+                          {featureFlags.openTimestamps ? '✓ Bitcoin-anchored temporal proofs' : 'Prove when evidence was collected'}
+                        </div>
+                      </div>
+                      <span className={`text-[10px] px-1.5 py-0.5 rounded ${featureFlags.openTimestamps ? 'bg-amber-500/30 text-amber-300' : 'bg-slate-700 text-slate-400'}`}>
+                        {featureFlags.openTimestamps ? 'ON' : 'OFF'}
+                      </span>
+                    </div>
+                    
+                    <div className="flex items-center gap-2 p-2 rounded bg-slate-800">
+                      <Link2 className="w-4 h-4 text-slate-500" />
+                      <div className="flex-1">
+                        <div className="text-xs font-medium text-slate-400">Chain of Custody</div>
+                        <div className="text-[10px] text-slate-500">Automatic provenance tracking</div>
+                      </div>
+                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-green-500/30 text-green-300">
+                        ALWAYS
+                      </span>
+                    </div>
+                  </div>
+                  
+                  {!hasEnhancedEvidence && (
+                    <p className="text-[10px] text-cyan-400 mt-3">
+                      Enable enhanced features in Settings → Experimental
+                    </p>
+                  )}
+                </div>
               </div>
             ) : (
               <div className="space-y-2 max-h-96 overflow-y-auto">

@@ -14,7 +14,7 @@ import { calculateStats } from '../utils/stats';
 import { safeDbOperation } from '../utils/dbOperations';
 import { trackError } from '../utils/errorTracking';
 import { formatCurrency } from '../utils/formatting';
-import { Search, X, Filter, FileText, Sparkles, Building2, Network, Download, Settings, BarChart3, Home, ChevronRight, Maximize2, BookOpenCheck, List, Layout } from 'lucide-react';
+import { Search, X, Filter, FileText, Sparkles, Building2, Network, Download, Settings, BarChart3, Home, ChevronRight, Maximize2, BookOpenCheck, List, Layout, HelpCircle } from 'lucide-react';
 import { ViewModeToggle, ViewMode } from './shared/ViewModeToggle';
 import { LayerTogglesPanel, LayerState } from './shared/LayerTogglesPanel';
 import { ExpandableSection } from './shared/ExpandableSection';
@@ -67,6 +67,8 @@ import { SimpleBuildBadge } from './SimpleBuildBadge';
 import { SettingsPanel } from './shared/SettingsPanel';
 import { downloadComplianceReport } from '../services/PDFReportGenerator';
 import { PWAStatus } from './shared/PWAStatus';
+import { HeaderCapabilitiesBar } from './shared/HeaderCapabilitiesBar';
+import { DensityToggleInline } from './shared/DensityToggle';
 import { TabTransition } from './shared/TabTransition';
 import { TableOfContents } from './shared/TableOfContents';
 import { NavigationSidebar } from './shared/NavigationSidebar';
@@ -1304,6 +1306,16 @@ export default function DCIMCommandCenter({ onActionRequested: _onActionRequeste
             </span>
             <span className="text-gray-500">|</span>
             <span className="text-gray-400">{filteredFacilities?.length ?? 0} filtered</span>
+            <span className="text-gray-500">|</span>
+            {/* Density Toggle - Safe, uses context only */}
+            <ErrorBoundary fallback={<span className="text-gray-500 text-[10px]">Density</span>}>
+              <DensityToggleInline className="flex-shrink-0" />
+            </ErrorBoundary>
+            <span className="text-gray-500">|</span>
+            {/* Enhanced Capabilities Status Bar - Wrapped for safety */}
+            <ErrorBoundary fallback={<span className="text-cyan-400 text-[10px] px-1.5 py-0.5 bg-cyan-900/30 rounded">AI</span>}>
+              <HeaderCapabilitiesBar onOpenSettings={() => setShowSettings(true)} />
+            </ErrorBoundary>
             </div>
 
           {/* AI Search - Compact */}

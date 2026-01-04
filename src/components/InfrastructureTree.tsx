@@ -1,11 +1,19 @@
 /**
- * 20-Level Infrastructure Tree
- * Hierarchical exploration: Provider → Region → Country → State → Metro → Campus → Building → Floor → Zone → Room → Row → Rack → RU → Server → Chassis → Blade → CPU → Core → Thread → Process
+ * 20-Level Infrastructure Tree (Virtualized)
+ * 
+ * Hierarchical exploration with maximum depth:
+ * Provider → Region → Country → State → Metro → Campus → Building → Floor → Zone 
+ * → Room → Row → Rack → RU → Server → Chassis → Blade → CPU → Core → Thread → Process
+ * 
+ * Uses DeepNestedTree for virtualized rendering and consistent density styling.
  */
 
-import React, { useState, useCallback, useMemo } from 'react';
-import { ChevronRight, ChevronDown, Building2, MapPin, Server, Cpu, Layers, Box, HardDrive, Database } from 'lucide-react';
+import React, { useMemo, useCallback, memo } from 'react';
+import { Building2, MapPin, Server, Cpu, Layers, Box, HardDrive, Database, Globe, Thermometer, Activity } from 'lucide-react';
 import { Facility } from '../types';
+import { DeepNestedTree, TreeNodeData } from './shared/DeepNestedTree';
+import { useDensity } from '../contexts/DensityContext';
+import { DensityToggleInline } from './shared/DensityToggle';
 
 // 20-level hierarchy definition
 export type TreeLevel = 
@@ -30,25 +38,9 @@ export type TreeLevel =
   | 'thread'       // Level 19
   | 'process';     // Level 20
 
-export interface TreeNode {
-  id: string;
-  label: string;
-  level: TreeLevel;
-  depth: number;
-  children?: TreeNode[];
-  facilityCount: number;
-  avgCompliance: number;
-  metadata?: Record<string, any>;
-}
-
-interface InfrastructureTreeProps {
-  facilities: Facility[];
-  onNodeSelect?: (node: TreeNode) => void;
-}
-
-const levelIcons: Record<TreeLevel, React.ComponentType<any>> = {
+const levelIcons: Record<TreeLevel, React.ComponentType<{ className?: string }>> = {
   provider: Building2,
-  region: MapPin,
+  region: Globe,
   country: MapPin,
   state: MapPin,
   metro: MapPin,
@@ -64,8 +56,8 @@ const levelIcons: Record<TreeLevel, React.ComponentType<any>> = {
   chassis: HardDrive,
   blade: Cpu,
   cpu: Cpu,
-  core: Cpu,
-  thread: Cpu,
+  core: Activity,
+  thread: Thermometer,
   process: Database,
 };
 
@@ -92,291 +84,241 @@ const levelLabels: Record<TreeLevel, string> = {
   process: 'Process/Container',
 };
 
-// Generate child nodes lazily based on parent context
-function generateChildren(parentNode: TreeNode, facilities: Facility[]): TreeNode[] {
-  const { level, depth, label } = parentNode;
-  
-  // Define next level in hierarchy
-  const nextLevelMap: Partial<Record<TreeLevel, TreeLevel>> = {
-    provider: 'region',
-    region: 'country',
-    country: 'state',
-    state: 'metro',
-    metro: 'campus',
-    campus: 'building',
-    building: 'floor',
-    floor: 'zone',
-    zone: 'room',
-    room: 'row',
-    row: 'rack',
-    rack: 'ru',
-    ru: 'server',
-    server: 'chassis',
-    chassis: 'blade',
-    blade: 'cpu',
-    cpu: 'core',
-    core: 'thread',
-    thread: 'process',
-  };
+const nextLevelMap: Partial<Record<TreeLevel, TreeLevel>> = {
+  provider: 'region',
+  region: 'country',
+  country: 'state',
+  state: 'metro',
+  metro: 'campus',
+  campus: 'building',
+  building: 'floor',
+  floor: 'zone',
+  zone: 'room',
+  room: 'row',
+  row: 'rack',
+  rack: 'ru',
+  ru: 'server',
+  server: 'chassis',
+  chassis: 'blade',
+  blade: 'cpu',
+  cpu: 'core',
+  core: 'thread',
+  thread: 'process',
+};
+
+interface InfrastructurePayload {
+  level: TreeLevel;
+  facilityCount: number;
+  avgCompliance: number;
+  parentLabel?: string;
+}
+
+interface InfrastructureTreeProps {
+  facilities: Facility[];
+  onNodeSelect?: (node: TreeNodeData) => void;
+  height?: number;
+  className?: string;
+}
+
+// Generate children based on parent context (lazy)
+function generateChildren(parentNode: TreeNodeData): TreeNodeData[] {
+  const payload = parentNode.payload as InfrastructurePayload;
+  const { level, facilityCount, avgCompliance, parentLabel } = payload;
   
   const nextLevel = nextLevelMap[level];
   if (!nextLevel) return [];
-  
-  // Generate children based on current level
+
+  const makeNode = (id: string, label: string, fc: number, comp: number): TreeNodeData => ({
+    id,
+    label,
+    icon: levelIcons[nextLevel],
+    depth: parentNode.depth + 1,
+    hasChildren: parentNode.depth < 19, // Max depth 20 (0-19)
+    metrics: [
+      { label: 'Count', value: fc, color: '#00d2d3' },
+      { label: 'Compliance', value: `${Math.round(comp)}%`, color: comp >= 80 ? '#2ed573' : comp >= 60 ? '#ffa502' : '#ff4757' },
+    ],
+    payload: {
+      level: nextLevel,
+      facilityCount: fc,
+      avgCompliance: comp,
+      parentLabel: label,
+    } as InfrastructurePayload,
+  });
+
   switch (level) {
     case 'provider':
-      // Split into regions: Americas, EMEA, APAC
       return [
-        { id: `${parentNode.id}-americas`, label: 'Americas', level: 'region', depth: depth + 1, facilityCount: Math.floor(facilities.length * 0.5), avgCompliance: 78 },
-        { id: `${parentNode.id}-emea`, label: 'EMEA', level: 'region', depth: depth + 1, facilityCount: Math.floor(facilities.length * 0.3), avgCompliance: 82 },
-        { id: `${parentNode.id}-apac`, label: 'APAC', level: 'region', depth: depth + 1, facilityCount: Math.floor(facilities.length * 0.2), avgCompliance: 85 },
+        makeNode(`${parentNode.id}-americas`, 'Americas', Math.floor(facilityCount * 0.5), 78),
+        makeNode(`${parentNode.id}-emea`, 'EMEA', Math.floor(facilityCount * 0.3), 82),
+        makeNode(`${parentNode.id}-apac`, 'APAC', Math.floor(facilityCount * 0.2), 85),
       ];
-      
+
     case 'region':
-      // Generate countries based on region
-      if (label.includes('Americas')) {
+      if (parentLabel?.includes('Americas')) {
         return [
-          { id: `${parentNode.id}-us`, label: 'United States', level: 'country', depth: depth + 1, facilityCount: Math.floor(parentNode.facilityCount * 0.7), avgCompliance: 76 },
-          { id: `${parentNode.id}-ca`, label: 'Canada', level: 'country', depth: depth + 1, facilityCount: Math.floor(parentNode.facilityCount * 0.2), avgCompliance: 88 },
-          { id: `${parentNode.id}-br`, label: 'Brazil', level: 'country', depth: depth + 1, facilityCount: Math.floor(parentNode.facilityCount * 0.1), avgCompliance: 72 },
+          makeNode(`${parentNode.id}-us`, 'United States', Math.floor(facilityCount * 0.7), 76),
+          makeNode(`${parentNode.id}-ca`, 'Canada', Math.floor(facilityCount * 0.2), 88),
+          makeNode(`${parentNode.id}-br`, 'Brazil', Math.floor(facilityCount * 0.1), 72),
         ];
-      } else if (label.includes('EMEA')) {
+      } else if (parentLabel?.includes('EMEA')) {
         return [
-          { id: `${parentNode.id}-uk`, label: 'United Kingdom', level: 'country', depth: depth + 1, facilityCount: Math.floor(parentNode.facilityCount * 0.3), avgCompliance: 84 },
-          { id: `${parentNode.id}-de`, label: 'Germany', level: 'country', depth: depth + 1, facilityCount: Math.floor(parentNode.facilityCount * 0.3), avgCompliance: 86 },
-          { id: `${parentNode.id}-fr`, label: 'France', level: 'country', depth: depth + 1, facilityCount: Math.floor(parentNode.facilityCount * 0.2), avgCompliance: 81 },
+          makeNode(`${parentNode.id}-uk`, 'United Kingdom', Math.floor(facilityCount * 0.3), 84),
+          makeNode(`${parentNode.id}-de`, 'Germany', Math.floor(facilityCount * 0.3), 86),
+          makeNode(`${parentNode.id}-fr`, 'France', Math.floor(facilityCount * 0.2), 81),
+          makeNode(`${parentNode.id}-nl`, 'Netherlands', Math.floor(facilityCount * 0.2), 89),
         ];
       } else {
         return [
-          { id: `${parentNode.id}-jp`, label: 'Japan', level: 'country', depth: depth + 1, facilityCount: Math.floor(parentNode.facilityCount * 0.4), avgCompliance: 89 },
-          { id: `${parentNode.id}-sg`, label: 'Singapore', level: 'country', depth: depth + 1, facilityCount: Math.floor(parentNode.facilityCount * 0.3), avgCompliance: 87 },
-          { id: `${parentNode.id}-au`, label: 'Australia', level: 'country', depth: depth + 1, facilityCount: Math.floor(parentNode.facilityCount * 0.3), avgCompliance: 83 },
+          makeNode(`${parentNode.id}-jp`, 'Japan', Math.floor(facilityCount * 0.35), 89),
+          makeNode(`${parentNode.id}-sg`, 'Singapore', Math.floor(facilityCount * 0.25), 87),
+          makeNode(`${parentNode.id}-au`, 'Australia', Math.floor(facilityCount * 0.2), 83),
+          makeNode(`${parentNode.id}-hk`, 'Hong Kong', Math.floor(facilityCount * 0.2), 85),
         ];
       }
-      
+
     case 'country':
     case 'state':
     case 'metro':
-      // Generate 3-5 children with decreasing facility count
-      return Array.from({ length: 3 + Math.floor(Math.random() * 3) }, (_, i) => ({
-        id: `${parentNode.id}-${nextLevel}-${i}`,
-        label: `${levelLabels[nextLevel]} ${i + 1}`,
-        level: nextLevel,
-        depth: depth + 1,
-        facilityCount: Math.max(1, Math.floor(parentNode.facilityCount / (i + 2))),
-        avgCompliance: Math.min(100, parentNode.avgCompliance + (Math.random() * 10 - 5)),
-      }));
-      
+      return Array.from({ length: 3 + Math.floor(Math.random() * 4) }, (_, i) => {
+        const fc = Math.max(1, Math.floor(facilityCount / (i + 2)));
+        const comp = Math.min(100, avgCompliance + (Math.random() * 10 - 5));
+        return makeNode(`${parentNode.id}-${nextLevel}-${i}`, `${levelLabels[nextLevel]} ${i + 1}`, fc, comp);
+      });
+
     case 'campus':
     case 'building':
-      // Buildings have floors (typically 1-8)
-      return Array.from({ length: Math.min(8, Math.max(1, Math.floor(parentNode.facilityCount / 10))) }, (_, i) => ({
-        id: `${parentNode.id}-${nextLevel}-${i}`,
-        label: `${levelLabels[nextLevel]} ${i + 1}`,
-        level: nextLevel,
-        depth: depth + 1,
-        facilityCount: Math.max(1, Math.floor(parentNode.facilityCount / 8)),
-        avgCompliance: parentNode.avgCompliance,
-      }));
-      
+      return Array.from({ length: Math.min(8, Math.max(1, Math.floor(facilityCount / 10))) }, (_, i) => {
+        const fc = Math.max(1, Math.floor(facilityCount / 8));
+        return makeNode(`${parentNode.id}-${nextLevel}-${i}`, `${levelLabels[nextLevel]} ${i + 1}`, fc, avgCompliance);
+      });
+
     case 'floor':
     case 'zone':
     case 'room':
-      // Rooms have rows (typically 10-20)
-      return Array.from({ length: Math.min(20, Math.max(5, Math.floor(parentNode.facilityCount / 5))) }, (_, i) => ({
-        id: `${parentNode.id}-${nextLevel}-${i}`,
-        label: `${levelLabels[nextLevel]} ${String.fromCharCode(65 + i)}`,
-        level: nextLevel,
-        depth: depth + 1,
-        facilityCount: Math.max(1, Math.floor(parentNode.facilityCount / 10)),
-        avgCompliance: parentNode.avgCompliance,
-      }));
-      
+      return Array.from({ length: Math.min(20, Math.max(5, Math.floor(facilityCount / 5))) }, (_, i) => {
+        const fc = Math.max(1, Math.floor(facilityCount / 10));
+        return makeNode(`${parentNode.id}-${nextLevel}-${i}`, `${levelLabels[nextLevel]} ${String.fromCharCode(65 + i)}`, fc, avgCompliance);
+      });
+
     case 'row':
+      return Array.from({ length: Math.min(30, 10 + Math.floor(Math.random() * 20)) }, (_, i) => {
+        return makeNode(`${parentNode.id}-rack-${i}`, `Rack ${i + 1}`, 1, avgCompliance);
+      });
+
     case 'rack':
-      // Racks have 42 RU positions
-      return Array.from({ length: 42 }, (_, i) => ({
-        id: `${parentNode.id}-${nextLevel}-${i}`,
-        label: `${levelLabels[nextLevel]} ${i + 1}`,
-        level: nextLevel,
-        depth: depth + 1,
-        facilityCount: i % 2 === 0 ? 1 : 0, // 50% occupied
-        avgCompliance: parentNode.avgCompliance,
-      }));
-      
+      // Standard 42U rack
+      return Array.from({ length: 42 }, (_, i) => {
+        const occupied = Math.random() > 0.3;
+        return makeNode(`${parentNode.id}-ru-${i}`, `RU ${i + 1}`, occupied ? 1 : 0, avgCompliance);
+      });
+
     case 'ru':
     case 'server':
     case 'chassis':
     case 'blade':
-      // Hardware levels: 2-8 components
-      return Array.from({ length: 2 + Math.floor(Math.random() * 7) }, (_, i) => ({
-        id: `${parentNode.id}-${nextLevel}-${i}`,
-        label: `${levelLabels[nextLevel]} ${i}`,
-        level: nextLevel,
-        depth: depth + 1,
-        facilityCount: 1,
-        avgCompliance: parentNode.avgCompliance,
-      }));
-      
+      return Array.from({ length: 2 + Math.floor(Math.random() * 6) }, (_, i) => {
+        return makeNode(`${parentNode.id}-${nextLevel}-${i}`, `${levelLabels[nextLevel]} ${i}`, 1, avgCompliance);
+      });
+
     case 'cpu':
-      // CPUs have cores (4, 8, 16, 32, 64)
-      const cores = [4, 8, 16, 32, 64][Math.floor(Math.random() * 5)];
-      return Array.from({ length: cores }, (_, i) => ({
-        id: `${parentNode.id}-core-${i}`,
-        label: `Core ${i}`,
-        level: 'core',
-        depth: depth + 1,
-        facilityCount: 1,
-        avgCompliance: parentNode.avgCompliance,
-      }));
-      
+      const coreCount = [4, 8, 16, 32, 64][Math.floor(Math.random() * 5)];
+      return Array.from({ length: coreCount }, (_, i) => {
+        return makeNode(`${parentNode.id}-core-${i}`, `Core ${i}`, 1, avgCompliance);
+      });
+
     case 'core':
-      // Cores have 2 threads (hyperthreading)
-      return Array.from({ length: 2 }, (_, i) => ({
-        id: `${parentNode.id}-thread-${i}`,
-        label: `Thread ${i}`,
-        level: 'thread',
-        depth: depth + 1,
-        facilityCount: 1,
-        avgCompliance: parentNode.avgCompliance,
-      }));
-      
+      return Array.from({ length: 2 }, (_, i) => {
+        return makeNode(`${parentNode.id}-thread-${i}`, `Thread ${i}`, 1, avgCompliance);
+      });
+
     case 'thread':
-      // Threads have 5-20 processes
-      return Array.from({ length: 5 + Math.floor(Math.random() * 16) }, (_, i) => ({
-        id: `${parentNode.id}-proc-${i}`,
-        label: `Process ${i}`,
-        level: 'process',
-        depth: depth + 1,
-        facilityCount: 1,
-        avgCompliance: parentNode.avgCompliance,
-      }));
-      
+      const processCount = 5 + Math.floor(Math.random() * 15);
+      return Array.from({ length: processCount }, (_, i) => {
+        return makeNode(`${parentNode.id}-proc-${i}`, `Process ${i}`, 1, avgCompliance);
+      });
+
     default:
       return [];
   }
 }
 
-export const InfrastructureTree: React.FC<InfrastructureTreeProps> = React.memo(({ facilities, onNodeSelect }) => {
-  const [expanded, setExpanded] = useState<Set<string>>(new Set());
-  const [selectedId, setSelectedId] = useState<string | null>(null);
-  
+export const InfrastructureTree: React.FC<InfrastructureTreeProps> = memo(({ 
+  facilities, 
+  onNodeSelect, 
+  height = 600,
+  className = '' 
+}) => {
+  const { tokens, cn } = useDensity();
+
   // Generate root nodes (providers)
-  const rootNodes = useMemo(() => {
-    const providers = [...new Set(facilities.map(f => f.provider))].sort();
-    
-    return providers.map(provider => {
-      const providerFacilities = facilities.filter(f => f.provider === provider);
-      const avgCompliance = providerFacilities.reduce((sum, f) => sum + f.complianceScore, 0) / providerFacilities.length;
-      
+  const rootNodes = useMemo((): TreeNodeData[] => {
+    const providers = [...new Set(facilities.map(f => f.operator))].sort();
+
+    return providers.slice(0, 50).map(provider => { // Limit to 50 providers for perf
+      const providerFacilities = facilities.filter(f => f.operator === provider);
+      const avgCompliance = providerFacilities.length > 0
+        ? providerFacilities.reduce((sum, f) => {
+            const score = f.complianceStatus === 'Compliant' ? 100 : 
+                          f.complianceStatus === 'At Risk' ? 60 : 
+                          f.complianceStatus === 'Non-Compliant' ? 20 : 50;
+            return sum + score;
+          }, 0) / providerFacilities.length
+        : 50;
+
       return {
         id: `provider-${provider}`,
         label: provider,
-        level: 'provider' as TreeLevel,
+        icon: levelIcons.provider,
         depth: 0,
-        facilityCount: providerFacilities.length,
-        avgCompliance: Math.round(avgCompliance),
+        hasChildren: true,
+        metrics: [
+          { label: 'Facilities', value: providerFacilities.length, color: '#00d2d3' },
+          { label: 'Compliance', value: `${Math.round(avgCompliance)}%`, color: avgCompliance >= 80 ? '#2ed573' : avgCompliance >= 60 ? '#ffa502' : '#ff4757' },
+        ],
+        payload: {
+          level: 'provider' as TreeLevel,
+          facilityCount: providerFacilities.length,
+          avgCompliance: Math.round(avgCompliance),
+          parentLabel: provider,
+        } as InfrastructurePayload,
       };
     });
   }, [facilities]);
-  
-  // Toggle expand/collapse
-  const toggleExpand = useCallback((nodeId: string) => {
-    setExpanded(prev => {
-      const next = new Set(prev);
-      if (next.has(nodeId)) {
-        next.delete(nodeId);
-      } else {
-        next.add(nodeId);
-      }
-      return next;
-    });
+
+  // Lazy children loader
+  const getChildren = useCallback((node: TreeNodeData): TreeNodeData[] => {
+    return generateChildren(node);
   }, []);
-  
-  // Handle node selection
-  const handleSelect = useCallback((node: TreeNode) => {
-    setSelectedId(node.id);
+
+  // Handle selection
+  const handleSelect = useCallback((node: TreeNodeData) => {
     onNodeSelect?.(node);
   }, [onNodeSelect]);
-  
-  // Get compliance color
-  const getComplianceColor = (score: number): string => {
-    if (score >= 80) return 'text-green-400 bg-green-500/10 border-green-500/30';
-    if (score >= 60) return 'text-yellow-400 bg-yellow-500/10 border-yellow-500/30';
-    return 'text-red-400 bg-red-500/10 border-red-500/30';
-  };
-  
-  // Render tree node
-  const renderNode = (node: TreeNode): React.ReactNode => {
-    const isExpanded = expanded.has(node.id);
-    const isSelected = selectedId === node.id;
-    const Icon = levelIcons[node.level];
-    const hasChildren = node.depth < 19; // Max 20 levels (0-19)
-    
-    // Lazy load children when expanded
-    const children = isExpanded && hasChildren ? generateChildren(node, facilities) : [];
-    
-    return (
-      <div key={node.id}>
-        <div
-          className={`flex items-center gap-2 py-2 px-3 rounded-lg hover:bg-slate-800/50 cursor-pointer transition-colors ${
-            isSelected ? 'bg-cyan-500/20 border border-cyan-500/50' : ''
-          }`}
-          style={{ paddingLeft: `${node.depth * 24 + 12}px` }}
-          onClick={() => handleSelect(node)}
-        >
-          {hasChildren && (
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                toggleExpand(node.id);
-              }}
-              className="text-slate-400 hover:text-white"
-            >
-              {isExpanded ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
-            </button>
-          )}
-          
-          {!hasChildren && <div className="w-4" />}
-          
-          <Icon className="w-4 h-4 text-cyan-400" />
-          
-          <span className="text-white font-medium">{node.label}</span>
-          
-          <span className="text-xs text-slate-400">({node.facilityCount})</span>
-          
-          <span className={`ml-auto text-xs px-2 py-1 rounded border ${getComplianceColor(node.avgCompliance)}`}>
-            {node.avgCompliance}%
-          </span>
-        </div>
-        
-        {isExpanded && children.length > 0 && (
-          <div>
-            {children.map(child => renderNode(child))}
-          </div>
-        )}
-      </div>
-    );
-  };
-  
+
   return (
-    <div className="bg-slate-900/50 rounded-lg border border-slate-700 p-4 max-h-[600px] overflow-y-auto">
-      <div className="mb-4 pb-3 border-b border-slate-700">
-        <h3 className="text-lg font-semibold text-cyan-400 flex items-center gap-2">
-          <Layers className="w-5 h-5" />
-          Infrastructure Tree
-        </h3>
-        <p className="text-sm text-slate-400 mt-1">
+    <div className={cn('flex flex-col', tokens.gap2, className)}>
+      {/* Toolbar */}
+      <div className={cn('flex items-center justify-between', tokens.px2)}>
+        <div className={cn('text-slate-400', tokens.textSm)}>
           20-level hierarchy • {rootNodes.length} providers • {facilities.length.toLocaleString()} facilities
-        </p>
+        </div>
+        <DensityToggleInline />
       </div>
-      
-      <div className="space-y-1">
-        {rootNodes.map(node => renderNode(node))}
-      </div>
+
+      {/* Tree */}
+      <DeepNestedTree
+        roots={rootNodes}
+        getChildren={getChildren}
+        onSelect={handleSelect}
+        title="Infrastructure Tree"
+        height={height}
+        maxDepth={20}
+      />
     </div>
   );
 });
 
 InfrastructureTree.displayName = 'InfrastructureTree';
 
+export default InfrastructureTree;
