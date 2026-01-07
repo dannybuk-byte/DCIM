@@ -1,0 +1,51 @@
+# Cursor AI Rules for DCIM Compliance App
+
+## Project Context
+This is a **labor organizing tool** - NOT a corporate DCIM tool. Every feature should help organizers win against Big Tech.
+
+## Essential Reading (Start Here)
+1. `AGENTS.md` - Project conventions and mission
+2. `docs/ai-context/DYNAMIC_FEATURES.md` - All interactive features
+3. `docs/ai-context/state.md` - Current development state
+4. `docs/TECHNICAL_DEBT.md` - Known TypeScript issues
+
+## Code Conventions
+- **Functional components only** with React hooks
+- **Named exports only** - no default exports
+- **No `any` types** - use `unknown` and type guards
+- **2 spaces** indentation, **single quotes**, **semicolons required**
+
+## Key Type Mappings
+When working with Facility type:
+- Use `operator` (not `provider`)
+- Use `jobsCreated` (not `jobsActual`)
+- Use `powerCapacityMW` (not `capacity`)
+- Use `complianceStatus` (not `status`)
+- Convert `facility.id` to `String(facility.id)` when string ID needed
+
+## Antifragility Principles
+1. Wrap API calls with circuit breakers (`src/utils/circuitBreaker.ts`)
+2. Use error boundaries for components
+3. Provide fallback values (`|| 0`, `?? 'Unknown'`)
+4. Never show blank screens on errors
+
+## File Locations
+- Components: `src/components/`
+- Hooks: `src/hooks/`
+- AI/NLP: `src/ai/`
+- Services: `src/services/`
+- Database: `src/db/`
+- Types: `src/types.ts`
+
+## Testing Commands
+```bash
+npm run dev           # Start dev server (port 5173)
+npm run build         # Production build
+npx tsc --noEmit      # Type check
+```
+
+## Don't Forget
+- Check TypeScript errors after changes: `npx tsc --noEmit 2>&1 | grep "error TS" | wc -l`
+- Current error count: ~23 (documented, non-blocking)
+- All changes tracked in git
+
