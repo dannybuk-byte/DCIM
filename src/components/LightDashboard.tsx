@@ -8,7 +8,7 @@
  * - Full drill-down capability: Operator → State → City → Facility → Issues
  */
 
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { 
   Search, Menu, Bell, Download, ChevronRight,
   Building2, AlertTriangle, CheckCircle, XCircle, HelpCircle,
@@ -19,7 +19,8 @@ import {
   Layers, Hash, Calendar, Target, Eye, EyeOff, Maximize2, Minimize2,
   Plus, Minus, FolderOpen, Folder, ChevronUp, Server, Briefcase,
   Factory, Thermometer, Wifi, Power, Gauge, PieChart, Award, Flag,
-  Link, Lock, Unlock, ArrowDownRight, HardDrive, Cpu
+  Link, Lock, Unlock, ArrowDownRight, HardDrive, Cpu, Command, Home,
+  Compass, Navigation, Rocket, Fingerprint
 } from 'lucide-react';
 import { db } from '../db/database';
 import { seedDatabase } from '../db/seedData';
@@ -30,9 +31,10 @@ import { formatCurrency } from '../utils/formatting';
 import { downloadComplianceReport } from '../services/PDFReportGenerator';
 import { DetailedFacilityModal, ExpandableSection, DataRow } from './DetailedFacilityView';
 import { DataSovereigntyHub } from './DataSovereigntyHub';
+import { SurveillanceAnalysis } from './SurveillanceAnalysis';
 
 // Types
-type Section = 'dashboard' | 'facilities' | 'geography' | 'problems' | 'intelligence' | 'subsidies' | 'workers' | 'timeline' | 'reports' | 'osint' | 'network' | 'sovereignty';
+type Section = 'dashboard' | 'facilities' | 'geography' | 'problems' | 'intelligence' | 'subsidies' | 'workers' | 'timeline' | 'reports' | 'osint' | 'network' | 'sovereignty' | 'surveillance';
 type ViewMode = 'table' | 'tree' | 'cards';
 type DensityMode = 'compact' | 'normal' | 'comfortable';
 
@@ -1248,6 +1250,10 @@ export const LightDashboard: React.FC = () => {
   const [showNotifications, setShowNotifications] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [showCommandPalette, setShowCommandPalette] = useState(false);
+  const [commandSearch, setCommandSearch] = useState('');
+  const [showQuickNav, setShowQuickNav] = useState(false);
+  const commandInputRef = useRef<HTMLInputElement>(null);
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<ViewMode>('table');
@@ -1280,6 +1286,30 @@ export const LightDashboard: React.FC = () => {
     init();
     return () => { mounted = false; };
   }, [loadData]);
+
+  // Command Palette keyboard shortcut (⌘K or Ctrl+K)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        setShowCommandPalette(true);
+        setCommandSearch('');
+      }
+      if (e.key === 'Escape') {
+        setShowCommandPalette(false);
+        setShowQuickNav(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
+  // Focus command input when palette opens
+  useEffect(() => {
+    if (showCommandPalette && commandInputRef.current) {
+      commandInputRef.current.focus();
+    }
+  }, [showCommandPalette]);
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
@@ -1369,10 +1399,27 @@ export const LightDashboard: React.FC = () => {
       { id: 'osint' as Section, label: 'OSINT', icon: <Search size={16} /> },
       { id: 'network' as Section, label: 'Network', icon: <Network size={16} /> },
     ]},
-    { title: 'Sovereignty', items: [
-      { id: 'sovereignty' as Section, label: 'Data Freedom', icon: <Unlock size={16} />, badge: '🔓' },
+    { title: '🔥 Sovereignty', highlight: true, items: [
+      { id: 'sovereignty' as Section, label: 'Data Freedom', icon: <Unlock size={16} />, badge: '🔓', highlight: true },
+      { id: 'surveillance' as Section, label: 'Surveillance Intel', icon: <Eye size={16} />, badge: '👁️', highlight: true },
     ]},
   ];
+
+  // All navigable sections for command palette
+  const allNavItems = navSections.flatMap(group => 
+    group.items.map(item => ({ ...item, group: group.title, highlight: (item as any).highlight || false }))
+  );
+
+  const filteredCommandItems = commandSearch.trim() 
+    ? allNavItems.filter(item => 
+        item.label.toLowerCase().includes(commandSearch.toLowerCase()) ||
+        item.group.toLowerCase().includes(commandSearch.toLowerCase())
+      )
+    : allNavItems;
+
+  // Get breadcrumb info
+  const currentNavItem = allNavItems.find(item => item.id === activeSection);
+  const breadcrumb = currentNavItem ? `${currentNavItem.group} / ${currentNavItem.label}` : 'Dashboard';
 
   if (loading) {
     return (
@@ -1399,6 +1446,100 @@ export const LightDashboard: React.FC = () => {
         </div>
       )}
 
+      {/* ============================================
+          COMMAND PALETTE (⌘K) - Clean & Minimal
+          ============================================ */}
+      {showCommandPalette && (
+        <div className="fixed inset-0 z-[200] flex items-start justify-center pt-[20vh]" onClick={() => setShowCommandPalette(false)}>
+          <div className="fixed inset-0 bg-black/40" />
+          <div 
+            className="relative w-full max-w-md bg-white rounded-xl shadow-2xl border border-slate-200 overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Search Input */}
+            <div className="flex items-center gap-2 p-3 border-b border-slate-100">
+              <Search size={16} className="text-slate-400" />
+              <input
+                ref={commandInputRef}
+                type="text"
+                value={commandSearch}
+                onChange={(e) => setCommandSearch(e.target.value)}
+                placeholder="Jump to..."
+                className="flex-1 text-sm bg-transparent outline-none placeholder-slate-400"
+              />
+              <kbd className="px-1.5 py-0.5 text-[10px] text-slate-400 bg-slate-100 rounded">ESC</kbd>
+            </div>
+
+            {/* Results - Compact */}
+            <div className="max-h-64 overflow-y-auto">
+              {filteredCommandItems.map((item) => (
+                <button
+                  key={item.id}
+                  onClick={() => { setActiveSection(item.id); setShowCommandPalette(false); }}
+                  className={`w-full flex items-center gap-2 px-3 py-2 text-left transition-all text-sm ${
+                    item.highlight 
+                      ? 'bg-purple-50 hover:bg-purple-100' 
+                      : 'hover:bg-slate-50'
+                  } ${activeSection === item.id ? 'bg-blue-50' : ''}`}
+                >
+                  <span className={item.highlight ? 'text-purple-600' : 'text-slate-500'}>{item.icon}</span>
+                  <span className={item.highlight ? 'text-purple-900 font-medium' : 'text-slate-700'}>{item.label}</span>
+                  <span className="text-xs text-slate-400 ml-auto">{item.group}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ============================================
+          FLOATING QUICK NAV - Minimal & Unobtrusive
+          ============================================ */}
+      <div className="fixed bottom-20 right-6 z-[80] flex flex-col items-end gap-2">
+        {/* Expanded Quick Nav - Compact */}
+        {showQuickNav && (
+          <div className="bg-white rounded-xl shadow-lg border border-slate-200 p-3 mb-1 animate-slideUp min-w-[180px]">
+            <div className="space-y-1">
+              <button 
+                onClick={() => { setActiveSection('sovereignty'); setShowQuickNav(false); }}
+                className="w-full flex items-center gap-2 px-3 py-2 bg-purple-50 text-purple-700 rounded-lg text-sm font-medium hover:bg-purple-100 transition-all"
+              >
+                <Unlock size={14} />
+                <span>Data Freedom</span>
+              </button>
+              <button 
+                onClick={() => { setActiveSection('surveillance'); setShowQuickNav(false); }}
+                className="w-full flex items-center gap-2 px-3 py-2 bg-orange-50 text-orange-700 rounded-lg text-sm font-medium hover:bg-orange-100 transition-all"
+              >
+                <Eye size={14} />
+                <span>Surveillance</span>
+              </button>
+              <button 
+                onClick={() => { setShowCommandPalette(true); setShowQuickNav(false); }}
+                className="w-full flex items-center gap-2 px-3 py-2 text-slate-600 rounded-lg text-sm hover:bg-slate-100 transition-all"
+              >
+                <Command size={14} />
+                <span>All</span>
+                <kbd className="ml-auto px-1 py-0.5 text-[10px] bg-slate-100 rounded">⌘K</kbd>
+              </button>
+            </div>
+          </div>
+        )}
+        
+        {/* Quick Nav Toggle - Smaller */}
+        <button 
+          onClick={() => setShowQuickNav(!showQuickNav)}
+          className={`p-3 rounded-xl shadow-lg transition-all ${
+            showQuickNav 
+              ? 'bg-slate-700 text-white rotate-45' 
+              : 'bg-purple-600 text-white hover:bg-purple-700'
+          }`}
+          title="Quick Navigation (⌘K)"
+        >
+          {showQuickNav ? <X size={18} /> : <Compass size={18} />}
+        </button>
+      </div>
+
       {/* Modal - Ultra-Detailed with Deep Nesting */}
       {selectedFacility && <DetailedFacilityModal facility={selectedFacility} onClose={() => setSelectedFacility(null)} />}
 
@@ -1418,6 +1559,24 @@ export const LightDashboard: React.FC = () => {
                 <h1 className="text-sm font-bold text-slate-800">DCIM Compliance</h1>
               </div>
             </button>
+            
+            {/* Breadcrumbs */}
+            {activeSection !== 'dashboard' && (
+              <div className="hidden md:flex items-center gap-1 text-xs text-slate-500">
+                <ChevronRight size={12} className="text-slate-300" />
+                <button onClick={() => setActiveSection('dashboard')} className="hover:text-blue-600 transition-colors">
+                  Home
+                </button>
+                <ChevronRight size={12} className="text-slate-300" />
+                <span className={`font-medium ${
+                  activeSection === 'sovereignty' || activeSection === 'surveillance' 
+                    ? 'text-purple-600' 
+                    : 'text-slate-700'
+                }`}>
+                  {breadcrumb}
+                </span>
+              </div>
+            )}
 
             {/* Mini Stats */}
             {stats && <div className="hidden md:block"><MiniStatsBar stats={stats} /></div>}
@@ -1488,33 +1647,57 @@ export const LightDashboard: React.FC = () => {
         `}>
           <div className="p-2 space-y-3">
             {navSections.map((section) => (
-              <div key={section.title}>
-                <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1 px-2">{section.title}</h3>
+              <div key={section.title} className={(section as any).highlight ? 'bg-gradient-to-r from-purple-50 to-indigo-50 rounded-xl p-2 -mx-1 border border-purple-100' : ''}>
+                <h3 className={`text-[10px] font-bold uppercase tracking-wider mb-1 px-2 ${
+                  (section as any).highlight ? 'text-purple-600' : 'text-slate-400'
+                }`}>
+                  {section.title}
+                </h3>
                 <nav className="space-y-0.5">
-                  {section.items.map((item) => (
-                    <button
-                      key={item.id}
-                      onClick={() => { setActiveSection(item.id); setSidebarCollapsed(true); }}
-                      className={`w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs font-medium transition-all ${
-                        activeSection === item.id 
-                          ? 'bg-blue-50 text-blue-600' 
-                          : 'text-slate-600 hover:bg-slate-50'
-                      }`}
-                    >
-                      {item.icon}
-                      <span>{item.label}</span>
-                      {item.badge !== undefined && (
-                        <span className={`ml-auto px-1.5 py-0.5 text-[10px] font-bold rounded-full ${
-                          item.id === 'problems' ? 'bg-rose-100 text-rose-600' : 'bg-slate-100 text-slate-600'
-                        }`}>
-                          {typeof item.badge === 'number' ? item.badge.toLocaleString() : item.badge}
-                        </span>
-                      )}
-                    </button>
-                  ))}
+                  {section.items.map((item) => {
+                    const isHighlight = (item as any).highlight;
+                    return (
+                      <button
+                        key={item.id}
+                        onClick={() => { setActiveSection(item.id); setSidebarCollapsed(true); }}
+                        className={`w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                          activeSection === item.id 
+                            ? isHighlight 
+                              ? 'bg-gradient-to-r from-purple-500 to-indigo-500 text-white shadow-lg' 
+                              : 'bg-blue-50 text-blue-600'
+                            : isHighlight 
+                              ? 'text-purple-700 hover:bg-purple-100/50'
+                              : 'text-slate-600 hover:bg-slate-50'
+                        }`}
+                      >
+                        {item.icon}
+                        <span>{item.label}</span>
+                        {item.badge !== undefined && (
+                          <span className={`ml-auto px-1.5 py-0.5 text-[10px] font-bold rounded-full ${
+                            item.id === 'problems' ? 'bg-rose-100 text-rose-600' : 
+                            isHighlight && activeSection === item.id ? 'bg-white/30 text-white' :
+                            isHighlight ? 'bg-purple-100 text-purple-700' : 'bg-slate-100 text-slate-600'
+                          }`}>
+                            {typeof item.badge === 'number' ? item.badge.toLocaleString() : item.badge}
+                          </span>
+                        )}
+                      </button>
+                    );
+                  })}
                 </nav>
               </div>
             ))}
+            
+            {/* Quick Nav Hint - Subtle */}
+            <div className="mt-3 px-2">
+              <button 
+                onClick={() => setShowCommandPalette(true)}
+                className="w-full flex items-center justify-center gap-1 py-1.5 text-[10px] text-slate-400 hover:text-slate-600 transition-all"
+              >
+                <Command size={10} />
+                <span>⌘K to jump</span>
+              </button>
+            </div>
           </div>
         </aside>
 
@@ -1737,8 +1920,12 @@ export const LightDashboard: React.FC = () => {
             <DataSovereigntyHub />
           )}
 
+          {activeSection === 'surveillance' && (
+            <SurveillanceAnalysis />
+          )}
+
           {/* Other Sections Placeholder */}
-          {!['dashboard', 'facilities', 'problems', 'sovereignty'].includes(activeSection) && (
+          {!['dashboard', 'facilities', 'problems', 'sovereignty', 'surveillance'].includes(activeSection) && (
             <div className="bg-white rounded-lg border border-slate-200 p-8 text-center">
               <div className="w-12 h-12 rounded-xl bg-blue-100 flex items-center justify-center mx-auto mb-3">
                 <Info className="w-6 h-6 text-blue-500" />

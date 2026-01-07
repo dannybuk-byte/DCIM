@@ -245,6 +245,83 @@ async function handleSecProxy(request, path) {
   }
 }
 
+/**
+ * OpenCorporates API Proxy (to avoid CORS)
+ * GET /api/opencorporates/*
+ */
+async function handleOpenCorporatesProxy(request, path) {
+  const ocPath = path.replace('/api/opencorporates/', '');
+  const url = new URL(request.url);
+  const searchParams = url.search;
+  const fullUrl = `https://api.opencorporates.com/v0.4/${ocPath}${searchParams}`;
+  
+  try {
+    const response = await fetch(fullUrl, {
+      headers: {
+        'User-Agent': 'DCIM-CommandCenter/1.0',
+        'Accept': 'application/json',
+      },
+    });
+    
+    const data = await response.json();
+    return corsResponse(data, response.status);
+  } catch (error) {
+    return corsResponse({ error: error.message }, 500);
+  }
+}
+
+/**
+ * PeeringDB API Proxy (to avoid CORS)
+ * GET /api/peeringdb/*
+ */
+async function handlePeeringDbProxy(request, path) {
+  const pdbPath = path.replace('/api/peeringdb/', '');
+  const url = new URL(request.url);
+  const searchParams = url.search;
+  const fullUrl = `https://www.peeringdb.com/api/${pdbPath}${searchParams}`;
+  
+  try {
+    const response = await fetch(fullUrl, {
+      headers: {
+        'User-Agent': 'DCIM-CommandCenter/1.0',
+        'Accept': 'application/json',
+      },
+    });
+    
+    const data = await response.json();
+    return corsResponse(data, response.status);
+  } catch (error) {
+    return corsResponse({ error: error.message }, 500);
+  }
+}
+
+/**
+ * USASpending API Proxy (to avoid CORS)
+ * POST /api/usaspending/*
+ */
+async function handleUsaSpendingProxy(request, path) {
+  const usPath = path.replace('/api/usaspending/', '');
+  const fullUrl = `https://api.usaspending.gov/api/v2/${usPath}`;
+  
+  try {
+    const body = await request.json();
+    
+    const response = await fetch(fullUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'User-Agent': 'DCIM-CommandCenter/1.0',
+      },
+      body: JSON.stringify(body),
+    });
+    
+    const data = await response.json();
+    return corsResponse(data, response.status);
+  } catch (error) {
+    return corsResponse({ error: error.message }, 500);
+  }
+}
+
 // ============================================================================
 // CRON TRIGGERS
 // ============================================================================
@@ -380,6 +457,21 @@ export default {
       // SEC EDGAR proxy
       if (path.startsWith('/api/sec/')) {
         return handleSecProxy(request, path);
+      }
+
+      // OpenCorporates proxy
+      if (path.startsWith('/api/opencorporates/')) {
+        return handleOpenCorporatesProxy(request, path);
+      }
+
+      // PeeringDB proxy
+      if (path.startsWith('/api/peeringdb/')) {
+        return handlePeeringDbProxy(request, path);
+      }
+
+      // USASpending proxy
+      if (path.startsWith('/api/usaspending/') && request.method === 'POST') {
+        return handleUsaSpendingProxy(request, path);
       }
 
       // 404 for unknown routes

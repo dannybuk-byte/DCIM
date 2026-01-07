@@ -3,3 +3,4 @@ dist
 public/commit-hash.txt
 .mcp-memory.jsonl
 *.log
+.npm-cache/

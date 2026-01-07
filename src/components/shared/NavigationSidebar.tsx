@@ -28,6 +28,7 @@ import {
   ChevronLeft,
   ChevronRight,
   HelpCircle,
+  Database,
 } from 'lucide-react';
 import { Tooltip } from './Tooltip';
 import type { CommandCenterTab } from '../DCIMCommandCenter';
@@ -94,6 +95,38 @@ const NAV_GROUPS: NavGroup[] = [
         color: 'purple',
         description: 'Unified intelligence: patterns, predictions, correlations',
         keywords: ['analysis', 'intelligence', 'ai', 'patterns', 'predictions'],
+      },
+      {
+        id: 'Pattern Intelligence',
+        label: '🧠 Pattern Engine',
+        icon: <Activity className="w-5 h-5" />,
+        color: 'cyan',
+        description: 'Real-time BGP, CT monitoring, workload detection, business health',
+        keywords: ['pattern', 'bgp', 'certificate', 'workload', 'crypto', 'ai training', 'surveillance'],
+      },
+      {
+        id: 'Deep Intelligence',
+        label: '🔍 Deep Intel',
+        icon: <Eye className="w-5 h-5" />,
+        color: 'purple',
+        description: 'Full API extraction: OpenCorp, SEC, PeeringDB, USASpending',
+        keywords: ['deep', 'api', 'sec', 'peeringdb', 'opencorporates', 'usaspending', 'subsidiaries', 'officers'],
+      },
+      {
+        id: 'Predictive Subsidy',
+        label: '🎯 Subsidy Intel',
+        icon: <Target className="w-5 h-5" />,
+        color: 'rose',
+        description: 'Good Jobs First-style predictive subsidy risk analysis',
+        keywords: ['subsidy', 'good jobs first', 'tax break', 'clawback', 'jobs promised', 'dark states'],
+      },
+      {
+        id: 'Regulatory Toolkit',
+        label: '🏛️ Regulatory APIs',
+        icon: <Database className="w-5 h-5" />,
+        color: 'emerald',
+        description: 'Municipal DCIM scrapers, APIs, and integration guides',
+        keywords: ['municipal', 'regulatory', 'scraper', 'api', 'bls', 'sec', 'epa', 'foia', 'permit'],
       },
       {
         id: 'Predictive Intel',

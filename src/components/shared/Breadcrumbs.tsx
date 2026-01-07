@@ -17,6 +17,10 @@ const TAB_HIERARCHY: Record<CommandCenterTab, { category: string; label: string 
   'Guides': { category: 'Getting Started', label: 'Guides & Documentation' },
   'Overview': { category: 'Dashboard', label: 'Overview' },
   'Intelligence': { category: 'Analysis', label: 'Intelligence Hub' },
+  'Pattern Intelligence': { category: 'Analysis', label: 'Pattern Intelligence Engine' },
+  'Deep Intelligence': { category: 'Analysis', label: 'Deep Intelligence Engine' },
+  'Predictive Subsidy': { category: 'Analysis', label: 'Predictive Subsidy Intelligence' },
+  'Regulatory Toolkit': { category: 'Analysis', label: 'Municipal DCIM Toolkit' },
   'Predictive Intel': { category: 'Analysis', label: 'Predictive Intelligence' },
   'Assurance Monitor': { category: 'Monitoring', label: 'Compliance Assurance' },
   'Problems': { category: 'Monitoring', label: 'Compliance Alerts' },
@@ -64,11 +68,6 @@ export function Breadcrumbs({ currentTab, onNavigate }: BreadcrumbsProps) {
 
       {/* Current Tab */}
       <span className="text-xs text-cyan-400 font-semibold">{hierarchy.label}</span>
-
-      {/* "You are here" indicator */}
-      <div className="ml-2 px-2 py-0.5 bg-cyan-900/30 border border-cyan-700 rounded text-xs text-cyan-400">
-        📍 You are here
-      </div>
     </div>
   );
 }

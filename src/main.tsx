@@ -8,6 +8,32 @@ import './index.css'
 import { initOfflineQueue } from './utils/offlineQueue'
 const cleanupOfflineQueue = initOfflineQueue();
 
+// Expose antifragility services for debugging (DEV only)
+import { chaosEngine } from './services/chaosEngineering'
+import { degradationService } from './services/gracefulDegradation'
+import { selfHealingService } from './services/selfHealing'
+import { predictiveFailureEngine, recordMetric } from './services/predictiveFailure'
+
+if (import.meta.env.DEV) {
+  // Expose under dcim namespace
+  (window as any).dcim = {
+    chaosEngine,
+    degradationService,
+    selfHealingService,
+    predictiveFailureEngine,
+    recordMetric,
+  };
+  
+  // Also expose directly on window for convenience
+  (window as any).chaosEngine = chaosEngine;
+  (window as any).degradationService = degradationService;
+  (window as any).selfHealingService = selfHealingService;
+  (window as any).predictiveFailureEngine = predictiveFailureEngine;
+  (window as any).recordMetric = recordMetric;
+  
+  console.log('🛠️ DCIM Debug Tools available at window.dcim.* or window.*');
+}
+
 // Initialize global error handling
 import { setupGlobalErrorHandling } from './utils/globalErrorHandler'
 setupGlobalErrorHandling();

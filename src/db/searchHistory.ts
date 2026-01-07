@@ -8,7 +8,17 @@ export type SearchContext =
   | 'osint'
   | 'table'
   | 'filters'
-  | 'map';
+  | 'map'
+  // Section-specific contexts for embedded NLP
+  | 'sanctions'
+  | 'organizing'
+  | 'subsidies'
+  | 'contractors'
+  | 'corridors'
+  | 'ibew-footprint'
+  | 'target-prioritization'
+  | 'network-security'
+  | 'compliance-overview';
 
 export async function recordSearch(query: string, context: SearchContext) {
   const q = query.trim();

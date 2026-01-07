@@ -157,3 +157,17 @@ export const epaCircuitBreaker = circuitBreakers.epaAPI;
 export const secCircuitBreaker = circuitBreakers.secAPI;
 export const censusCircuitBreaker = circuitBreakers.censusAPI;
 export const blsCircuitBreaker = circuitBreakers.blsAPI;
+
+/**
+ * Higher-order function that wraps an async function with circuit breaker protection.
+ * Returns a new function that behaves the same but is protected by a circuit breaker.
+ */
+export function circuitBreaker<T extends unknown[], R>(
+  fn: (...args: T) => Promise<R>,
+  options: CircuitBreakerOptions
+): (...args: T) => Promise<R> {
+  const breaker = new CircuitBreaker(options);
+  return async (...args: T): Promise<R> => {
+    return breaker.execute(() => fn(...args));
+  };
+}

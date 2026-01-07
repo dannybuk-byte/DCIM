@@ -92,6 +92,84 @@ export interface SearchHistoryEntry {
   count: number;
 }
 
+// Pattern Intelligence Engine tables
+export interface BGPAnomalyRecord {
+  id: string;
+  timestamp: number;
+  type: 'new_prefix' | 'route_leak' | 'unusual_path' | 'withdrawal' | 'origin_change';
+  prefix: string;
+  asn: string;
+  provider: string;
+  previousPath?: number[];
+  currentPath?: number[];
+  significance: 'low' | 'medium' | 'high' | 'critical';
+  description: string;
+  businessInference: string;
+}
+
+export interface CTAlertRecord {
+  sha256: string;
+  commonName: string;
+  domains: string[];
+  issuer: string;
+  loggedAt: number;
+  notBefore: number;
+  notAfter: number;
+  alertType: 'facility_pattern' | 'new_subdomain' | 'wildcard' | 'renewal' | 'mass_issuance';
+  provider?: string;
+  geographicHint?: string;
+  significance: 'low' | 'medium' | 'high' | 'critical';
+  businessInference: string;
+}
+
+export interface CuriosityQuestionRecord {
+  id: string;
+  type: string;
+  text: string;
+  context: Record<string, unknown>;
+  investigationPath: string[];
+  learningValue: number;
+  status: 'open' | 'investigating' | 'resolved' | 'dismissed';
+  resolution?: string;
+  createdAt: number;
+  resolvedAt?: number;
+}
+
+export interface PredictionRecord {
+  id: string;
+  detectionId: string;
+  predictedConfidence: number;
+  predictedOutcome: string;
+  actualOutcome?: string;
+  timestamp: number;
+  resolvedAt?: number;
+  errorMagnitude?: number;
+}
+
+export interface LearnedPatternRecord {
+  id: string;
+  source: string;
+  type: string;
+  pattern: string;
+  confidence: number;
+  occurrences: number;
+  learnedAt: number;
+  lastSeen: number;
+}
+
+export interface CorrelationRecord {
+  id: string;
+  facilityId: string;
+  provider?: string;
+  timestamp: number;
+  signalCount: number;
+  combinedConfidence: number;
+  hypothesis: string;
+  pattern: string;
+  businessInference: string;
+  investigationPriority: string;
+}
+
 // Network Security & Infrastructure Tracking (NotebookLM-inspired)
 export interface NetworkSecurity {
   id?: number;
@@ -166,6 +244,13 @@ export class ComplianceDatabase extends Dexie {
   sources!: Table<Source, number>;
   citations!: Table<Citation, number>;
   researchNotes!: Table<ResearchNote, number>;
+  // Pattern Intelligence Engine tables
+  bgpAnomalies!: Table<BGPAnomalyRecord, string>;
+  ctAlerts!: Table<CTAlertRecord, string>;
+  curiosityQuestions!: Table<CuriosityQuestionRecord, string>;
+  predictions!: Table<PredictionRecord, string>;
+  learnedPatterns!: Table<LearnedPatternRecord, string>;
+  correlations!: Table<CorrelationRecord, string>;
 
   constructor() {
     super('ComplianceDatabase');
@@ -240,6 +325,65 @@ export class ComplianceDatabase extends Dexie {
       searchHistory: '++id, query, context, lastUsedAt, [context+lastUsedAt]'
     }).upgrade(async (_tx) => {
       console.log('Database upgraded to version 7: search history enabled.');
+    });
+
+    // Version 8: Add Pattern Intelligence Engine tables
+    this.version(8).stores({
+      facilities: '++id, name, type, operator, country, state, city, complianceStatus, subsidyGap, lastAuditDate',
+      dataProvenance: '++id, dataPointId, facilityId, metricName, [facilityId+metricName]',
+      communityContext: 'countyFips',
+      subsidyAgreements: '++id, facilityId',
+      localSignatures: '++id, facilityId',
+      localOrganizations: '++id, countyFips, type',
+      knowledgeGaps: '++id, facilityId, [facilityId+status]',
+      engagementTracking: '++id, facilityId',
+      settings: 'key',
+      networkSecurity: '++id, facilityId, asn, rpkiStatus',
+      sources: '++id, type, addedAt, *tags, *facilityIds',
+      citations: '++id, sourceId, [entityType+entityId]',
+      researchNotes: '++id, createdAt, updatedAt, *tags, *relatedFacilities, *relatedSources, category',
+      searchHistory: '++id, query, context, lastUsedAt, [context+lastUsedAt]',
+      // Pattern Intelligence Engine
+      bgpAnomalies: 'id, timestamp, type, asn, provider, significance',
+      ctAlerts: 'sha256, loggedAt, alertType, provider, significance',
+      curiosityQuestions: 'id, type, status, createdAt, learningValue',
+      predictions: 'id, detectionId, timestamp, resolvedAt',
+      learnedPatterns: 'id, source, type, learnedAt, lastSeen',
+      correlations: 'id, facilityId, timestamp, pattern, investigationPriority'
+    }).upgrade(async (_tx) => {
+      console.log('Database upgraded to version 8: Pattern Intelligence Engine tables added.');
+    });
+
+    // Version 9: Add OFAC Sanctions Monitor tables
+    this.version(9).stores({
+      facilities: '++id, name, type, operator, country, state, city, complianceStatus, subsidyGap, lastAuditDate',
+      dataProvenance: '++id, dataPointId, facilityId, metricName, [facilityId+metricName]',
+      communityContext: 'countyFips',
+      subsidyAgreements: '++id, facilityId',
+      localSignatures: '++id, facilityId',
+      localOrganizations: '++id, countyFips, type',
+      knowledgeGaps: '++id, facilityId, [facilityId+status]',
+      engagementTracking: '++id, facilityId',
+      settings: 'key',
+      networkSecurity: '++id, facilityId, asn, rpkiStatus',
+      sources: '++id, type, addedAt, *tags, *facilityIds',
+      citations: '++id, sourceId, [entityType+entityId]',
+      researchNotes: '++id, createdAt, updatedAt, *tags, *relatedFacilities, *relatedSources, category',
+      searchHistory: '++id, query, context, lastUsedAt, [context+lastUsedAt]',
+      // Pattern Intelligence Engine
+      bgpAnomalies: 'id, timestamp, type, asn, provider, significance',
+      ctAlerts: 'sha256, loggedAt, alertType, provider, significance',
+      curiosityQuestions: 'id, type, status, createdAt, learningValue',
+      predictions: 'id, detectionId, timestamp, resolvedAt',
+      learnedPatterns: 'id, source, type, learnedAt, lastSeen',
+      correlations: 'id, facilityId, timestamp, pattern, investigationPriority',
+      // OFAC Sanctions Monitor tables
+      sdnCache: 'uid, lastName, sdnType, country, lastUpdated',
+      sanctionsRiskScores: 'facilityId, riskLevel, timestamp, lastUpdated',
+      sanctionsReports: '++id, reportId, facilityId, timestamp, status, riskLevel',
+      bgpSanctionsAlerts: '++id, alertId, facilityId, asn, timestamp, severity, resolved'
+    }).upgrade(async (_tx) => {
+      console.log('Database upgraded to version 9: OFAC Sanctions Monitor tables added.');
     });
   }
 }

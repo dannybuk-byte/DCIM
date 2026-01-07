@@ -9,6 +9,11 @@ import { NavigationHelper } from './components/NavigationHelper';
 import { MissionControlGridTest } from './components/MissionControlGridTest';
 import { OmniscientCommandInterface } from './components/OmniscientCommandInterface';
 import { LightDashboard } from './components/LightDashboard';
+import { UIOptionsShowcase } from './components/UIOptionsShowcase';
+import { ResponsiveDemo, ResponsiveProvider } from './components/ResponsiveLayoutSystem';
+import { HybridDashboard } from './components/HybridDashboard';
+import { CommandCenterLayout } from './components/CommandCenterLayout';
+import { DensityOptimizedLayout } from './components/DensityOptimizedLayout';
 import { initClickToScrollEverywhere } from './utils/clickToScrollEverywhere';
 import { db } from './db/database';
 import { Facility } from './types';
@@ -17,7 +22,7 @@ import { trackError } from './utils/errorTracking';
 import { ProvenanceModeProvider } from './components/shared/ProvenanceMode';
 import { DensityProvider } from './contexts/DensityContext';
 import { getSettings, saveSettings, settingsKey } from './utils/settingsPersistence';
-import { OfflineIndicator } from './hooks/useOfflineStatus';
+import { OfflineIndicator } from './components/OfflineIndicator';
 import { EnhancedCapabilitiesBanner } from './components/EnhancedCapabilitiesBanner';
 import { Sun, Moon, Palette } from 'lucide-react';
 
@@ -30,8 +35,8 @@ const ThemeContext = createContext<{ theme: Theme; setTheme: (t: Theme) => void 
 export const useTheme = () => useContext(ThemeContext);
 
 function App() {
-  type AppShell = 'light' | 'omniscient' | 'commandCenter' | 'missionControlTest';
-  const [appShell, setAppShell] = useState<AppShell>('light'); // Default to light theme for demos
+  type AppShell = 'light' | 'omniscient' | 'commandCenter' | 'missionControlTest' | 'uiShowcase' | 'responsiveDemo' | 'hybrid' | 'command-center-v2' | 'density-optimized';
+  const [appShell, setAppShell] = useState<AppShell>('density-optimized'); // Default to density-optimized for max viewability
   const [shellMenuOpen, setShellMenuOpen] = useState(false);
   const [chatOpen, setChatOpen] = useState(false);
   const [reportOpen, setReportOpen] = useState(false);
@@ -195,6 +200,11 @@ function App() {
     if (appShell === 'light') return '✨ Light Dashboard';
     if (appShell === 'omniscient') return 'Omniscient';
     if (appShell === 'commandCenter') return 'Command Center';
+    if (appShell === 'uiShowcase') return '🎨 UI Options';
+    if (appShell === 'responsiveDemo') return '📱 Responsive Demo';
+    if (appShell === 'hybrid') return '🎯 Hybrid Dashboard';
+    if (appShell === 'command-center-v2') return '🚀 Command Center v2';
+    if (appShell === 'density-optimized') return '📊 High Density';
     return 'Mission Control (Test)';
   }, [appShell]);
 
@@ -312,13 +322,87 @@ function App() {
                 >
                   Mission Control Grid (Test)
                 </button>
+                <div className={`border-t ${theme === 'light' ? 'border-neutral-200' : 'border-gray-800'} my-1`} />
+                <button
+                  type="button"
+                  role="menuitem"
+                  onClick={() => setShellAndCloseMenu('uiShowcase')}
+                  className={`w-full text-left px-4 py-2.5 text-sm transition-colors ${
+                    theme === 'light'
+                      ? `hover:bg-purple-50 ${appShell === 'uiShowcase' ? 'text-purple-600 bg-purple-50 font-semibold' : 'text-purple-700'}`
+                      : `hover:bg-purple-900/30 ${appShell === 'uiShowcase' ? 'text-purple-300' : 'text-purple-400'}`
+                  }`}
+                >
+                  🎨 UI/UX Options Showcase
+                </button>
+                <button
+                  type="button"
+                  role="menuitem"
+                  onClick={() => setShellAndCloseMenu('responsiveDemo')}
+                  className={`w-full text-left px-4 py-2.5 text-sm transition-colors ${
+                    theme === 'light'
+                      ? `hover:bg-emerald-50 ${appShell === 'responsiveDemo' ? 'text-emerald-600 bg-emerald-50 font-semibold' : 'text-emerald-700'}`
+                      : `hover:bg-emerald-900/30 ${appShell === 'responsiveDemo' ? 'text-emerald-300' : 'text-emerald-400'}`
+                  }`}
+                >
+                  📱 Responsive Demo (Mobile/Tablet/Desktop)
+                </button>
+                <div className={`border-t ${theme === 'light' ? 'border-neutral-200' : 'border-gray-800'} my-1`} />
+                <button
+                  type="button"
+                  role="menuitem"
+                  onClick={() => setShellAndCloseMenu('hybrid')}
+                  className={`w-full text-left px-4 py-2.5 text-sm transition-colors ${
+                    theme === 'light'
+                      ? `hover:bg-indigo-50 ${appShell === 'hybrid' ? 'text-indigo-600 bg-indigo-50 font-bold' : 'text-indigo-700'}`
+                      : `hover:bg-indigo-900/30 ${appShell === 'hybrid' ? 'text-indigo-300' : 'text-indigo-400'}`
+                  }`}
+                >
+                  🎯 Hybrid Dashboard (Cards + Tree + Map)
+                </button>
+                <button
+                  type="button"
+                  role="menuitem"
+                  onClick={() => setShellAndCloseMenu('command-center-v2')}
+                  className={`w-full text-left px-4 py-2.5 text-sm transition-colors ${
+                    theme === 'light'
+                      ? `hover:bg-cyan-50 ${appShell === 'command-center-v2' ? 'text-cyan-600 bg-cyan-50 font-bold' : 'text-cyan-700'}`
+                      : `hover:bg-cyan-900/30 ${appShell === 'command-center-v2' ? 'text-cyan-300' : 'text-cyan-400'}`
+                  }`}
+                >
+                  🚀 Command Center v2 (Clean Sidebar Navigation)
+                </button>
+                <button
+                  type="button"
+                  role="menuitem"
+                  onClick={() => setShellAndCloseMenu('density-optimized')}
+                  className={`w-full text-left px-4 py-2.5 text-sm transition-colors ${
+                    theme === 'light'
+                      ? `hover:bg-amber-50 ${appShell === 'density-optimized' ? 'text-amber-600 bg-amber-50 font-bold' : 'text-amber-700'}`
+                      : `hover:bg-amber-900/30 ${appShell === 'density-optimized' ? 'text-amber-300' : 'text-amber-400'}`
+                  }`}
+                >
+                  📊 High Density (Max Viewability, No Scroll)
+                </button>
               </div>
             )}
           </div>
         </div>
 
-        {appShell === 'light' ? (
+        {appShell === 'density-optimized' ? (
+          <DensityOptimizedLayout />
+        ) : appShell === 'command-center-v2' ? (
+          <CommandCenterLayout />
+        ) : appShell === 'hybrid' ? (
+          <HybridDashboard />
+        ) : appShell === 'light' ? (
           <LightDashboard />
+        ) : appShell === 'uiShowcase' ? (
+          <UIOptionsShowcase />
+        ) : appShell === 'responsiveDemo' ? (
+          <ResponsiveProvider>
+            <ResponsiveDemo />
+          </ResponsiveProvider>
         ) : appShell === 'missionControlTest' ? (
           <MissionControlGridTest />
         ) : appShell === 'omniscient' ? (
