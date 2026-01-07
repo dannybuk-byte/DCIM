@@ -512,191 +512,200 @@ const SpaceFillingOverviewGrid: React.FC<OverviewGridProps> = ({
   const headerHeight = config.rowHeight + 16;
   const availableHeight = viewportHeight - headerHeight - 8;
   
-  // Top row height (stats + gap + quick actions)
-  const topRowHeight = config.mode === 'compact' ? 90 : 110;
-  const bottomRowHeight = availableHeight - topRowHeight - 12;
+  // Safe stats with fallbacks
+  const safeStats = {
+    total: stats?.total || 0,
+    compliant: stats?.compliant || 0,
+    nonCompliant: stats?.nonCompliant || 0,
+    atRisk: stats?.atRisk || 0,
+    unknown: stats?.unknown || 0,
+    subsidyGap: stats?.subsidyGap || 0,
+  };
+  
+  // Calculate job equivalent for subsidy gap
+  const avgSalary = 50000;
+  const jobsEquivalent = Math.round(safeStats.subsidyGap / avgSalary);
   
   // Calculate how many items we can fit based on actual available space
-  // Each item is approximately 38px (two lines of text + padding)
   const itemHeight = 38;
   const cardHeaderHeight = 26;
-  const itemsPerColumn = Math.max(8, Math.floor((bottomRowHeight - cardHeaderHeight) / itemHeight));
-  
-  // For violators, we show items in 2 columns, so we need itemsPerColumn per column
+  const bottomRowHeight = availableHeight - 200; // Account for hero section
+  const itemsPerColumn = Math.max(6, Math.floor((bottomRowHeight - cardHeaderHeight) / itemHeight));
   const violatorsPerColumn = itemsPerColumn;
   const totalViolators = Math.min(topViolators.length, violatorsPerColumn * 2);
 
-  // Generate fake trend data
-  const trendData = Array.from({ length: 12 }, () => Math.random() * 100);
-
   return (
-    <div 
-      className="grid gap-2 p-2"
-      style={{ 
-        height: availableHeight,
-        gridTemplateColumns: '1fr 1.4fr 1fr',
-        gridTemplateRows: `${topRowHeight}px 1fr`,
-      }}
-    >
-      {/* Row 1: Stats + Gap Highlight + Quick Actions */}
-      <div className="bg-white rounded border border-slate-200 overflow-hidden flex flex-col">
-        <div 
-          className="bg-slate-50 border-b border-slate-200 font-medium text-slate-700 flex items-center gap-1"
-          style={{ padding: `3px 6px`, fontSize: 10 }}
-        >
-          <BarChart3 size={10} className="text-blue-500" />
-          Stats
-        </div>
-        <div className="grid grid-cols-2 gap-0.5 p-0.5 flex-1">
-          {[
-            { label: 'Total', value: stats.total.toLocaleString(), color: '#3b82f6' },
-            { label: 'Compliant', value: stats.compliant.toLocaleString(), color: '#22c55e', pct: (stats.compliant / stats.total * 100) },
-            { label: 'Non-Compliant', value: stats.nonCompliant.toLocaleString(), color: '#ef4444', pct: (stats.nonCompliant / stats.total * 100) },
-            { label: 'At Risk', value: stats.atRisk.toLocaleString(), color: '#f59e0b', pct: (stats.atRisk / stats.total * 100) },
-          ].map((s, i) => (
-            <div 
-              key={i}
-              className="rounded px-1.5 py-0.5 flex flex-col justify-center"
-              style={{ backgroundColor: `${s.color}10` }}
-            >
-              <div className="text-slate-500 text-[8px] leading-none">{s.label}</div>
-              <div className="font-bold text-[13px] leading-tight" style={{ color: s.color }}>{s.value}</div>
-              {s.pct !== undefined && (
-                <div className="text-[8px] text-slate-400 leading-none">{s.pct.toFixed(1)}%</div>
-              )}
+    <div className="flex flex-col gap-3 p-3" style={{ height: availableHeight }}>
+      {/* ========== MISSION HEADER - FULL WIDTH ========== */}
+      <div className="bg-gradient-to-r from-slate-900 via-blue-900 to-indigo-900 rounded-xl p-4 shadow-xl border border-blue-500/30">
+        <div className="flex items-center justify-between">
+          <div className="flex-1">
+            <div className="flex items-center gap-3 mb-2">
+              <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-cyan-400 to-blue-500 flex items-center justify-center shadow-lg shadow-cyan-500/30">
+                <Target size={24} className="text-white" />
+              </div>
+              <div>
+                <h1 className="text-xl font-bold text-white tracking-tight">
+                  Data Center Accountability Dashboard
+                </h1>
+                <p className="text-blue-300 text-sm">
+                  Exposing Big Tech's broken job creation promises
+                </p>
+              </div>
             </div>
-          ))}
+            <div className="flex items-center gap-4 text-xs text-blue-200/80">
+              <span className="flex items-center gap-1">
+                <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
+                Live Monitoring
+              </span>
+              <span>•</span>
+              <span>{safeStats.total.toLocaleString()} Facilities Tracked</span>
+              <span>•</span>
+              <span>{safeStats.nonCompliant.toLocaleString()} Non-Compliant</span>
+            </div>
+          </div>
+          {/* Partner Logos */}
+          <div className="flex items-center gap-4 px-4 border-l border-blue-500/30">
+            <div className="text-center">
+              <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-white font-bold text-xs">TWC</div>
+              <div className="text-[9px] text-blue-300/70 mt-0.5">Tech Workers</div>
+            </div>
+            <div className="text-center">
+              <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-white font-bold text-xs">CWA</div>
+              <div className="text-[9px] text-blue-300/70 mt-0.5">CODE-CWA</div>
+            </div>
+            <div className="text-center">
+              <div className="w-10 h-10 rounded-full bg-yellow-500/80 flex items-center justify-center text-white font-bold text-xs">IBEW</div>
+              <div className="text-[9px] text-blue-300/70 mt-0.5">Electricians</div>
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* Subsidy Gap Hero - Humanized */}
-      <div className="rounded overflow-hidden">
-        <SubsidyGapHero 
-          amount={stats.subsidyGap}
-          violatorCount={stats.nonCompliant}
-          avgSalary={50000}
-        />
-      </div>
-      {/* LEGACY: Subsidy Gap + Trend - Hidden */}
-      <div className="hidden bg-gradient-to-r from-red-500 to-orange-500 rounded overflow-hidden flex items-center justify-between px-3">
-        <div className="text-white">
-          <div className="text-white/70 text-[9px] leading-none">Total Subsidy Gap</div>
-          <div className="font-bold text-xl leading-tight">${(stats.subsidyGap / 1e9).toFixed(2)}B</div>
-          <div className="text-white/60 text-[9px] leading-none">{topViolators.length} violators tracked</div>
+      {/* ========== SUBSIDY GAP HERO - PROMINENT ========== */}
+      <div className="bg-gradient-to-r from-red-600 via-red-500 to-orange-500 rounded-xl p-5 shadow-xl relative overflow-hidden">
+        {/* Decorative background */}
+        <div className="absolute inset-0 opacity-10">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-white rounded-full -translate-y-1/2 translate-x-1/2" />
+          <div className="absolute bottom-0 left-0 w-48 h-48 bg-white rounded-full translate-y-1/2 -translate-x-1/2" />
         </div>
-        <div className="w-28">
-          <Sparkline data={trendData} color="rgba(255,255,255,0.7)" height={28} />
-        </div>
-      </div>
-
-      {/* Quick Actions - Horizontal */}
-      <div className="bg-white rounded border border-slate-200 overflow-hidden flex items-center p-1">
-        <div className="grid grid-cols-2 gap-0.5 flex-1 h-full">
-          {[
-            { icon: <Compass size={11} />, label: 'Follow Data', bg: 'bg-teal-50 hover:bg-teal-100', text: 'text-teal-700' },
-            { icon: <Target size={11} />, label: 'Organize', bg: 'bg-purple-50 hover:bg-purple-100', text: 'text-purple-700' },
-            { icon: <Briefcase size={11} />, label: 'CBA Tool', bg: 'bg-blue-50 hover:bg-blue-100', text: 'text-blue-700' },
-            { icon: <Shield size={11} />, label: 'Coalition', bg: 'bg-slate-100 hover:bg-slate-200', text: 'text-slate-700' },
-          ].map((action, i) => (
-            <button
-              key={i}
-              className={`flex items-center justify-center gap-1 rounded transition-colors ${action.bg} ${action.text}`}
-              style={{ fontSize: 10 }}
-            >
-              {action.icon}
-              <span>{action.label}</span>
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Row 2: Top Violators (spans 2 columns) + Top Operators */}
-      <div 
-        className="bg-white rounded border border-slate-200 overflow-hidden flex flex-col col-span-2"
-      >
-        <div 
-          className="bg-slate-50 border-b border-slate-200 font-medium text-slate-700 flex items-center gap-1 flex-shrink-0"
-          style={{ 
-            padding: `4px 8px`,
-            fontSize: 11
-          }}
-        >
-          <Flame size={12} className="text-red-500" />
-          Top Subsidy Violators
-          <span className="text-slate-400 text-[10px] ml-auto">Showing {totalViolators} of {topViolators.length}</span>
-        </div>
-        <div className="flex-1 overflow-hidden grid grid-cols-2">
-          {/* Left column - first half of violators */}
-          <div className="border-r border-slate-100 overflow-auto">
-            {topViolators.slice(0, violatorsPerColumn).map((f, i) => (
+        
+        <div className="relative flex items-center justify-between">
+          <div>
+            <div className="flex items-center gap-2 mb-1">
+              <DollarSign size={20} className="text-white/80" />
+              <span className="text-white/80 font-medium text-sm uppercase tracking-wider">Total Subsidy Gap</span>
+            </div>
+            <div className="text-5xl font-black text-white drop-shadow-lg">
+              ${(safeStats.subsidyGap / 1e9).toFixed(2)}B
+            </div>
+            <div className="text-white/90 font-semibold text-lg mt-2 flex items-center gap-2">
+              <Users size={18} />
+              = {jobsEquivalent.toLocaleString()} jobs at ${avgSalary.toLocaleString()}/year
+            </div>
+            <div className="text-white/70 text-sm mt-1">
+              Money that should have created local jobs — but didn't
+            </div>
+          </div>
+          
+          {/* Quick Stats Grid */}
+          <div className="grid grid-cols-2 gap-3">
+            {[
+              { label: 'Compliant', value: safeStats.compliant.toLocaleString(), icon: CheckCircle2, color: 'bg-green-500/20 border-green-400/50' },
+              { label: 'Non-Compliant', value: safeStats.nonCompliant.toLocaleString(), icon: XCircle, color: 'bg-red-900/30 border-red-300/50' },
+              { label: 'At Risk', value: safeStats.atRisk.toLocaleString(), icon: AlertTriangle, color: 'bg-yellow-500/20 border-yellow-400/50' },
+              { label: 'Unknown', value: safeStats.unknown.toLocaleString(), icon: HelpCircle, color: 'bg-white/10 border-white/20' },
+            ].map((s, i) => (
               <div 
-                key={f.id}
-                className="flex items-center gap-1.5 border-b border-slate-100 last:border-0 hover:bg-slate-50 cursor-pointer px-2 py-1"
+                key={i}
+                className={`rounded-lg px-4 py-2 border ${s.color} backdrop-blur-sm`}
               >
-                <span 
-                  className={`
-                    w-4 h-4 rounded-full flex items-center justify-center text-[9px] font-bold flex-shrink-0
-                    ${i === 0 ? 'bg-red-500 text-white' : 
-                      i === 1 ? 'bg-orange-500 text-white' : 
-                      i === 2 ? 'bg-yellow-500 text-white' : 
-                      'bg-slate-200 text-slate-600'}
-                  `}
-                >
-                  {i + 1}
-                </span>
-                <div className="flex-1 min-w-0">
-                  <div className="truncate text-slate-900 text-[11px] leading-tight" title={f.name}>
-                    {f.name}
-                  </div>
-                  <div className="text-[9px] text-slate-400 truncate leading-tight">{f.operator} • {f.city}, {f.state}</div>
+                <div className="flex items-center gap-1.5">
+                  <s.icon size={14} className="text-white/80" />
+                  <span className="text-white/70 text-xs">{s.label}</span>
                 </div>
-                <span className="text-red-600 font-semibold text-[11px] whitespace-nowrap">
-                  ${(f.subsidyGap / 1e6).toFixed(1)}M
-                </span>
+                <div className="text-white font-bold text-xl">{s.value}</div>
               </div>
             ))}
           </div>
-          {/* Right column - second half of violators */}
-          <div className="overflow-auto">
-            {topViolators.slice(violatorsPerColumn, totalViolators).map((f, i) => {
-              const rank = violatorsPerColumn + i + 1;
-              return (
-                <div 
-                  key={f.id}
-                  className="flex items-center gap-1.5 border-b border-slate-100 last:border-0 hover:bg-slate-50 cursor-pointer px-2 py-1"
-                >
-                  <span className="w-4 h-4 rounded-full flex items-center justify-center text-[9px] font-bold flex-shrink-0 bg-slate-200 text-slate-600">
-                    {rank}
-                  </span>
-                  <div className="flex-1 min-w-0">
-                    <div className="truncate text-slate-900 text-[11px] leading-tight" title={f.name}>
-                      {f.name}
-                    </div>
-                    <div className="text-[9px] text-slate-400 truncate leading-tight">{f.operator} • {f.city}, {f.state}</div>
-                  </div>
-                  <span className="text-red-600 font-semibold text-[11px] whitespace-nowrap">
-                    ${(f.subsidyGap / 1e6).toFixed(1)}M
-                  </span>
-                </div>
-              );
-            })}
-          </div>
         </div>
       </div>
 
-      {/* Top Operators */}
-      <div className="bg-white rounded border border-slate-200 overflow-hidden flex flex-col">
-        <div 
-          className="bg-slate-50 border-b border-slate-200 font-medium text-slate-700 flex items-center gap-1 flex-shrink-0"
-          style={{ 
-            padding: `4px 8px`,
-            fontSize: 11
-          }}
-        >
-          <Building2 size={12} className="text-purple-500" />
-          Operators
-          <span className="text-slate-400 text-[10px] ml-auto">{operatorCounts.length} tracked</span>
+      {/* ========== DATA GRID - TOP VIOLATORS + OPERATORS ========== */}
+      <div className="flex-1 grid grid-cols-3 gap-3 min-h-0">
+        {/* Top Violators - 2 columns */}
+        <div className="col-span-2 bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
+          <div className="bg-gradient-to-r from-slate-50 to-slate-100 border-b border-slate-200 px-4 py-2.5 flex items-center gap-2">
+            <Flame size={16} className="text-red-500" />
+            <span className="font-semibold text-slate-700">Top Subsidy Violators</span>
+            <span className="ml-auto text-slate-400 text-sm">{topViolators.length} facilities tracked</span>
+          </div>
+          <div className="flex-1 overflow-hidden grid grid-cols-2 divide-x divide-slate-100">
+            {/* Left column */}
+            <div className="overflow-auto">
+              {topViolators.slice(0, violatorsPerColumn).map((f, i) => (
+                <div 
+                  key={f.id}
+                  className="flex items-center gap-2 border-b border-slate-100 last:border-0 hover:bg-blue-50/50 cursor-pointer px-3 py-2 transition-colors"
+                >
+                  <span 
+                    className={`
+                      w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0
+                      ${i === 0 ? 'bg-red-500 text-white shadow-lg shadow-red-500/40' : 
+                        i === 1 ? 'bg-orange-500 text-white shadow-lg shadow-orange-500/40' : 
+                        i === 2 ? 'bg-yellow-500 text-white shadow-lg shadow-yellow-500/40' : 
+                        'bg-slate-200 text-slate-600'}
+                    `}
+                  >
+                    {i + 1}
+                  </span>
+                  <div className="flex-1 min-w-0">
+                    <div className="truncate text-slate-900 font-medium text-sm" title={f.name}>
+                      {f.name}
+                    </div>
+                    <div className="text-xs text-slate-500 truncate">{f.operator} • {f.city}, {f.state}</div>
+                  </div>
+                  <span className="text-red-600 font-bold text-sm whitespace-nowrap bg-red-50 px-2 py-0.5 rounded">
+                    ${(f.subsidyGap / 1e6).toFixed(1)}M
+                  </span>
+                </div>
+              ))}
+            </div>
+            {/* Right column */}
+            <div className="overflow-auto">
+              {topViolators.slice(violatorsPerColumn, totalViolators).map((f, i) => {
+                const rank = violatorsPerColumn + i + 1;
+                return (
+                  <div 
+                    key={f.id}
+                    className="flex items-center gap-2 border-b border-slate-100 last:border-0 hover:bg-blue-50/50 cursor-pointer px-3 py-2 transition-colors"
+                  >
+                    <span className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 bg-slate-200 text-slate-600">
+                      {rank}
+                    </span>
+                    <div className="flex-1 min-w-0">
+                      <div className="truncate text-slate-900 font-medium text-sm" title={f.name}>
+                        {f.name}
+                      </div>
+                      <div className="text-xs text-slate-500 truncate">{f.operator} • {f.city}, {f.state}</div>
+                    </div>
+                    <span className="text-red-600 font-bold text-sm whitespace-nowrap bg-red-50 px-2 py-0.5 rounded">
+                      ${(f.subsidyGap / 1e6).toFixed(1)}M
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
         </div>
+
+        {/* Top Operators */}
+        <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
+          <div className="bg-gradient-to-r from-slate-50 to-slate-100 border-b border-slate-200 px-4 py-2.5 flex items-center gap-2">
+            <Building2 size={16} className="text-purple-500" />
+            <span className="font-semibold text-slate-700">Top Operators</span>
+            <span className="ml-auto text-slate-400 text-sm">{operatorCounts.length}</span>
+          </div>
         <div className="flex-1 overflow-auto">
           {operatorCounts.slice(0, itemsPerColumn).map((op, i) => (
             <div 
@@ -715,6 +724,7 @@ const SpaceFillingOverviewGrid: React.FC<OverviewGridProps> = ({
               )}
             </div>
           ))}
+          </div>
         </div>
       </div>
     </div>
