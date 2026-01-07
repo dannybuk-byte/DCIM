@@ -69,6 +69,8 @@ import { SanctionsMonitorTab } from './tabs/SanctionsMonitorTab'; // NEW: OFAC S
 import { SmartSearchNav, NavProvider, QuickAccessNav } from './AntifragileNavigation'; // NEW: Antifragile Navigation System
 import EvidencePanel from './EvidencePanel'; // FRE 902(13)-(14) Evidence Integrity
 import { NestedFAQ } from './NestedFAQ'; // Comprehensive help documentation
+import { WelcomeOnboarding } from './onboarding/WelcomeOnboarding'; // First-time user onboarding
+import { MissionHeader, SubsidyGapHero } from './shared/HumanizedStats'; // Humanized stats components
 import { indexFacilities } from '../search/SearchEngine'; // FlexSearch initialization
 import { detectDashboardAction } from '../utils/dashboardActions';
 import { ErrorBoundary } from './ErrorBoundary';
@@ -1352,6 +1354,17 @@ export default function DCIMCommandCenter({ onActionRequested: _onActionRequeste
 
   return (
     <>
+      {/* First-Time User Onboarding Modal */}
+      <WelcomeOnboarding
+        totalFacilities={stats?.totalFacilities ?? 11992}
+        subsidyGap={stats?.totalSubsidyGap ?? 5380000000}
+        violatorCount={stats?.nonCompliant ?? 3205}
+        onComplete={() => {
+          // Optional: Track onboarding completion
+          console.info('User completed onboarding');
+        }}
+      />
+
       {/* MISSION CONTROL LAYOUT - NEW */}
       {useMissionControl ? (
         <MissionControlLayout

@@ -328,6 +328,10 @@ export function NavigationSidebar({
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(
     new Set(NAV_GROUPS.map((g) => g.title))
   );
+  const [showDescriptions, setShowDescriptions] = useState(() => {
+    // Show descriptions by default for first-time users
+    return localStorage.getItem('dcim_hide_descriptions') !== 'true';
+  });
 
   const toggleGroup = (groupTitle: string) => {
     setExpandedGroups((prev) => {
@@ -415,12 +419,31 @@ export function NavigationSidebar({
             <Network className="w-5 h-5 text-cyan-400" />
             <h2 className="font-bold text-sm text-white">Navigation</h2>
           </div>
-          <button
-            onClick={onToggleCollapse}
-            className="p-1 hover:bg-gray-800 rounded transition-colors text-gray-400 hover:text-white"
-          >
-            <ChevronLeft className="w-4 h-4" />
-          </button>
+          <div className="flex items-center gap-1">
+            {/* Toggle descriptions */}
+            <Tooltip content={showDescriptions ? 'Hide descriptions' : 'Show descriptions'} position="bottom">
+              <button
+                onClick={() => {
+                  setShowDescriptions(!showDescriptions);
+                  localStorage.setItem('dcim_hide_descriptions', showDescriptions ? 'true' : 'false');
+                }}
+                className={`p-1 rounded transition-colors ${
+                  showDescriptions 
+                    ? 'bg-cyan-900/50 text-cyan-400' 
+                    : 'hover:bg-gray-800 text-gray-400 hover:text-white'
+                }`}
+                title={showDescriptions ? 'Hide descriptions' : 'Show descriptions'}
+              >
+                <HelpCircle className="w-4 h-4" />
+              </button>
+            </Tooltip>
+            <button
+              onClick={onToggleCollapse}
+              className="p-1 hover:bg-gray-800 rounded transition-colors text-gray-400 hover:text-white"
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </button>
+          </div>
         </div>
 
         {/* Search */}
@@ -463,26 +486,26 @@ export function NavigationSidebar({
                   const isActive = activeTab === item.id;
                   const badge = getBadge(item.id);
 
-                  return (
-                    <Tooltip key={item.id} content={item.description} position="right">
-                      <button
-                        onClick={() => onTabChange(item.id)}
-                        className={`w-full px-4 py-2 flex items-center justify-between hover:bg-gray-800/70 transition-all ${
-                          isActive
-                            ? `bg-${item.color}-900/30 border-l-2 border-${item.color}-500`
-                            : ''
-                        }`}
-                      >
-                        <div className="flex items-center gap-3">
-                          <div
-                            className={`${
-                              isActive ? `text-${item.color}-400` : 'text-gray-500'
-                            }`}
-                          >
-                            {item.icon}
-                          </div>
+                  const buttonContent = (
+                    <button
+                      onClick={() => onTabChange(item.id)}
+                      className={`w-full px-4 ${showDescriptions ? 'py-2.5' : 'py-2'} flex items-start justify-between hover:bg-gray-800/70 transition-all text-left ${
+                        isActive
+                          ? `bg-${item.color}-900/30 border-l-2 border-${item.color}-500`
+                          : ''
+                      }`}
+                    >
+                      <div className="flex items-start gap-3 flex-1 min-w-0">
+                        <div
+                          className={`mt-0.5 flex-shrink-0 ${
+                            isActive ? `text-${item.color}-400` : 'text-gray-500'
+                          }`}
+                        >
+                          {item.icon}
+                        </div>
+                        <div className="flex-1 min-w-0">
                           <span
-                            className={`text-sm ${
+                            className={`text-sm block ${
                               isActive
                                 ? `text-${item.color}-300 font-semibold`
                                 : 'text-gray-400'
@@ -490,13 +513,28 @@ export function NavigationSidebar({
                           >
                             {item.label}
                           </span>
+                          {/* Inline description when enabled */}
+                          {showDescriptions && (
+                            <span className="text-xs text-gray-500 block mt-0.5 leading-relaxed line-clamp-2">
+                              {item.description}
+                            </span>
+                          )}
                         </div>
-                        {badge !== undefined && badge > 0 && (
-                          <div className="px-1.5 py-0.5 bg-red-600 text-white text-xs font-bold rounded">
-                            {badge > 99 ? '99+' : badge}
-                          </div>
-                        )}
-                      </button>
+                      </div>
+                      {badge !== undefined && badge > 0 && (
+                        <div className="px-1.5 py-0.5 bg-red-600 text-white text-xs font-bold rounded flex-shrink-0 ml-2">
+                          {badge > 99 ? '99+' : badge}
+                        </div>
+                      )}
+                    </button>
+                  );
+
+                  // Only wrap in tooltip if descriptions are hidden
+                  return showDescriptions ? (
+                    <div key={item.id}>{buttonContent}</div>
+                  ) : (
+                    <Tooltip key={item.id} content={item.description} position="right">
+                      {buttonContent}
                     </Tooltip>
                   );
                 })}
