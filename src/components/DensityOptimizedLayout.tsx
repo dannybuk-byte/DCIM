@@ -22,7 +22,7 @@ import {
   Database, Server, Shield, FileText, Calendar, Home, Compass, Briefcase,
   Users2, Radio, FileWarning, Landmark, Map, ChevronUp, PanelLeftClose,
   PanelLeft, Command, ArrowRight, Sparkles, Clock, Hash, Minus, Plus,
-  LayoutGrid, List, Grid3X3, Maximize2, Minimize2
+  LayoutGrid, List, Grid3X3, Maximize2, Minimize2, Share2
 } from 'lucide-react';
 import { db } from '../db/database';
 import { seedRealDatabase } from '../db/seedRealData';
@@ -498,13 +498,15 @@ interface OverviewGridProps {
   topViolators: Facility[];
   operatorCounts: { operator: string; count: number; gap: number }[];
   viewportHeight: number;
+  facilities: Facility[];
 }
 
 const SpaceFillingOverviewGrid: React.FC<OverviewGridProps> = ({ 
   stats, 
   topViolators, 
   operatorCounts,
-  viewportHeight 
+  viewportHeight,
+  facilities 
 }) => {
   const { config } = useDensity();
   
@@ -529,6 +531,51 @@ const SpaceFillingOverviewGrid: React.FC<OverviewGridProps> = ({
   // Show all violators split between two columns
   const halfViolators = Math.ceil(topViolators.length / 2);
   const totalViolators = topViolators.length;
+
+  // State breakdown for geographic section
+  const stateBreakdown = useMemo(() => {
+    const byState: Record<string, { count: number; gap: number; nonCompliant: number }> = {};
+    facilities.forEach(f => {
+      if (!byState[f.state]) byState[f.state] = { count: 0, gap: 0, nonCompliant: 0 };
+      byState[f.state].count++;
+      byState[f.state].gap += f.subsidyGap;
+      if (f.status === 'Non-Compliant') byState[f.state].nonCompliant++;
+    });
+    return Object.entries(byState)
+      .map(([state, data]) => ({ state, ...data }))
+      .sort((a, b) => b.gap - a.gap)
+      .slice(0, 12);
+  }, [facilities]);
+
+  // Recent high-risk alerts (simulated based on subsidy gap and status)
+  const recentAlerts = useMemo(() => {
+    return facilities
+      .filter(f => f.status === 'Non-Compliant' && f.subsidyGap > 5000000)
+      .slice(0, 8)
+      .map(f => ({
+        id: f.id,
+        type: f.subsidyGap > 50000000 ? 'critical' : f.subsidyGap > 20000000 ? 'warning' : 'info',
+        message: `${f.name} - $${(f.subsidyGap / 1e6).toFixed(1)}M subsidy gap`,
+        location: `${f.city}, ${f.state}`,
+        operator: f.operator
+      }));
+  }, [facilities]);
+
+  // Organizing opportunities (facilities with high gaps but no union presence)
+  const organizingOpportunities = useMemo(() => {
+    return facilities
+      .filter(f => f.subsidyGap > 10000000)
+      .sort((a, b) => b.subsidyGap - a.subsidyGap)
+      .slice(0, 6)
+      .map(f => ({
+        id: f.id,
+        name: f.name,
+        operator: f.operator,
+        location: `${f.city}, ${f.state}`,
+        gap: f.subsidyGap,
+        priority: f.subsidyGap > 50000000 ? 'high' : f.subsidyGap > 20000000 ? 'medium' : 'low'
+      }));
+  }, [facilities]);
 
   return (
     <div className="flex flex-col gap-3 p-3">
@@ -723,6 +770,156 @@ const SpaceFillingOverviewGrid: React.FC<OverviewGridProps> = ({
           </div>
         </div>
       </div>
+
+      {/* ========== ROW 3: GEOGRAPHIC BREAKDOWN + ALERTS ========== */}
+      <div className="grid grid-cols-3 gap-3">
+        {/* State-by-State Breakdown */}
+        <div className="col-span-2 bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+          <div className="bg-gradient-to-r from-emerald-50 to-teal-50 border-b border-slate-200 px-4 py-2.5 flex items-center gap-2">
+            <MapPin size={16} className="text-emerald-600" />
+            <span className="font-semibold text-slate-700">State-by-State Accountability</span>
+            <span className="ml-auto text-slate-400 text-sm">{stateBreakdown.length} states</span>
+          </div>
+          <div className="p-3 overflow-y-auto max-h-[250px]">
+            <div className="grid grid-cols-3 gap-2">
+              {stateBreakdown.map((state, i) => (
+                <div 
+                  key={state.state}
+                  className="bg-slate-50 rounded-lg p-2 hover:bg-emerald-50 transition-colors cursor-pointer border border-slate-100"
+                >
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="font-bold text-slate-800 text-sm">{state.state}</span>
+                    <span className={`text-xs px-1.5 py-0.5 rounded ${
+                      state.nonCompliant > 50 ? 'bg-red-100 text-red-700' :
+                      state.nonCompliant > 20 ? 'bg-yellow-100 text-yellow-700' :
+                      'bg-green-100 text-green-700'
+                    }`}>
+                      {state.nonCompliant} violations
+                    </span>
+                  </div>
+                  <div className="text-xs text-slate-500">{state.count} facilities</div>
+                  <div className="text-sm font-semibold text-red-600">${(state.gap / 1e6).toFixed(1)}M gap</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Real-Time Alerts */}
+        <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+          <div className="bg-gradient-to-r from-red-50 to-orange-50 border-b border-slate-200 px-4 py-2.5 flex items-center gap-2">
+            <Bell size={16} className="text-red-500" />
+            <span className="font-semibold text-slate-700">Recent Alerts</span>
+            <span className="ml-auto">
+              <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse inline-block" />
+            </span>
+          </div>
+          <div className="overflow-y-auto max-h-[250px]">
+            {recentAlerts.map((alert, i) => (
+              <div 
+                key={alert.id}
+                className={`px-3 py-2 border-b border-slate-100 last:border-0 hover:bg-slate-50 cursor-pointer ${
+                  alert.type === 'critical' ? 'border-l-4 border-l-red-500' :
+                  alert.type === 'warning' ? 'border-l-4 border-l-yellow-500' :
+                  'border-l-4 border-l-blue-500'
+                }`}
+              >
+                <div className="text-xs font-medium text-slate-800 truncate">{alert.message}</div>
+                <div className="text-[10px] text-slate-500">{alert.operator} • {alert.location}</div>
+              </div>
+            ))}
+            {recentAlerts.length === 0 && (
+              <div className="p-4 text-center text-slate-400 text-sm">No critical alerts</div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* ========== ROW 4: ORGANIZING OPPORTUNITIES + ACTION ITEMS ========== */}
+      <div className="grid grid-cols-2 gap-3">
+        {/* Organizing Opportunities */}
+        <div className="bg-gradient-to-br from-indigo-900 to-purple-900 rounded-xl shadow-xl overflow-hidden border border-indigo-500/30">
+          <div className="px-4 py-3 border-b border-indigo-500/30 flex items-center gap-2">
+            <Users size={18} className="text-indigo-300" />
+            <span className="font-semibold text-white">🎯 Organizing Opportunities</span>
+            <span className="ml-auto text-indigo-300 text-xs">{organizingOpportunities.length} high-priority</span>
+          </div>
+          <div className="p-3 overflow-y-auto max-h-[200px]">
+            {organizingOpportunities.map((opp, i) => (
+              <div 
+                key={opp.id}
+                className="bg-indigo-800/50 rounded-lg p-2 mb-2 last:mb-0 hover:bg-indigo-700/50 cursor-pointer transition-colors"
+              >
+                <div className="flex items-start justify-between">
+                  <div className="flex-1 min-w-0">
+                    <div className="text-white font-medium text-sm truncate">{opp.name}</div>
+                    <div className="text-indigo-300 text-xs">{opp.operator}</div>
+                    <div className="text-indigo-400 text-xs">{opp.location}</div>
+                  </div>
+                  <div className="text-right">
+                    <div className={`text-xs px-2 py-0.5 rounded-full ${
+                      opp.priority === 'high' ? 'bg-red-500 text-white' :
+                      opp.priority === 'medium' ? 'bg-yellow-500 text-black' :
+                      'bg-green-500 text-white'
+                    }`}>
+                      {opp.priority}
+                    </div>
+                    <div className="text-white font-bold text-sm mt-1">${(opp.gap / 1e6).toFixed(1)}M</div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Quick Actions / Campaign Tools */}
+        <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+          <div className="bg-gradient-to-r from-blue-50 to-cyan-50 border-b border-slate-200 px-4 py-2.5 flex items-center gap-2">
+            <Zap size={16} className="text-blue-600" />
+            <span className="font-semibold text-slate-700">Quick Actions</span>
+          </div>
+          <div className="p-3 grid grid-cols-2 gap-2">
+            <button className="flex items-center gap-2 p-3 rounded-lg bg-blue-50 hover:bg-blue-100 transition-colors text-left">
+              <FileText size={18} className="text-blue-600" />
+              <div>
+                <div className="text-sm font-medium text-slate-800">Generate FOIA</div>
+                <div className="text-xs text-slate-500">Request subsidy records</div>
+              </div>
+            </button>
+            <button className="flex items-center gap-2 p-3 rounded-lg bg-green-50 hover:bg-green-100 transition-colors text-left">
+              <Download size={18} className="text-green-600" />
+              <div>
+                <div className="text-sm font-medium text-slate-800">Export Report</div>
+                <div className="text-xs text-slate-500">PDF/CSV download</div>
+              </div>
+            </button>
+            <button className="flex items-center gap-2 p-3 rounded-lg bg-purple-50 hover:bg-purple-100 transition-colors text-left">
+              <Share2 size={18} className="text-purple-600" />
+              <div>
+                <div className="text-sm font-medium text-slate-800">Share Intel</div>
+                <div className="text-xs text-slate-500">Coalition partners</div>
+              </div>
+            </button>
+            <button className="flex items-center gap-2 p-3 rounded-lg bg-orange-50 hover:bg-orange-100 transition-colors text-left">
+              <AlertTriangle size={18} className="text-orange-600" />
+              <div>
+                <div className="text-sm font-medium text-slate-800">Report Issue</div>
+                <div className="text-xs text-slate-500">Worker safety/labor</div>
+              </div>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* ========== ROW 5: MISSION FOOTER ========== */}
+      <div className="bg-gradient-to-r from-slate-800 to-slate-900 rounded-xl p-4 text-center">
+        <p className="text-slate-400 text-sm">
+          <span className="text-cyan-400 font-semibold">Built for workers</span> • 
+          Tracking <span className="text-white font-bold">{safeStats.total.toLocaleString()}</span> facilities • 
+          <span className="text-red-400 font-bold">${(safeStats.subsidyGap / 1e9).toFixed(2)}B</span> in broken promises • 
+          <span className="text-yellow-400">Every feature serves the mission</span>
+        </p>
+      </div>
     </div>
   );
 };
@@ -879,6 +1076,7 @@ export const DensityOptimizedLayout: React.FC = () => {
               topViolators={topViolators}
               operatorCounts={operatorCounts}
               viewportHeight={viewportHeight}
+              facilities={facilities}
             />
           ) : activeView === 'facilities' ? (
             <div style={{ padding: config.padding * 2 }}>
