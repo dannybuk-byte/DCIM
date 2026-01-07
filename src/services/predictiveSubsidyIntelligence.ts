@@ -598,18 +598,18 @@ export async function analyzeAllFacilitiesSubsidyRisk(): Promise<SubsidyRiskScor
         state: facility.state,
         
         subsidyType: 'mixed',
-        totalSubsidyValue: facility.subsidyAmount || 0,
-        annualSubsidyValue: (facility.subsidyAmount || 0) / 10,
+        totalSubsidyValue: facility.taxIncentives || 0,
+        annualSubsidyValue: (facility.taxIncentives || 0) / 10,
         agreementDate: new Date(2020, 0, 1),
         durationYears: 10,
         
         jobsPromised: facility.jobsPromised || 0,
-        investmentPromised: facility.subsidyAmount || 0,
+        investmentPromised: facility.taxIncentives || 0,
         
         hasClawback: true,
         
-        jobsActual: facility.jobsActual || 0,
-        investmentActual: facility.subsidyAmount || 0,
+        jobsActual: facility.jobsCreated || 0,
+        investmentActual: facility.taxIncentives || 0,
         complianceStatus: facility.complianceStatus as SubsidyAgreement['complianceStatus'] || 'unknown',
         
         lastVerified: new Date(),
@@ -766,10 +766,10 @@ export async function estimateOperatorSubsidyExposure(): Promise<Array<{
         jobsDelivered: 0
       };
       
-      existing.totalSubsidy += facility.subsidyAmount || 0;
+      existing.totalSubsidy += facility.taxIncentives || 0;
       existing.facilityCount += 1;
       existing.jobsPromised += facility.jobsPromised || 0;
-      existing.jobsDelivered += facility.jobsActual || 0;
+      existing.jobsDelivered += facility.jobsCreated || 0;
       
       // Calculate risk score for this facility
       const riskScore = facility.complianceStatus === 'Non-Compliant' ? 80 :

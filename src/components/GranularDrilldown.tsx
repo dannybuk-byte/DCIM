@@ -172,9 +172,9 @@ export const GranularDrilldown: React.FC<GranularDrilldownProps> = ({ facility, 
           >
             <div className="space-y-2 mt-2">
               <DetailRow label="Facility Type" value={facility.type} />
-              <DetailRow label="Provider" value={facility.provider} />
-              <DetailRow label="Latitude" value={facility.latitude.toFixed(6)} />
-              <DetailRow label="Longitude" value={facility.longitude.toFixed(6)} />
+              <DetailRow label="Provider" value={facility.operator} />
+              <DetailRow label="Latitude" value={(facility.latitude ?? 0).toFixed(6)} />
+              <DetailRow label="Longitude" value={(facility.longitude ?? 0).toFixed(6)} />
 
               {/* Level 3: Geographic Details */}
               <DrilldownSection
@@ -188,9 +188,9 @@ export const GranularDrilldown: React.FC<GranularDrilldownProps> = ({ facility, 
                   <DetailRow label="Country" value={facility.country} />
                   <DetailRow label="State/Province" value={facility.state} />
                   <DetailRow label="City" value={facility.city} />
-                  <DetailRow label="Postal Code" value={facility.postalCode || 'N/A'} />
-                  <DetailRow label="Metro Area" value={facility.metroCode || 'N/A'} />
-                  <DetailRow label="Coordinates" value={`${facility.latitude}, ${facility.longitude}`} />
+                  <DetailRow label="Postal Code" value={facility.address || 'N/A'} />
+                  <DetailRow label="Metro Area" value={facility.city || 'N/A'} />
+                  <DetailRow label="Coordinates" value={`${facility.latitude ?? 0}, ${facility.longitude ?? 0}`} />
                   
                   {/* Level 4: Coordinate System Details */}
                   <DrilldownSection
@@ -203,15 +203,15 @@ export const GranularDrilldown: React.FC<GranularDrilldownProps> = ({ facility, 
                     <div className="space-y-2 mt-2">
                       <DetailRow label="Format" value="Decimal Degrees (DD)" />
                       <DetailRow label="Datum" value="WGS84" />
-                      <DetailRow label="Latitude (N)" value={`${facility.latitude.toFixed(8)}°`} />
-                      <DetailRow label="Longitude (W)" value={`${facility.longitude.toFixed(8)}°`} />
+                      <DetailRow label="Latitude (N)" value={`${(facility.latitude ?? 0).toFixed(8)}°`} />
+                      <DetailRow label="Longitude (W)" value={`${(facility.longitude ?? 0).toFixed(8)}°`} />
                       <DetailRow 
                         label="DMS Lat" 
-                        value={convertToDMS(facility.latitude, true)}
+                        value={convertToDMS(facility.latitude ?? 0, true)}
                       />
                       <DetailRow 
                         label="DMS Lng" 
-                        value={convertToDMS(facility.longitude, false)}
+                        value={convertToDMS(facility.longitude ?? 0, false)}
                       />
                     </div>
                   </DrilldownSection>
@@ -228,10 +228,10 @@ export const GranularDrilldown: React.FC<GranularDrilldownProps> = ({ facility, 
               >
                 <div className="space-y-2 mt-2">
                   <DetailRow label="Facility ID" value={facility.id} />
-                  <DetailRow label="TLS Version" value={facility.tlsVersion} />
-                  <DetailRow label="Cipher Suite" value={facility.tlsCipher} />
-                  <DetailRow label="ASN" value={facility.asn?.toString() || 'N/A'} />
-                  <DetailRow label="AS Organization" value={facility.asOrganization || 'N/A'} />
+                  <DetailRow label="Power Capacity" value={facility.powerCapacityMW ? `${facility.powerCapacityMW} MW` : 'N/A'} />
+                  <DetailRow label="Year Established" value={facility.yearEstablished?.toString() || 'N/A'} />
+                  <DetailRow label="Tax Incentives" value={facility.taxIncentives ? `$${facility.taxIncentives.toLocaleString()}` : 'N/A'} />
+                  <DetailRow label="Compliance Status" value={facility.complianceStatus || 'Unknown'} />
                 </div>
               </DrilldownSection>
             </div>

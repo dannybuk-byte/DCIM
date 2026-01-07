@@ -89,8 +89,8 @@ const mapFacility = (f: DBFacility): Facility => ({
   lastAuditDate: f.lastAuditDate,
   issues: f.issues,
   powerCapacity: f.powerCapacityMW ? f.powerCapacityMW * 1000 : Math.floor(Math.random() * 500) + 50,
-  sqft: f.squareFootage || Math.floor(Math.random() * 500000) + 50000,
-  yearBuilt: f.yearBuilt || 2015 + Math.floor(Math.random() * 10)
+  sqft: Math.floor(Math.random() * 500000) + 50000, // squareFootage not in Facility type
+  yearBuilt: f.yearEstablished || 2015 + Math.floor(Math.random() * 10)
 });
 
 // ============================================================================
@@ -158,7 +158,7 @@ const Tooltip: React.FC<TooltipProps> = ({ content, children, position = 'top', 
 // NESTED TABS COMPONENT
 // ============================================================================
 interface NestedTabsProps {
-  tabs: { id: string; label: string; icon?: React.ReactNode; badge?: number; content: React.ReactNode }[];
+  tabs: { id: string; label: string; icon?: React.ReactNode; badge?: number | string; content: React.ReactNode }[];
   defaultTab?: string;
   size?: 'sm' | 'md';
   variant?: 'pills' | 'underline' | 'cards';
@@ -667,7 +667,7 @@ const FacilityDetailPanel: React.FC<{ facility: Facility; onClose: () => void }>
       ['Jobs Promised', facility.jobsPromised.toString()],
       ['Jobs Actual', facility.jobsActual.toString()],
       ['Jobs Gap', jobsGap.toString()],
-      ['Power Capacity (kW)', facility.powerCapacity.toString()],
+      ['Power Capacity (kW)', (facility.powerCapacity ?? 0).toString()],
       ['Square Footage', (facility.sqft || 0).toString()],
       ['Year Built', (facility.yearBuilt || 'N/A').toString()],
       ['Issues', (facility.issues || []).join('; ') || 'None'],
@@ -2711,7 +2711,7 @@ export const HybridDashboard: React.FC = () => {
                     badge: 'NEW',
                     content: (
                       <ErrorBoundary tabName="Follow Your Data">
-                        <FollowYourDataTab facilities={filtered} />
+                        <FollowYourDataTab facilities={filtered as unknown as DBFacility[]} />
                       </ErrorBoundary>
                     )
                   },
