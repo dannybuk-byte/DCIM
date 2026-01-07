@@ -531,7 +531,7 @@ const SpaceFillingOverviewGrid: React.FC<OverviewGridProps> = ({
   const totalViolators = topViolators.length;
 
   return (
-    <div className="flex flex-col gap-3 p-3 overflow-auto min-h-0" style={{ height: availableHeight, minHeight: 'auto' }}>
+    <div className="flex flex-col gap-3 p-3">
       {/* ========== MISSION HEADER - FULL WIDTH ========== */}
       <div className="bg-gradient-to-r from-slate-900 via-blue-900 to-indigo-900 rounded-xl p-4 shadow-xl border border-blue-500/30">
         <div className="flex items-center justify-between">
@@ -863,10 +863,10 @@ export const DensityOptimizedLayout: React.FC = () => {
 
         {/* Main Content */}
         <main 
-          className="transition-all duration-200"
+          className="transition-all duration-200 min-h-screen pb-8"
           style={{ 
             paddingLeft: sidebarCollapsed ? 48 : config.sidebarWidth,
-            paddingTop: config.rowHeight + 16
+            paddingTop: config.rowHeight + 16,
           }}
         >
           {loading ? (
