@@ -485,6 +485,230 @@ const CompactFacilityTable: React.FC<FacilityTableProps> = ({ facilities, maxRow
 };
 
 // ============================================================================
+// MISSION-FOCUSED FACILITIES VIEW
+// ============================================================================
+interface MissionFacilitiesViewProps {
+  facilities: Facility[];
+  stats: {
+    total: number;
+    compliant: number;
+    nonCompliant: number;
+    atRisk: number;
+    subsidyGap: number;
+  };
+}
+
+const MissionFacilitiesView: React.FC<MissionFacilitiesViewProps> = ({ facilities, stats }) => {
+  const { config } = useDensity();
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [sortBy, setSortBy] = useState<'gap' | 'name' | 'status'>('gap');
+  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
+
+  const filtered = useMemo(() => {
+    let result = [...facilities];
+    
+    // Filter by search
+    if (searchTerm) {
+      const term = searchTerm.toLowerCase();
+      result = result.filter(f => 
+        f.name.toLowerCase().includes(term) ||
+        f.operator.toLowerCase().includes(term) ||
+        f.city.toLowerCase().includes(term) ||
+        f.state.toLowerCase().includes(term)
+      );
+    }
+    
+    // Filter by status
+    if (statusFilter !== 'all') {
+      result = result.filter(f => f.status === statusFilter);
+    }
+    
+    // Sort
+    result.sort((a, b) => {
+      let cmp = 0;
+      if (sortBy === 'name') cmp = a.name.localeCompare(b.name);
+      else if (sortBy === 'gap') cmp = a.subsidyGap - b.subsidyGap;
+      else cmp = a.status.localeCompare(b.status);
+      return sortDir === 'asc' ? cmp : -cmp;
+    });
+    
+    return result;
+  }, [facilities, searchTerm, statusFilter, sortBy, sortDir]);
+
+  const statusColors: Record<string, { bg: string; text: string; border: string }> = {
+    'Compliant': { bg: 'bg-green-50', text: 'text-green-700', border: 'border-green-200' },
+    'Non-Compliant': { bg: 'bg-red-50', text: 'text-red-700', border: 'border-red-200' },
+    'At Risk': { bg: 'bg-yellow-50', text: 'text-yellow-700', border: 'border-yellow-200' },
+    'Unknown': { bg: 'bg-slate-50', text: 'text-slate-700', border: 'border-slate-200' }
+  };
+
+  return (
+    <div className="flex flex-col gap-3 p-3">
+      {/* Mission Header */}
+      <div className="bg-gradient-to-r from-blue-900 to-indigo-900 rounded-xl p-4 shadow-lg">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-lg bg-blue-500/30 flex items-center justify-center">
+              <Database size={24} className="text-blue-300" />
+            </div>
+            <div>
+              <h2 className="text-lg font-bold text-white">Facility Database</h2>
+              <p className="text-blue-300 text-sm">Track and investigate Big Tech's data centers</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-4 text-sm">
+            <div className="text-center">
+              <div className="text-2xl font-bold text-white">{stats.total.toLocaleString()}</div>
+              <div className="text-blue-300 text-xs">Total</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-red-400">{stats.nonCompliant.toLocaleString()}</div>
+              <div className="text-blue-300 text-xs">Non-Compliant</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-yellow-400">${(stats.subsidyGap / 1e9).toFixed(2)}B</div>
+              <div className="text-blue-300 text-xs">Subsidy Gap</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Filters Bar */}
+      <div className="bg-white rounded-xl border border-slate-200 p-3 flex items-center gap-3">
+        <div className="relative flex-1">
+          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+          <input
+            type="text"
+            placeholder="Search facilities, operators, locations..."
+            value={searchTerm}
+            onChange={e => setSearchTerm(e.target.value)}
+            className="w-full pl-9 pr-4 py-2 rounded-lg border border-slate-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none text-sm"
+          />
+        </div>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setStatusFilter('all')}
+            className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+              statusFilter === 'all' ? 'bg-blue-500 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+            }`}
+          >
+            All
+          </button>
+          <button
+            onClick={() => setStatusFilter('Non-Compliant')}
+            className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+              statusFilter === 'Non-Compliant' ? 'bg-red-500 text-white' : 'bg-red-50 text-red-600 hover:bg-red-100'
+            }`}
+          >
+            ⚠️ Non-Compliant
+          </button>
+          <button
+            onClick={() => setStatusFilter('At Risk')}
+            className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+              statusFilter === 'At Risk' ? 'bg-yellow-500 text-white' : 'bg-yellow-50 text-yellow-600 hover:bg-yellow-100'
+            }`}
+          >
+            ⚡ At Risk
+          </button>
+          <button
+            onClick={() => setStatusFilter('Compliant')}
+            className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+              statusFilter === 'Compliant' ? 'bg-green-500 text-white' : 'bg-green-50 text-green-600 hover:bg-green-100'
+            }`}
+          >
+            ✓ Compliant
+          </button>
+        </div>
+        <div className="border-l border-slate-200 pl-3">
+          <span className="text-slate-500 text-sm">{filtered.length.toLocaleString()} results</span>
+        </div>
+      </div>
+
+      {/* Results Table */}
+      <div className="bg-white rounded-xl border border-slate-200 overflow-hidden flex-1">
+        {/* Table Header */}
+        <div className="grid grid-cols-[2fr_1fr_100px_120px_100px] bg-slate-50 border-b border-slate-200 text-xs font-medium text-slate-600">
+          <button 
+            onClick={() => { setSortBy('name'); setSortDir(d => sortBy === 'name' ? (d === 'asc' ? 'desc' : 'asc') : 'desc'); }}
+            className="text-left px-4 py-3 hover:bg-slate-100 flex items-center gap-1"
+          >
+            Facility / Operator {sortBy === 'name' && (sortDir === 'asc' ? '↑' : '↓')}
+          </button>
+          <div className="px-4 py-3">Location</div>
+          <button 
+            onClick={() => { setSortBy('status'); setSortDir(d => sortBy === 'status' ? (d === 'asc' ? 'desc' : 'asc') : 'desc'); }}
+            className="text-left px-4 py-3 hover:bg-slate-100 flex items-center gap-1"
+          >
+            Status {sortBy === 'status' && (sortDir === 'asc' ? '↑' : '↓')}
+          </button>
+          <button 
+            onClick={() => { setSortBy('gap'); setSortDir(d => sortBy === 'gap' ? (d === 'asc' ? 'desc' : 'asc') : 'desc'); }}
+            className="text-right px-4 py-3 hover:bg-slate-100 flex items-center gap-1 justify-end"
+          >
+            Subsidy Gap {sortBy === 'gap' && (sortDir === 'asc' ? '↑' : '↓')}
+          </button>
+          <div className="px-4 py-3 text-center">Actions</div>
+        </div>
+
+        {/* Table Body */}
+        <div className="overflow-y-auto" style={{ maxHeight: 'calc(100vh - 350px)' }}>
+          {filtered.slice(0, 200).map((f, i) => {
+            const colors = statusColors[f.status] || statusColors['Unknown'];
+            return (
+              <div 
+                key={f.id}
+                className={`grid grid-cols-[2fr_1fr_100px_120px_100px] border-b border-slate-100 hover:bg-slate-50 transition-colors ${
+                  f.status === 'Non-Compliant' ? 'bg-red-50/30' : ''
+                }`}
+              >
+                <div className="px-4 py-3">
+                  <div className="font-medium text-slate-900 text-sm truncate">{f.name}</div>
+                  <div className="text-xs text-slate-500">{f.operator}</div>
+                </div>
+                <div className="px-4 py-3 text-sm text-slate-600">
+                  <div className="truncate">{f.city}, {f.state}</div>
+                </div>
+                <div className="px-4 py-3">
+                  <span className={`inline-flex px-2 py-1 rounded-full text-xs font-medium ${colors.bg} ${colors.text}`}>
+                    {f.status}
+                  </span>
+                </div>
+                <div className="px-4 py-3 text-right">
+                  {f.subsidyGap > 0 ? (
+                    <span className="font-bold text-red-600">${(f.subsidyGap / 1e6).toFixed(1)}M</span>
+                  ) : (
+                    <span className="text-slate-300">—</span>
+                  )}
+                </div>
+                <div className="px-4 py-3 flex items-center justify-center gap-1">
+                  <button className="p-1.5 rounded hover:bg-blue-100 text-blue-600" title="View details">
+                    <Eye size={14} />
+                  </button>
+                  <button className="p-1.5 rounded hover:bg-purple-100 text-purple-600" title="Generate FOIA">
+                    <FileText size={14} />
+                  </button>
+                  <button className="p-1.5 rounded hover:bg-orange-100 text-orange-600" title="Report issue">
+                    <AlertTriangle size={14} />
+                  </button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Footer */}
+        {filtered.length > 200 && (
+          <div className="text-center py-3 border-t border-slate-200 text-slate-500 text-sm bg-slate-50">
+            Showing 200 of {filtered.length.toLocaleString()} facilities • Use filters to narrow results
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+// ============================================================================
 // SPACE-FILLING OVERVIEW GRID
 // ============================================================================
 interface OverviewGridProps {
@@ -1079,9 +1303,7 @@ export const DensityOptimizedLayout: React.FC = () => {
               facilities={facilities}
             />
           ) : activeView === 'facilities' ? (
-            <div style={{ padding: config.padding * 2 }}>
-              <CompactFacilityTable facilities={facilities} />
-            </div>
+            <MissionFacilitiesView facilities={facilities} stats={stats} />
           ) : activeView === 'intelligence' ? (
             <div className="h-full overflow-auto">
               <ErrorBoundary tabName="Organizing Intelligence">
