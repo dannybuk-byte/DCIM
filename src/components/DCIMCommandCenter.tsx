@@ -1363,6 +1363,11 @@ export default function DCIMCommandCenter({ onActionRequested: _onActionRequeste
             atRisk: 0,
             unknown: 0,
             totalSubsidyGap: 0,
+            totalIssues: 0,
+            avgDaysSinceAudit: 0,
+            overdueAudits: 0,
+            medianSubsidyGap: 0,
+            maxSubsidyGap: 0,
           }}
           onRefresh={() => window.location.reload()}
         />
@@ -1890,7 +1895,7 @@ export default function DCIMCommandCenter({ onActionRequested: _onActionRequeste
       <TableOfContents
         isOpen={showTableOfContents}
         onClose={() => setShowTableOfContents(false)}
-        onNavigate={handleTabChange}
+        onNavigate={(tab) => handleTabChange(tab as CommandCenterTab)}
         currentTab={activeTab}
       />
 

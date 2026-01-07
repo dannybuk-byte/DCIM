@@ -651,6 +651,5 @@ class LabordataService {
 // Export singleton instance
 export const labordataService = new LabordataService();
 
-// Export types for external use
-export type { LazyLoadOptions, LazyLoadResult };
+// Types are already exported at their definitions
 

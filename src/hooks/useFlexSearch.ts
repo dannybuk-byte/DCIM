@@ -143,7 +143,7 @@ export function useFlexSearch(
               flattened.push({
                 facility,
                 score: 1, // FlexSearch doesn't provide scores in document mode
-                field,
+                field: field || 'unknown',
               });
             }
           }

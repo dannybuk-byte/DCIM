@@ -262,7 +262,7 @@ async function overlayVerifiedData(): Promise<number> {
       } else {
         // NO MATCH FOUND - Add this verified facility to the database
         // This ensures critical verified facilities like Meta Los Lunas are always present
-        const newFacility: Facility = {
+        const newFacility: Omit<Facility, 'id'> & { id?: number } = {
           name: subsidy.facility_name,
           type: 'Data Center',
           operator: subsidy.company,
@@ -271,7 +271,7 @@ async function overlayVerifiedData(): Promise<number> {
           city: subsidy.city,
           complianceStatus: getExpandedComplianceStatus(subsidy, stateAudit),
           subsidyGap: calculateExpandedGap(subsidy),
-          lastAuditDate: subsidy.approval_year?.toString() || '2024',
+          lastAuditDate: subsidy.year_announced?.toString() || '2024',
           issues: getExpandedIssues(subsidy, stateAudit),
           latitude: 0, // Could be geocoded later
           longitude: 0,
