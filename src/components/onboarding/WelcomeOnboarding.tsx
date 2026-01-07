@@ -63,13 +63,13 @@ export const WelcomeOnboarding: React.FC<WelcomeOnboardingProps> = ({
   useEffect(() => {
     // Check if user has already completed onboarding
     const hasOnboarded = localStorage.getItem('dcim_onboarded');
-    if (hasOnboarded === 'true') {
+    if (hasOnboarded === 'true' || hasOnboarded === 'skipped') {
       setIsVisible(false);
       return;
     }
     
-    // Animate in after mount
-    setTimeout(() => setAnimateIn(true), 100);
+    // Animate in immediately - show the modal
+    setAnimateIn(true);
   }, []);
 
   const handleComplete = () => {
