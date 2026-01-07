@@ -77,9 +77,11 @@ function generateFlows(facilities: Facility[], maxConnections = 500): FlowConnec
   
   // Connect non-compliant to nearby at-risk (showing spread risk)
   for (const nc of nonCompliant.slice(0, 50)) {
+    if (nc.latitude === undefined || nc.longitude === undefined) continue;
     const nearbyAtRisk = atRisk
       .filter(ar => {
-        const dist = Math.hypot(nc.latitude - ar.latitude, nc.longitude - ar.longitude);
+        if (ar.latitude === undefined || ar.longitude === undefined) return false;
+        const dist = Math.hypot((nc.latitude ?? 0) - ar.latitude, (nc.longitude ?? 0) - ar.longitude);
         return dist < 5; // Within ~5 degrees
       })
       .slice(0, 3);
@@ -128,7 +130,7 @@ export const DeckGLOverlay = memo(function DeckGLOverlay({
     switch (metricField) {
       case 'subsidyGap': return f.subsidyGap || 0;
       case 'issuesCount': return f.issues?.length || 0;
-      case 'safetyRisk': return f.safetyRisk || 0;
+      case 'safetyRisk': return f.issues?.length || 0; // Use issues count as proxy for safety risk
       default: return f.subsidyGap || 0;
     }
   }, [metricField]);
@@ -146,7 +148,7 @@ export const DeckGLOverlay = memo(function DeckGLOverlay({
     radiusMaxPixels: 40,
     lineWidthMinPixels: 1,
     lineWidthMaxPixels: 3,
-    getPosition: (d) => [d.longitude, d.latitude],
+    getPosition: (d) => [d.longitude ?? 0, d.latitude ?? 0],
     getRadius: (d) => Math.sqrt(getMetricValue(d)) * 0.5 + 5,
     getFillColor: (d) => STATUS_COLORS[d.complianceStatus] || STATUS_COLORS.Unknown,
     getLineColor: (d) => GLOW_COLORS[d.complianceStatus] || GLOW_COLORS.Unknown,
@@ -173,7 +175,7 @@ export const DeckGLOverlay = memo(function DeckGLOverlay({
     radiusScale: radiusScale * 80,
     radiusMinPixels: 8,
     radiusMaxPixels: 60,
-    getPosition: (d) => [d.longitude, d.latitude],
+    getPosition: (d) => [d.longitude ?? 0, d.latitude ?? 0],
     getRadius: (d) => Math.sqrt(getMetricValue(d)) * 0.8 + 10,
     getFillColor: (d) => GLOW_COLORS[d.complianceStatus] || GLOW_COLORS.Unknown,
     updateTriggers: {
@@ -193,7 +195,7 @@ export const DeckGLOverlay = memo(function DeckGLOverlay({
     elevationRange: [0, 3000],
     coverage: 0.9,
     upperPercentile: 100,
-    getPosition: (d) => [d.longitude, d.latitude],
+    getPosition: (d) => [d.longitude ?? 0, d.latitude ?? 0],
     getElevationWeight: (d) => getMetricValue(d),
     getColorWeight: (d) => d.complianceStatus === 'Non-Compliant' ? 100 : 
                           d.complianceStatus === 'At Risk' ? 50 : 10,
@@ -218,7 +220,7 @@ export const DeckGLOverlay = memo(function DeckGLOverlay({
     id: 'facilities-heatmap',
     data: facilities,
     pickable: false,
-    getPosition: (d) => [d.longitude, d.latitude],
+    getPosition: (d) => [d.longitude ?? 0, d.latitude ?? 0],
     getWeight: (d) => getMetricValue(d) + 1,
     radiusPixels: 60,
     intensity: 1,
@@ -239,7 +241,7 @@ export const DeckGLOverlay = memo(function DeckGLOverlay({
     pickable: true,
     opacity: 0.7,
     cellSizePixels: 20,
-    getPosition: (d) => [d.longitude, d.latitude],
+    getPosition: (d) => [d.longitude ?? 0, d.latitude ?? 0],
     getWeight: (d) => getMetricValue(d) + 1,
     colorRange: [
       [0, 25, 0, 40],
@@ -258,8 +260,8 @@ export const DeckGLOverlay = memo(function DeckGLOverlay({
     data: flows,
     pickable: true,
     getWidth: (d) => Math.sqrt(d.weight) * 0.5 + 1,
-    getSourcePosition: (d) => [d.source.longitude, d.source.latitude],
-    getTargetPosition: (d) => [d.target.longitude, d.target.latitude],
+    getSourcePosition: (d) => [d.source.longitude ?? 0, d.source.latitude ?? 0],
+    getTargetPosition: (d) => [d.target.longitude ?? 0, d.target.latitude ?? 0],
     getSourceColor: (d) => STATUS_COLORS[d.source.complianceStatus] || STATUS_COLORS.Unknown,
     getTargetColor: (d) => STATUS_COLORS[d.target.complianceStatus] || STATUS_COLORS.Unknown,
     getHeight: 0.3,
@@ -273,7 +275,7 @@ export const DeckGLOverlay = memo(function DeckGLOverlay({
       id: 'facility-label',
       data: [hoveredFacility],
       pickable: false,
-      getPosition: (d) => [d.longitude, d.latitude],
+      getPosition: (d) => [d.longitude ?? 0, d.latitude ?? 0],
       getText: (d) => `${d.name}\n$${(d.subsidyGap / 1e6).toFixed(1)}M gap`,
       getSize: 14,
       getColor: [232, 238, 246, 255],
@@ -331,7 +333,7 @@ export const DeckGLOverlay = memo(function DeckGLOverlay({
 
     const deck = new Deck({
       parent: containerRef.current,
-      style: { position: 'absolute', top: 0, left: 0, pointerEvents: 'none' },
+      style: { position: 'absolute', top: '0', left: '0', pointerEvents: 'none' },
       viewState,
       layers,
       controller: false, // MapLibre handles controls

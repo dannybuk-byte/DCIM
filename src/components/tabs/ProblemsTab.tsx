@@ -305,7 +305,7 @@ const ProblemsTab = memo(function ProblemsTab({ facilities }: ProblemsTabProps) 
   );
   
   const atRiskCount = useMemo(() =>
-    problemFacilities.filter(f => f.complianceStatus === 'At-Risk').length,
+    problemFacilities.filter(f => f.complianceStatus === 'At Risk').length,
     [problemFacilities]
   );
 

@@ -25,7 +25,7 @@ export async function executeQuery(query: FacilityQuery): Promise<Facility[]> {
     
     // Compliance status filter
     if (query.complianceStatuses && query.complianceStatuses.length > 0) {
-      const statusSet = new Set(query.complianceStatuses);
+      const statusSet = new Set<string>(query.complianceStatuses);
       collection = collection.filter(f => 
         f.complianceStatus && statusSet.has(f.complianceStatus)
       );
@@ -65,18 +65,18 @@ export async function executeQuery(query: FacilityQuery): Promise<Facility[]> {
         if (!cityMatch) return false;
       }
       
-      // Facility type filter
+      // Facility type filter - compare as strings
       if (query.facilityTypes && query.facilityTypes.length > 0) {
-        if (!facility.type || !query.facilityTypes.includes(facility.type)) {
+        if (!facility.type || !query.facilityTypes.includes(facility.type as 'POP' | 'Other' | 'Enterprise' | 'Colocation' | 'Hyperscale' | 'Edge' | 'CDN' | 'CORD')) {
           return false;
         }
       }
       
-      // Subsidy filters
-      if (query.subsidyMin !== undefined && (facility.subsidyReceived || 0) < query.subsidyMin) {
+      // Subsidy filters - use taxIncentives as subsidy received proxy
+      if (query.subsidyMin !== undefined && (facility.taxIncentives || 0) < query.subsidyMin) {
         return false;
       }
-      if (query.subsidyMax !== undefined && (facility.subsidyReceived || 0) > query.subsidyMax) {
+      if (query.subsidyMax !== undefined && (facility.taxIncentives || 0) > query.subsidyMax) {
         return false;
       }
       if (query.subsidyGapMin !== undefined && (facility.subsidyGap || 0) < query.subsidyGapMin) {
@@ -99,29 +99,33 @@ export async function executeQuery(query: FacilityQuery): Promise<Facility[]> {
       if (query.jobsCreatedMax !== undefined && (facility.jobsCreated || 0) > query.jobsCreatedMax) {
         return false;
       }
-      if (query.jobGapMin !== undefined && (facility.jobGap || 0) < query.jobGapMin) {
+      // Calculate job gap from promised vs created
+      const jobGap = (facility.jobsPromised || 0) - (facility.jobsCreated || 0);
+      if (query.jobGapMin !== undefined && jobGap < query.jobGapMin) {
         return false;
       }
-      if (query.jobGapMax !== undefined && (facility.jobGap || 0) > query.jobGapMax) {
-        return false;
-      }
-      
-      // Capacity filters
-      if (query.capacityMin !== undefined && (facility.capacity || 0) < query.capacityMin) {
-        return false;
-      }
-      if (query.capacityMax !== undefined && (facility.capacity || 0) > query.capacityMax) {
+      if (query.jobGapMax !== undefined && jobGap > query.jobGapMax) {
         return false;
       }
       
-      // Date filters
-      if (query.openedAfter && facility.openedDate) {
-        if (new Date(facility.openedDate) <= new Date(query.openedAfter)) {
+      // Capacity filters - use powerCapacityMW
+      if (query.capacityMin !== undefined && (facility.powerCapacityMW || 0) < query.capacityMin) {
+        return false;
+      }
+      if (query.capacityMax !== undefined && (facility.powerCapacityMW || 0) > query.capacityMax) {
+        return false;
+      }
+      
+      // Date filters - use yearEstablished as proxy
+      if (query.openedAfter && facility.yearEstablished) {
+        const openedYear = new Date(query.openedAfter).getFullYear();
+        if (facility.yearEstablished <= openedYear) {
           return false;
         }
       }
-      if (query.openedBefore && facility.openedDate) {
-        if (new Date(facility.openedDate) >= new Date(query.openedBefore)) {
+      if (query.openedBefore && facility.yearEstablished) {
+        const openedYear = new Date(query.openedBefore).getFullYear();
+        if (facility.yearEstablished >= openedYear) {
           return false;
         }
       }
@@ -133,8 +137,18 @@ export async function executeQuery(query: FacilityQuery): Promise<Facility[]> {
     if (query.sortBy) {
       facilities.sort((a, b) => {
         const field = query.sortBy!;
-        let aVal: any = a[field];
-        let bVal: any = b[field];
+        // Map sortBy fields to actual Facility properties
+        const getFieldValue = (facility: Facility, sortField: string): unknown => {
+          switch (sortField) {
+            case 'subsidyReceived': return facility.taxIncentives || 0;
+            case 'jobGap': return (facility.jobsPromised || 0) - (facility.jobsCreated || 0);
+            case 'capacity': return facility.powerCapacityMW || 0;
+            case 'openedDate': return facility.yearEstablished || 0;
+            default: return (facility as Record<string, unknown>)[sortField];
+          }
+        };
+        let aVal: unknown = getFieldValue(a, field);
+        let bVal: unknown = getFieldValue(b, field);
         
         // Handle null/undefined values
         if (aVal === null || aVal === undefined) aVal = 0;
@@ -211,7 +225,7 @@ export async function getQueryStats(query: FacilityQuery): Promise<QueryStats> {
     else if (facility.complianceStatus === 'Non-Compliant') nonCompliant++;
     
     totalSubsidyGap += facility.subsidyGap || 0;
-    totalSubsidyReceived += facility.subsidyReceived || 0;
+    totalSubsidyReceived += facility.taxIncentives || 0;
     
     if (facility.jobsPromised && facility.jobsPromised > 0) {
       const fulfillment = (facility.jobsCreated || 0) / facility.jobsPromised;

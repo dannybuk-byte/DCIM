@@ -621,15 +621,15 @@ export async function analyzeAllFacilitiesSubsidyRisk(): Promise<SubsidyRiskScor
       
       // For demo, generate some early warnings based on compliance status
       const warnings: EarlyWarningSignal[] = [];
-      if (facility.complianceStatus === 'non-compliant') {
+      if (facility.complianceStatus === 'Non-Compliant') {
         warnings.push({
           id: `warning-${facility.id}`,
           facilityId: String(facility.id),
           signalType: 'power_vs_jobs_divergence',
           severity: 'high',
           confidence: 70,
-          description: 'Facility marked non-compliant',
-          evidence: ['Compliance status: non-compliant'],
+          description: 'Facility marked Non-Compliant',
+          evidence: ['Compliance status: Non-Compliant'],
           detectedAt: new Date(),
           estimatedSubsidyAtRisk: agreement.totalSubsidyValue * 0.5,
           recommendedAction: 'Immediate compliance review required'
@@ -772,9 +772,9 @@ export async function estimateOperatorSubsidyExposure(): Promise<Array<{
       existing.jobsDelivered += facility.jobsActual || 0;
       
       // Calculate risk score for this facility
-      const riskScore = facility.complianceStatus === 'non-compliant' ? 80 :
-                       facility.complianceStatus === 'at-risk' ? 60 :
-                       facility.complianceStatus === 'compliant' ? 20 : 50;
+      const riskScore = facility.complianceStatus === 'Non-Compliant' ? 80 :
+                       facility.complianceStatus === 'At Risk' ? 60 :
+                       facility.complianceStatus === 'Compliant' ? 20 : 50;
       existing.riskScores.push(riskScore);
       
       operatorMap.set(operator, existing);

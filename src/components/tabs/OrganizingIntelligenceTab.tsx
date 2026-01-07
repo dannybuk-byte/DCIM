@@ -936,12 +936,12 @@ export const OrganizingIntelligenceTab: React.FC = () => {
                                       <div className="text-white font-medium">{Math.round(target.structuralFactors.directEmploymentRatio)}%</div>
                                     </div>
                                     <div className="bg-[#161b22] p-2 rounded">
-                                      <div className="text-gray-500 mb-1">Contractors</div>
-                                      <div className="text-white font-medium">{target.structuralFactors.contractorFragmentation}</div>
+                                      <div className="text-gray-500 mb-1">Colocation</div>
+                                      <div className="text-white font-medium">{target.structuralFactors.colocationModel ? 'Yes' : 'No'}</div>
                                     </div>
                                     <div className="bg-[#161b22] p-2 rounded">
-                                      <div className="text-gray-500 mb-1">Corridor</div>
-                                      <div className="text-white font-medium truncate">{target.strategicFactors.corridor}</div>
+                                      <div className="text-gray-500 mb-1">Traffic Share</div>
+                                      <div className="text-white font-medium truncate">{target.strategicFactors.trafficShare}%</div>
                                     </div>
                                   </div>
                                 )}
@@ -986,19 +986,19 @@ export const OrganizingIntelligenceTab: React.FC = () => {
                                   <div className="space-y-1">
                                     <div className="flex justify-between p-1.5 bg-[#161b22] rounded">
                                       <span className="text-gray-400">IBEW Presence</span>
-                                      <span className={target.strategicFactors.existingIBEWPresence ? 'text-green-400' : 'text-gray-500'}>
-                                        {target.strategicFactors.existingIBEWPresence ? 'Yes' : 'No'}
+                                      <span className={target.structuralFactors.ibewPresence ? 'text-green-400' : 'text-gray-500'}>
+                                        {target.structuralFactors.ibewPresence ? 'Yes' : 'No'}
                                       </span>
                                     </div>
                                     <div className="flex justify-between p-1.5 bg-[#161b22] rounded">
-                                      <span className="text-gray-400">Coalition Activity</span>
-                                      <span className={target.strategicFactors.coalitionPresence ? 'text-green-400' : 'text-gray-500'}>
-                                        {target.strategicFactors.coalitionPresence ? 'Active' : 'None'}
+                                      <span className="text-gray-400">Community Opposition</span>
+                                      <span className={target.strategicFactors.communityOpposition ? 'text-green-400' : 'text-gray-500'}>
+                                        {target.strategicFactors.communityOpposition ? 'Active' : 'None'}
                                       </span>
                                     </div>
                                     <div className="flex justify-between p-1.5 bg-[#161b22] rounded">
-                                      <span className="text-gray-400">Subsidy Value</span>
-                                      <span className="text-green-400">${(target.strategicFactors.subsidyAmount / 1000000).toFixed(1)}M</span>
+                                      <span className="text-gray-400">Subsidy Accountability</span>
+                                      <span className="text-green-400">${(target.strategicFactors.subsidyAccountability / 1000000).toFixed(1)}M</span>
                                     </div>
                                   </div>
                                 )}

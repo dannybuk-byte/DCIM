@@ -126,7 +126,8 @@ export type CommandCenterTab =
   | 'Assurance Monitor' // Continuous monitoring
   | 'Sanctions Monitor' // NEW: OFAC Sanctions Network Hygiene Enforcement
   | 'Subsidy Accountability' // NEW: Good Jobs First subsidy accountability tracking
-  | 'Organizer Hub'; // NEW: Labor organizing command center
+  | 'Organizer Hub' // NEW: Labor organizing command center
+  | 'AI Infrastructure'; // NEW: Epoch AI data center intelligence
   // | 'POC';  // Disabled - requires @kuzu/kuzu-wasm
 
 interface DCIMCommandCenterProps {
@@ -1346,12 +1347,6 @@ export default function DCIMCommandCenter({ onActionRequested: _onActionRequeste
         </ErrorBoundary>
       )}
       */}
-
-      {activeTab === 'POC' && (
-        <ErrorBoundary>
-          <GraphDatabasePOC />
-        </ErrorBoundary>
-      )}
     </div>
   );
 
@@ -1369,7 +1364,7 @@ export default function DCIMCommandCenter({ onActionRequested: _onActionRequeste
             unknown: 0,
             totalSubsidyGap: 0,
           }}
-          onRefresh={loadData}
+          onRefresh={() => window.location.reload()}
         />
       ) : (
         /* ORIGINAL TAB-BASED LAYOUT - Now with Antifragile Navigation */

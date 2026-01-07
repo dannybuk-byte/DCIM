@@ -227,8 +227,8 @@ export const SubsidyTrackingTab = memo(({ facilities, stats }: SubsidyTrackingTa
                               </div>
                               <div className="col-span-2 text-center">
                                 <span className={`px-1.5 py-0.5 text-[10px] font-medium rounded ${
-                                  facility.complianceStatus === 'non-compliant' ? 'bg-red-500/20 text-red-400' :
-                                  facility.complianceStatus === 'at-risk' ? 'bg-yellow-500/20 text-yellow-400' :
+                                  facility.complianceStatus === 'Non-Compliant' ? 'bg-red-500/20 text-red-400' :
+                                  facility.complianceStatus === 'At Risk' ? 'bg-yellow-500/20 text-yellow-400' :
                                   'bg-green-500/20 text-green-400'
                                 }`}>
                                   {facility.complianceStatus}
@@ -301,7 +301,7 @@ export const SubsidyTrackingTab = memo(({ facilities, stats }: SubsidyTrackingTa
                         {facility.city}, {facility.state}
                       </span>
                       <span className={`px-1.5 py-0.5 rounded ${
-                        facility.complianceStatus === 'non-compliant' ? 'bg-red-500/20 text-red-400' :
+                        facility.complianceStatus === 'Non-Compliant' ? 'bg-red-500/20 text-red-400' :
                         'bg-yellow-500/20 text-yellow-400'
                       }`}>
                         {facility.complianceStatus}

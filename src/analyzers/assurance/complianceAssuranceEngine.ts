@@ -105,7 +105,7 @@ export class ComplianceAssuranceEngine {
    * (Like Juniper's continuous validation)
    */
   async runAssurance(facility: Facility): Promise<AssuranceResult> {
-    const intent = this.intents.get(facility.id);
+    const intent = this.intents.get(String(facility.id));
     
     if (!intent) {
       return this.createUnknownResult(facility);
@@ -140,7 +140,7 @@ export class ComplianceAssuranceEngine {
     const urgency = this.calculateUrgency(status, daysUntilViolation, complianceGap);
     
     const result: AssuranceResult = {
-      facilityId: facility.id,
+      facilityId: String(facility.id),
       timestamp: new Date(),
       status,
       confidence: 0.85, // Based on data quality
@@ -153,7 +153,7 @@ export class ComplianceAssuranceEngine {
     };
     
     // Store result for trend analysis
-    this.storeResult(facility.id, result);
+    this.storeResult(String(facility.id), result);
     
     return result;
   }
@@ -166,7 +166,7 @@ export class ComplianceAssuranceEngine {
     
     for (const facility of facilities) {
       const result = await this.runAssurance(facility);
-      const history = this.historicalResults.get(facility.id) || [];
+      const history = this.historicalResults.get(String(facility.id)) || [];
       
       // Trend analysis: Is compliance degrading?
       const trend = this.analyzeTrend(history);
@@ -174,7 +174,7 @@ export class ComplianceAssuranceEngine {
       if (result.status === 'VIOLATED') {
         alerts.push({
           id: `drift-${facility.id}-${Date.now()}`,
-          facilityId: facility.id,
+          facilityId: String(facility.id),
           operator: facility.operator,
           severity: 'critical',
           type: 'COMPLIANCE_DROP',
@@ -187,7 +187,7 @@ export class ComplianceAssuranceEngine {
       } else if (result.status === 'DRIFTING' && trend === 'degrading') {
         alerts.push({
           id: `drift-${facility.id}-${Date.now()}`,
-          facilityId: facility.id,
+          facilityId: String(facility.id),
           operator: facility.operator,
           severity: 'warning',
           type: 'COMPLIANCE_DROP',
@@ -200,12 +200,12 @@ export class ComplianceAssuranceEngine {
       }
       
       // Check for overdue audits
-      const intent = this.intents.get(facility.id);
+      const intent = this.intents.get(String(facility.id));
       if (intent && new Date() > intent.nextAuditDue) {
         const daysOverdue = Math.floor((Date.now() - intent.nextAuditDue.getTime()) / (1000 * 60 * 60 * 24));
         alerts.push({
           id: `audit-${facility.id}-${Date.now()}`,
-          facilityId: facility.id,
+          facilityId: String(facility.id),
           operator: facility.operator,
           severity: daysOverdue > 90 ? 'critical' : 'warning',
           type: 'AUDIT_OVERDUE',
@@ -238,14 +238,14 @@ export class ComplianceAssuranceEngine {
     // Simple pattern matching (can be enhanced with LangChain.js)
     if (query.includes('failed job') || query.includes('job promise')) {
       return facilities.filter(f => {
-        const intent = this.intents.get(f.id);
-        return intent && f.jobsCreated < intent.jobsPromised * 0.5; // <50% of promised
+        const intent = this.intents.get(String(f.id));
+        return intent && (f.jobsCreated ?? 0) < intent.jobsPromised * 0.5; // <50% of promised
       });
     }
     
     if (query.includes('overdue audit')) {
       return facilities.filter(f => {
-        const intent = this.intents.get(f.id);
+        const intent = this.intents.get(String(f.id));
         return intent && new Date() > intent.nextAuditDue;
       });
     }
@@ -256,7 +256,7 @@ export class ComplianceAssuranceEngine {
       const jobsThreshold = match ? parseInt(match[2]) : 50;
       
       return facilities.filter(f => 
-        f.subsidyGap > subsidyThreshold && f.jobsCreated < jobsThreshold
+        f.subsidyGap > subsidyThreshold && (f.jobsCreated ?? 0) < jobsThreshold
       );
     }
     
@@ -269,14 +269,15 @@ export class ComplianceAssuranceEngine {
   // ============================================================================
   
   private checkJobsIntent(facility: Facility, intent: ComplianceIntent): AssuranceCheck {
-    const deviation = ((intent.jobsPromised - facility.jobsCreated) / intent.jobsPromised) * 100;
+    const jobsCreated = facility.jobsCreated ?? 0;
+    const deviation = ((intent.jobsPromised - jobsCreated) / intent.jobsPromised) * 100;
     
     return {
       category: 'jobs',
       metric: 'Job Creation',
       expected: intent.jobsPromised,
-      actual: facility.jobsCreated,
-      passed: facility.jobsCreated >= intent.jobsPromised * 0.9, // 90% threshold
+      actual: jobsCreated,
+      passed: jobsCreated >= intent.jobsPromised * 0.9, // 90% threshold
       deviation,
     };
   }
@@ -325,7 +326,7 @@ export class ComplianceAssuranceEngine {
   }
   
   private async predictViolation(facility: Facility): Promise<number | null> {
-    const history = this.historicalResults.get(facility.id) || [];
+    const history = this.historicalResults.get(String(facility.id)) || [];
     
     if (history.length < 3) return null; // Need history for prediction
     
@@ -411,7 +412,7 @@ export class ComplianceAssuranceEngine {
   
   private createUnknownResult(facility: Facility): AssuranceResult {
     return {
-      facilityId: facility.id,
+      facilityId: String(facility.id),
       timestamp: new Date(),
       status: 'UNKNOWN',
       confidence: 0,
