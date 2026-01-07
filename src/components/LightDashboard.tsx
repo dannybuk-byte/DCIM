@@ -1543,6 +1543,20 @@ export const LightDashboard: React.FC = () => {
       {/* Modal - Ultra-Detailed with Deep Nesting */}
       {selectedFacility && <DetailedFacilityModal facility={selectedFacility} onClose={() => setSelectedFacility(null)} />}
 
+      {/* Mission Banner */}
+      <div className="bg-gradient-to-r from-slate-900 via-blue-900 to-indigo-900 px-4 py-2">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <span className="text-white font-semibold">⚡ Big Tech Accountability Dashboard</span>
+            <span className="text-blue-300 text-sm hidden md:inline">Built for labor organizers • "Docks to Data Centers"</span>
+          </div>
+          <div className="flex items-center gap-4 text-sm">
+            <span className="text-red-400 font-bold">${stats ? ((stats.subsidyGap || 0) / 1e9).toFixed(2) : '0'}B Gap</span>
+            <span className="text-yellow-400">{stats?.nonCompliant?.toLocaleString() || 0} Non-Compliant</span>
+          </div>
+        </div>
+      </div>
+      
       {/* Header - Compact */}
       <header className="sticky top-0 z-50 bg-white/90 backdrop-blur-xl border-b border-slate-200 shadow-sm">
         <div className="px-3 py-2">

@@ -2197,6 +2197,20 @@ export const HybridDashboard: React.FC = () => {
 
   return (
     <div className={`min-h-screen bg-gradient-to-br from-slate-50 via-white to-indigo-50/30 ${isMobile ? 'pb-16' : ''}`}>
+      {/* Mission Banner */}
+      <div className="bg-gradient-to-r from-slate-900 via-purple-900 to-indigo-900 px-4 py-2">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <span className="text-white font-semibold">⚡ Big Tech Accountability Dashboard</span>
+            {!isMobile && <span className="text-purple-300 text-sm">Built for labor organizers • "Docks to Data Centers"</span>}
+          </div>
+          <div className="flex items-center gap-4 text-sm">
+            <span className="text-red-400 font-bold">${(stats.subsidyGap / 1e9).toFixed(2)}B Gap</span>
+            <span className="text-yellow-400">{stats.nonCompliant.toLocaleString()} Non-Compliant</span>
+          </div>
+        </div>
+      </div>
+      
       {/* Header */}
       <header className="sticky top-0 z-30 bg-white/90 backdrop-blur-xl border-b border-slate-200/50">
         <div className={`flex items-center justify-between ${isMobile ? 'p-2' : 'px-4 py-3'}`}>

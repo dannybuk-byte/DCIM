@@ -1412,6 +1412,20 @@ export default function DCIMCommandCenter({ onActionRequested: _onActionRequeste
         </a>
       </div>
 
+      {/* Mission Banner */}
+      <div className="bg-gradient-to-r from-red-900 via-orange-900 to-amber-900 px-4 py-1.5">
+        <div className="flex items-center justify-between text-sm">
+          <div className="flex items-center gap-3">
+            <span className="text-white font-bold">⚡ Big Tech Accountability</span>
+            <span className="text-orange-300 text-xs">Labor organizer intelligence • "Docks to Data Centers"</span>
+          </div>
+          <div className="flex items-center gap-3 text-xs">
+            <span className="text-red-400 font-bold">${((stats?.subsidyGap ?? 0) / 1e9).toFixed(2)}B Gap</span>
+            <span className="text-yellow-400">{(stats?.nonCompliant ?? 0).toLocaleString()} Violations</span>
+          </div>
+        </div>
+      </div>
+      
       {/* Top Bar - Ultra-compact Header with Live Metrics */}
       <header className="bg-gray-900 border-b border-gray-800 z-50 relative" style={{ position: 'relative', zIndex: 50 }}>
         {/* Breadcrumbs */}
