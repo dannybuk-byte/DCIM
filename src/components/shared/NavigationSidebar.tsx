@@ -161,6 +161,14 @@ const NAV_GROUPS: NavGroup[] = [
         description: 'Good Jobs First data - verify subsidy promises vs. reality',
         keywords: ['subsidy', 'accountability', 'jobs', 'promised', 'actual', 'good jobs first', 'transparency', 'state', 'gap', 'tax'],
       },
+      {
+        id: 'Organizer Hub',
+        label: '✊ Organizer Hub',
+        icon: <Target className="w-5 h-5" />,
+        color: 'rose',
+        description: 'Labor organizing command center - FOIA, incidents, contractors, CBAs, legislation, union density, coalition',
+        keywords: ['organize', 'union', 'labor', 'foia', 'incident', 'contractor', 'cba', 'legislative', 'coalition', 'ibew', 'corridor', 'campaign', 'worker'],
+      },
     ],
   },
   {

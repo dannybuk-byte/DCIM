@@ -385,6 +385,48 @@ export class ComplianceDatabase extends Dexie {
     }).upgrade(async (_tx) => {
       console.log('Database upgraded to version 9: OFAC Sanctions Monitor tables added.');
     });
+
+    // Version 10: Add Labor Organizing Intelligence tables
+    this.version(10).stores({
+      facilities: '++id, name, type, operator, country, state, city, complianceStatus, subsidyGap, lastAuditDate',
+      dataProvenance: '++id, dataPointId, facilityId, metricName, [facilityId+metricName]',
+      communityContext: 'countyFips',
+      subsidyAgreements: '++id, facilityId',
+      localSignatures: '++id, facilityId',
+      localOrganizations: '++id, countyFips, type',
+      knowledgeGaps: '++id, facilityId, [facilityId+status]',
+      engagementTracking: '++id, facilityId',
+      settings: 'key',
+      networkSecurity: '++id, facilityId, asn, rpkiStatus',
+      sources: '++id, type, addedAt, *tags, *facilityIds',
+      citations: '++id, sourceId, [entityType+entityId]',
+      researchNotes: '++id, createdAt, updatedAt, *tags, *relatedFacilities, *relatedSources, category',
+      searchHistory: '++id, query, context, lastUsedAt, [context+lastUsedAt]',
+      // Pattern Intelligence Engine
+      bgpAnomalies: 'id, timestamp, type, asn, provider, significance',
+      ctAlerts: 'sha256, loggedAt, alertType, provider, significance',
+      curiosityQuestions: 'id, type, status, createdAt, learningValue',
+      predictions: 'id, detectionId, timestamp, resolvedAt',
+      learnedPatterns: 'id, source, type, learnedAt, lastSeen',
+      correlations: 'id, facilityId, timestamp, pattern, investigationPriority',
+      // OFAC Sanctions Monitor tables
+      sdnCache: 'uid, lastName, sdnType, country, lastUpdated',
+      sanctionsRiskScores: 'facilityId, riskLevel, timestamp, lastUpdated',
+      sanctionsReports: '++id, reportId, facilityId, timestamp, status, riskLevel',
+      bgpSanctionsAlerts: '++id, alertId, facilityId, asn, timestamp, severity, resolved',
+      // Labor Organizing Intelligence tables
+      foiaRequests: 'id, state, status, createdAt, submittedAt',
+      workerIncidents: 'id, [facility.state], incidentType, status, dateReported',
+      contractors: 'id, type, unionStatus, organizingPriority',
+      communityBenefitsAgreements: 'id, company, state, status',
+      bills: 'id, state, status, category, introducedDate',
+      unionPresence: 'facilityId, [location.state], [operationsUnion.status]',
+      coalitionPartners: 'id, type, engagementStatus, *focusAreas',
+      sharedWatchlists: 'id, createdBy, accessLevel',
+      campaigns: 'id, leadOrganization, status, targetCompany'
+    }).upgrade(async (_tx) => {
+      console.log('Database upgraded to version 10: Labor Organizing Intelligence tables added.');
+    });
   }
 }
 
