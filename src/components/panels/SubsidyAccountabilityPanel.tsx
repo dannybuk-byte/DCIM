@@ -85,13 +85,12 @@ const MetricCard: React.FC<{
   };
 
   return (
-    <div className={`p-3 rounded-lg border ${highlight ? highlightStyles[highlight] : 'border-slate-700/50 bg-slate-800/30'}`}>
-      <div className="flex items-center gap-2 mb-1">
+    <div className={`px-2 py-1.5 rounded border ${highlight ? highlightStyles[highlight] : 'border-slate-700/50 bg-slate-800/30'} flex items-center justify-between`}>
+      <div className="flex items-center gap-1.5">
         <span className="text-slate-500">{icon}</span>
-        <span className="text-[10px] text-slate-500 uppercase">{label}</span>
+        <span className="text-[10px] text-slate-500">{label}</span>
       </div>
-      <div className="text-xl font-bold text-white">{value}</div>
-      {sublabel && <div className="text-[10px] text-slate-500 mt-0.5">{sublabel}</div>}
+      <div className="text-sm font-bold text-white">{value}</div>
     </div>
   );
 };
@@ -108,117 +107,80 @@ const SubsidyRecordCard: React.FC<{
   const hasComplianceIssue = gap !== null && gap > 0;
 
   return (
-    <div className={`border rounded-lg overflow-hidden ${
+    <div className={`border rounded overflow-hidden ${
       hasComplianceIssue ? 'border-red-500/30' : 'border-slate-700/50'
     }`}>
       <button
         onClick={onToggle}
-        className="w-full p-3 bg-slate-800/30 hover:bg-slate-800/50 transition-colors flex items-center justify-between"
+        className="w-full px-2 py-1.5 bg-slate-800/30 hover:bg-slate-800/50 transition-colors flex items-center justify-between"
       >
-        <div className="flex items-center gap-3">
-          {expanded ? <ChevronDown size={14} className="text-slate-500" /> : <ChevronRight size={14} className="text-slate-500" />}
-          <div className="text-left">
-            <div className="flex items-center gap-2">
-              <span className="font-medium text-white">{record.company}</span>
-              <span className={`px-1.5 py-0.5 rounded text-[9px] font-medium ${
+        <div className="flex items-center gap-2 min-w-0">
+          {expanded ? <ChevronDown size={12} className="text-slate-500 shrink-0" /> : <ChevronRight size={12} className="text-slate-500 shrink-0" />}
+          <div className="text-left min-w-0">
+            <div className="flex items-center gap-1.5">
+              <span className="text-xs font-medium text-white truncate">{record.company}</span>
+              <span className={`px-1 py-0.5 rounded text-[8px] font-medium shrink-0 ${
                 record.compliance.status === 'compliant' ? 'bg-emerald-500/20 text-emerald-400' :
                 record.compliance.status === 'non-compliant' ? 'bg-red-500/20 text-red-400' :
                 'bg-slate-500/20 text-slate-400'
               }`}>
-                {record.compliance.status.toUpperCase()}
+                {record.compliance.status === 'non-compliant' ? 'NON' : record.compliance.status.substring(0, 3).toUpperCase()}
               </span>
               {hasComplianceIssue && (
-                <span className="px-1.5 py-0.5 bg-red-500/20 text-red-400 rounded text-[9px] font-medium flex items-center gap-1">
-                  <AlertTriangle size={10} />
-                  GAP: -{gap} jobs
+                <span className="px-1 py-0.5 bg-red-500/20 text-red-400 rounded text-[8px] font-medium shrink-0">
+                  -{gap}
                 </span>
               )}
             </div>
-            <div className="text-[10px] text-slate-500 flex items-center gap-2">
+            <div className="text-[9px] text-slate-500 flex items-center gap-1">
               <span>{record.subsidy.state}</span>
               <span>•</span>
-              <span>{record.subsidy.program}</span>
-              <span>•</span>
-              <span>{record.subsidy.year}</span>
+              <span className="truncate">{record.subsidy.program}</span>
             </div>
           </div>
         </div>
-        <div className="text-right">
-          <div className="text-cyan-400 font-mono font-bold">{formatCurrency(record.subsidy.amount)}</div>
-          <div className="text-[10px] text-slate-500">{record.subsidy.type}</div>
+        <div className="text-right shrink-0">
+          <div className="text-cyan-400 font-mono text-xs font-bold">{formatCurrency(record.subsidy.amount)}</div>
         </div>
       </button>
 
       {expanded && (
-        <div className="p-3 border-t border-slate-700/50 bg-slate-900/50 space-y-3">
-          {/* Job Details */}
-          <div className="grid grid-cols-3 gap-3">
+        <div className="px-2 py-1.5 border-t border-slate-700/50 bg-slate-900/50 max-h-32 overflow-y-auto">
+          {/* Job Details - Compact Grid */}
+          <div className="grid grid-cols-3 gap-1 text-[10px]">
             <div>
-              <div className="text-[10px] text-slate-500 uppercase mb-1">Jobs Promised</div>
-              <div className="text-white font-mono">
-                {record.jobs.promised?.toLocaleString() || '—'}
-              </div>
+              <span className="text-slate-500">Promised: </span>
+              <span className="text-white font-mono">{record.jobs.promised?.toLocaleString() || '—'}</span>
             </div>
             <div>
-              <div className="text-[10px] text-slate-500 uppercase mb-1">Jobs Actual</div>
-              <div className={`font-mono ${
+              <span className="text-slate-500">Actual: </span>
+              <span className={`font-mono ${
                 record.jobs.actual !== undefined 
                   ? (record.jobs.actual < (record.jobs.promised || 0) ? 'text-red-400' : 'text-emerald-400')
                   : 'text-slate-500'
               }`}>
-                {record.jobs.actual?.toLocaleString() || 'Not disclosed'}
-              </div>
+                {record.jobs.actual?.toLocaleString() || '?'}
+              </span>
             </div>
             <div>
-              <div className="text-[10px] text-slate-500 uppercase mb-1">Cost Per Job</div>
-              <div className="text-amber-400 font-mono">
+              <span className="text-slate-500">$/Job: </span>
+              <span className="text-amber-400 font-mono">
                 {record.jobs.promised 
                   ? formatCurrency(record.subsidy.amount / record.jobs.promised)
                   : '—'}
-              </div>
+              </span>
             </div>
           </div>
-
-          {/* Wage Info */}
-          {(record.jobs.wagePromise || record.jobs.actualWage) && (
-            <div className="grid grid-cols-2 gap-3 pt-2 border-t border-slate-700/50">
-              <div>
-                <div className="text-[10px] text-slate-500 uppercase mb-1">Wage Promise</div>
-                <div className="text-white font-mono">
-                  {record.jobs.wagePromise ? `$${record.jobs.wagePromise}/hr` : '—'}
-                </div>
-              </div>
-              <div>
-                <div className="text-[10px] text-slate-500 uppercase mb-1">Actual Wage</div>
-                <div className={`font-mono ${
-                  record.jobs.actualWage && record.jobs.wagePromise && record.jobs.actualWage < record.jobs.wagePromise
-                    ? 'text-red-400' : 'text-white'
-                }`}>
-                  {record.jobs.actualWage ? `$${record.jobs.actualWage}/hr` : 'Not disclosed'}
-                </div>
-              </div>
-            </div>
+          {record.source.url && (
+            <a
+              href={record.source.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-cyan-400 hover:underline text-[9px] flex items-center gap-0.5 mt-1"
+            >
+              Source <ExternalLink size={8} />
+            </a>
           )}
-
-          {/* Source */}
-          <div className="pt-2 border-t border-slate-700/50 text-xs">
-            <div className="flex items-center justify-between">
-              <span className="text-slate-500">Source: {record.source.agency}</span>
-              {record.source.url && (
-                <a
-                  href={record.source.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-cyan-400 hover:underline flex items-center gap-1"
-                >
-                  View Source <ExternalLink size={10} />
-                </a>
-              )}
-            </div>
-            {record.source.notes && (
-              <p className="text-amber-400/80 mt-1 text-[10px]">⚠️ {record.source.notes}</p>
-            )}
-          </div>
         </div>
       )}
     </div>
@@ -233,96 +195,71 @@ const StateTransparencyCard: React.FC<{
   const { score, grade, factors } = getStateTransparencyScore(profile.state);
 
   return (
-    <div className="border border-slate-700/50 rounded-lg overflow-hidden">
+    <div className="border border-slate-700/50 rounded overflow-hidden">
       <button
         onClick={onToggle}
-        className="w-full p-3 bg-slate-800/30 hover:bg-slate-800/50 transition-colors flex items-center justify-between"
+        className="w-full px-2 py-1 bg-slate-800/30 hover:bg-slate-800/50 transition-colors flex items-center justify-between"
       >
-        <div className="flex items-center gap-3">
-          {expanded ? <ChevronDown size={14} className="text-slate-500" /> : <ChevronRight size={14} className="text-slate-500" />}
-          <div className="flex items-center gap-2">
-            <MapPin size={14} className="text-slate-500" />
-            <span className="font-medium text-white">{profile.state}</span>
-            <span className={`px-2 py-0.5 rounded font-bold text-xs ${getGradeColor(grade)}`}>
-              {grade}
-            </span>
-          </div>
+        <div className="flex items-center gap-2">
+          {expanded ? <ChevronDown size={10} className="text-slate-500" /> : <ChevronRight size={10} className="text-slate-500" />}
+          <span className="text-xs font-medium text-white">{profile.state}</span>
+          <span className={`px-1 py-0.5 rounded font-bold text-[9px] ${getGradeColor(grade)}`}>
+            {grade}
+          </span>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
           {profile.estimatedAnnualCost && (
-            <span className="text-amber-400 font-mono text-sm">
+            <span className="text-amber-400 font-mono text-[10px]">
               {formatCurrency(profile.estimatedAnnualCost)}/yr
             </span>
           )}
-          <div className="flex items-center gap-1">
-            {profile.disclosesRecipients ? <Eye size={12} className="text-emerald-400" /> : <EyeOff size={12} className="text-red-400" />}
-            {profile.disclosesActualJobs ? <CheckCircle size={12} className="text-emerald-400" /> : <XCircle size={12} className="text-red-400" />}
-            {profile.disclosesWages ? <DollarSign size={12} className="text-emerald-400" /> : <DollarSign size={12} className="text-red-400" />}
+          <div className="flex items-center gap-0.5">
+            {profile.disclosesRecipients ? <Eye size={10} className="text-emerald-400" /> : <EyeOff size={10} className="text-red-400" />}
+            {profile.disclosesActualJobs ? <CheckCircle size={10} className="text-emerald-400" /> : <XCircle size={10} className="text-red-400" />}
+            {profile.disclosesWages ? <DollarSign size={10} className="text-emerald-400" /> : <DollarSign size={10} className="text-red-400" />}
           </div>
         </div>
       </button>
 
       {expanded && (
-        <div className="p-3 border-t border-slate-700/50 bg-slate-900/50 space-y-3">
-          {/* Transparency Checklist */}
-          <div className="space-y-1">
-            <div className="text-[10px] text-slate-500 uppercase mb-2">Transparency Checklist</div>
+        <div className="px-2 py-1.5 border-t border-slate-700/50 bg-slate-900/50 max-h-40 overflow-y-auto">
+          {/* Transparency Checklist - Compact */}
+          <div className="grid grid-cols-2 gap-0.5 text-[9px] mb-1.5">
             {factors.map((f, i) => (
-              <div key={i} className="flex items-center gap-2 text-xs">
+              <div key={i} className="flex items-center gap-1">
                 {f.met ? (
-                  <CheckCircle size={12} className="text-emerald-400" />
+                  <CheckCircle size={9} className="text-emerald-400" />
                 ) : (
-                  <XCircle size={12} className="text-red-400" />
+                  <XCircle size={9} className="text-red-400" />
                 )}
-                <span className={f.met ? 'text-slate-300' : 'text-slate-500'}>{f.factor}</span>
+                <span className={f.met ? 'text-slate-300' : 'text-slate-500 truncate'}>{f.factor}</span>
               </div>
             ))}
           </div>
 
-          {/* Programs */}
+          {/* Programs - Compact */}
           {profile.programs.length > 0 && (
-            <div className="pt-2 border-t border-slate-700/50">
-              <div className="text-[10px] text-slate-500 uppercase mb-2">Programs</div>
-              {profile.programs.map((p, i) => (
-                <div key={i} className="p-2 bg-slate-800/50 rounded mb-2 text-xs">
-                  <div className="font-medium text-white">{p.name}</div>
-                  <div className="text-slate-400 mt-1">{p.description}</div>
-                  {p.jobRequirements && (
-                    <div className="flex gap-2 mt-2">
-                      {p.jobRequirements.minimumJobs && (
-                        <span className="px-1.5 py-0.5 bg-slate-700 rounded text-slate-300">
-                          Min {p.jobRequirements.minimumJobs} jobs
-                        </span>
-                      )}
-                      {p.jobRequirements.wageThreshold && (
-                        <span className="px-1.5 py-0.5 bg-slate-700 rounded text-slate-300">
-                          ${p.jobRequirements.wageThreshold}/hr threshold
-                        </span>
-                      )}
-                      {p.jobRequirements.clawbackProvisions && (
-                        <span className="px-1.5 py-0.5 bg-emerald-500/20 rounded text-emerald-400">
-                          Has clawback
-                        </span>
-                      )}
-                    </div>
+            <div className="pt-1 border-t border-slate-700/50">
+              {profile.programs.slice(0, 2).map((p, i) => (
+                <div key={i} className="flex items-center justify-between text-[9px] py-0.5">
+                  <span className="text-white truncate">{p.name}</span>
+                  {p.jobRequirements?.clawbackProvisions && (
+                    <span className="px-1 py-0.5 bg-emerald-500/20 rounded text-emerald-400 text-[8px]">Clawback</span>
                   )}
                 </div>
               ))}
             </div>
           )}
 
-          {/* Compliance Gaps */}
+          {/* Compliance Gaps - Compact */}
           {profile.complianceGaps.length > 0 && (
-            <div className="pt-2 border-t border-slate-700/50">
-              <div className="text-[10px] text-slate-500 uppercase mb-2">Compliance Gaps</div>
-              <ul className="space-y-1">
-                {profile.complianceGaps.map((gap, i) => (
-                  <li key={i} className="flex items-start gap-2 text-xs text-amber-400">
-                    <AlertTriangle size={12} className="mt-0.5 flex-shrink-0" />
-                    {gap}
-                  </li>
-                ))}
-              </ul>
+            <div className="pt-1 border-t border-slate-700/50">
+              {profile.complianceGaps.slice(0, 2).map((gap, i) => (
+                <div key={i} className="flex items-start gap-1 text-[9px] text-amber-400">
+                  <AlertTriangle size={9} className="mt-0.5 shrink-0" />
+                  <span className="line-clamp-1">{gap}</span>
+                </div>
+              ))}
             </div>
           )}
         </div>
@@ -371,73 +308,65 @@ export const SubsidyAccountabilityPanel: React.FC = () => {
 
   return (
     <div className="h-full flex flex-col bg-slate-950 text-white overflow-hidden">
-      {/* Header */}
-      <div className="flex-shrink-0 p-4 border-b border-slate-800">
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-gradient-to-br from-amber-500/20 to-red-500/20">
-              <DollarSign className="w-5 h-5 text-amber-400" />
+      {/* Compact Header */}
+      <div className="flex-shrink-0 px-3 py-2 border-b border-slate-800">
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center gap-2">
+            <div className="p-1.5 rounded bg-gradient-to-br from-amber-500/20 to-red-500/20">
+              <DollarSign className="w-4 h-4 text-amber-400" />
             </div>
-            <div>
-              <h2 className="font-bold text-lg">Subsidy Accountability</h2>
-              <p className="text-xs text-slate-500">Powered by Good Jobs First research</p>
-            </div>
+            <h2 className="font-bold text-sm">Subsidy Accountability</h2>
           </div>
           <a
             href="https://www.goodjobsfirst.org/subsidy-tracker"
             target="_blank"
             rel="noopener noreferrer"
-            className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 rounded text-xs flex items-center gap-1.5"
+            className="px-2 py-1 bg-slate-800 hover:bg-slate-700 rounded text-[10px] flex items-center gap-1"
           >
-            <FileText size={12} />
-            Subsidy Tracker
-            <ExternalLink size={10} />
+            GJF <ExternalLink size={10} />
           </a>
         </div>
 
-        {/* Key Stats */}
-        <div className="grid grid-cols-5 gap-3">
+        {/* Key Stats - Compact Row */}
+        <div className="grid grid-cols-5 gap-1.5">
           <MetricCard
-            icon={<DollarSign size={14} />}
+            icon={<DollarSign size={12} />}
             value={formatCurrency(metrics.totalSubsidyAmount)}
-            label="Total Tracked"
+            label="Total"
             highlight="info"
           />
           <MetricCard
-            icon={<Users size={14} />}
+            icon={<Users size={12} />}
             value={`$${(metrics.averageCostPerJob / 1000000).toFixed(1)}M`}
             label="Cost/Job"
-            sublabel="Avg subsidy per job"
             highlight="warning"
           />
           <MetricCard
-            icon={<Building2 size={14} />}
+            icon={<Building2 size={12} />}
             value={`${metrics.statesDisclosing}/${metrics.statesWithPrograms}`}
             label="Disclose"
-            sublabel="States disclosing"
           />
           <MetricCard
-            icon={<AlertTriangle size={14} />}
+            icon={<AlertTriangle size={12} />}
             value={metrics.gapsIdentified}
-            label="Gaps Found"
-            sublabel="Verified shortfalls"
+            label="Gaps"
             highlight="danger"
           />
           <MetricCard
-            icon={<Zap size={14} />}
+            icon={<Zap size={12} />}
             value={metrics.totalTracked}
             label="Records"
           />
         </div>
       </div>
 
-      {/* Tabs */}
-      <div className="flex-shrink-0 flex border-b border-slate-800">
+      {/* Compact Tabs */}
+      <div className="flex-shrink-0 flex border-b border-slate-800 px-2">
         {tabs.map(tab => (
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
-            className={`flex items-center gap-1.5 px-4 py-2 text-xs font-medium transition-colors ${
+            className={`flex items-center gap-1 px-2.5 py-1 text-[10px] font-medium transition-colors ${
               activeTab === tab.id
                 ? 'text-white border-b-2 border-amber-500 bg-slate-800/30'
                 : 'text-slate-400 hover:text-white hover:bg-slate-800/20'
@@ -449,95 +378,96 @@ export const SubsidyAccountabilityPanel: React.FC = () => {
         ))}
       </div>
 
-      {/* Content */}
-      <div className="flex-1 overflow-y-auto p-4">
+      {/* Content - Scrollable */}
+      <div className="flex-1 overflow-y-auto p-2">
         {activeTab === 'overview' && (
-          <div className="space-y-4">
-            {/* Key Finding Alert */}
-            <div className="p-4 bg-gradient-to-br from-red-500/10 to-amber-500/10 border border-red-500/30 rounded-lg">
-              <h3 className="font-medium text-red-400 mb-2 flex items-center gap-2">
-                <AlertTriangle size={14} />
-                Critical Finding from Good Jobs First (March 2025)
-              </h3>
-              <ul className="space-y-1 text-sm text-white">
-                <li>• <strong>NO state</strong> reports both promised AND actual jobs created</li>
-                <li>• Texas & Virginia lose <strong>~$1B/year each</strong> in foregone revenue</li>
-                <li>• Subsidies average <strong>$1.4-2M per permanent job</strong></li>
-                <li>• States lose <strong>52-70 cents on every dollar</strong> subsidized</li>
-                <li>• Only Nevada discloses wages: <strong>~$31/hr</strong> (below industry claims)</li>
-              </ul>
-            </div>
+          <div className="grid grid-cols-2 gap-2 h-full">
+            {/* Left - Key Findings + Status */}
+            <div className="flex flex-col gap-2">
+              {/* Key Finding Alert - Compact */}
+              <div className="p-2 bg-gradient-to-br from-red-500/10 to-amber-500/10 border border-red-500/30 rounded">
+                <h3 className="text-[10px] font-medium text-red-400 mb-1 flex items-center gap-1">
+                  <AlertTriangle size={10} />
+                  Critical Finding (GJF March 2025)
+                </h3>
+                <ul className="space-y-0.5 text-[10px] text-white">
+                  <li>• <strong>NO state</strong> reports promised + actual jobs</li>
+                  <li>• TX & VA lose <strong>~$1B/yr each</strong></li>
+                  <li>• Subsidies avg <strong>$1.4-2M per job</strong></li>
+                  <li>• States lose <strong>52-70¢ per $1</strong></li>
+                  <li>• Only NV discloses wages: <strong>$31/hr</strong></li>
+                </ul>
+              </div>
 
-            {/* Company Totals */}
-            <div className="space-y-2">
-              <h3 className="text-xs font-medium text-slate-500 uppercase">Top Subsidy Recipients</h3>
-              {Object.entries(companyTotals)
-                .sort(([, a], [, b]) => b.total - a.total)
-                .slice(0, 5)
-                .map(([company, data]) => (
-                  <div key={company} className="flex items-center justify-between p-3 bg-slate-800/30 rounded-lg">
-                    <div>
-                      <div className="font-medium text-white">{company}</div>
-                      <div className="text-[10px] text-slate-500">
-                        {data.count} subsidies • {data.states.join(', ')}
-                      </div>
-                    </div>
-                    <div className="text-cyan-400 font-mono font-bold">
-                      {formatCurrency(data.total)}
-                    </div>
-                  </div>
-                ))}
-            </div>
-
-            {/* Integration Status */}
-            <div className="p-3 bg-slate-800/30 border border-slate-700/50 rounded-lg">
-              <h3 className="text-xs font-medium text-slate-500 uppercase mb-2">Integration Status</h3>
-              <div className="space-y-1 text-xs">
-                <div className="flex justify-between">
-                  <span className="text-slate-400">Data Source</span>
+              {/* Integration Status - Compact */}
+              <div className="p-2 bg-slate-800/30 border border-slate-700/50 rounded text-[10px]">
+                <div className="flex justify-between mb-1">
+                  <span className="text-slate-500">Source:</span>
                   <span className="text-white">{GJF_INTEGRATION_STATUS.dataSource}</span>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-slate-400">Records Tracked</span>
+                <div className="flex justify-between mb-1">
+                  <span className="text-slate-500">Records:</span>
                   <span className="text-white">{GJF_INTEGRATION_STATUS.recordsTracked}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-slate-400">Last Updated</span>
+                  <span className="text-slate-500">Updated:</span>
                   <span className="text-white">{GJF_INTEGRATION_STATUS.lastUpdated}</span>
                 </div>
+              </div>
+            </div>
+
+            {/* Right - Company Totals - Scrollable */}
+            <div className="flex flex-col">
+              <h3 className="text-[10px] font-medium text-slate-500 uppercase mb-1">Top Recipients</h3>
+              <div className="flex-1 overflow-y-auto space-y-1 max-h-48">
+                {Object.entries(companyTotals)
+                  .sort(([, a], [, b]) => b.total - a.total)
+                  .slice(0, 8)
+                  .map(([company, data]) => (
+                    <div key={company} className="flex items-center justify-between px-2 py-1 bg-slate-800/30 rounded text-xs">
+                      <div className="truncate">
+                        <div className="font-medium text-white truncate">{company}</div>
+                        <div className="text-[9px] text-slate-500">{data.count} • {data.states.join(', ')}</div>
+                      </div>
+                      <div className="text-cyan-400 font-mono text-xs font-bold shrink-0 ml-2">
+                        {formatCurrency(data.total)}
+                      </div>
+                    </div>
+                  ))}
               </div>
             </div>
           </div>
         )}
 
         {activeTab === 'subsidies' && (
-          <div className="space-y-3">
-            {/* Filters */}
-            <div className="flex items-center gap-3">
+          <div className="flex flex-col h-full">
+            {/* Filters - Compact */}
+            <div className="flex items-center gap-2 mb-2 shrink-0">
               <div className="relative flex-1">
-                <Search size={14} className="absolute left-2 top-1/2 -translate-y-1/2 text-slate-500" />
+                <Search size={12} className="absolute left-2 top-1/2 -translate-y-1/2 text-slate-500" />
                 <input
                   type="text"
-                  placeholder="Search subsidies..."
+                  placeholder="Search..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-7 pr-3 py-1.5 bg-slate-900 border border-slate-700 rounded text-sm text-white placeholder-slate-500 focus:outline-none focus:border-amber-500"
+                  className="w-full pl-6 pr-2 py-1 bg-slate-900 border border-slate-700 rounded text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-500"
                 />
               </div>
               <select
                 value={stateFilter}
                 onChange={(e) => setStateFilter(e.target.value)}
-                className="px-2 py-1.5 bg-slate-900 border border-slate-700 rounded text-xs text-white focus:outline-none"
+                className="px-2 py-1 bg-slate-900 border border-slate-700 rounded text-[10px] text-white focus:outline-none"
               >
                 <option value="all">All States</option>
                 {[...new Set(KNOWN_SUBSIDIES.map(s => s.subsidy.state))].sort().map(state => (
                   <option key={state} value={state}>{state}</option>
                 ))}
               </select>
+              <span className="text-[10px] text-slate-500">{filteredSubsidies.length}</span>
             </div>
 
-            {/* Subsidy List */}
-            <div className="space-y-2">
+            {/* Subsidy List - Scrollable */}
+            <div className="flex-1 overflow-y-auto space-y-1">
               {filteredSubsidies.map(record => (
                 <SubsidyRecordCard
                   key={record.id}

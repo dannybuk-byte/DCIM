@@ -353,82 +353,75 @@ export const OrganizingIntelligenceTab: React.FC = () => {
   }, []);
 
   const renderHeader = () => (
-    <div className="bg-gradient-to-r from-[#1a1f35] to-[#0d1117] border-b border-[#30363d] p-6">
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-3">
-          <div className="p-2 bg-red-500/20 rounded-lg">
-            <Target className="w-6 h-6 text-red-400" />
+    <div className="bg-gradient-to-r from-[#1a1f35] to-[#0d1117] border-b border-[#30363d] px-3 py-2">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <div className="p-1.5 bg-red-500/20 rounded">
+            <Target className="w-4 h-4 text-red-400" />
           </div>
           <div>
-            <h1 className="text-xl font-bold text-white">Organizing Intelligence</h1>
-            <p className="text-sm text-gray-400">Strategic target prioritization for labor organizers</p>
+            <h1 className="text-base font-bold text-white">Organizing Intelligence</h1>
           </div>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
           {/* Inline NLP Search Bar */}
-          <div className="w-72">
+          <div className="w-64">
             <SectionNLPBar 
               context={getNLPContext()} 
-              placeholder="Ask AI about this data..."
+              placeholder="Ask AI..."
               onAction={handleNLPAction}
             />
           </div>
-          {/* Help Button */}
           <HelpIcon context={getNLPContext()} />
-          <button className="px-3 py-1.5 bg-[#21262d] text-gray-300 text-sm rounded-lg border border-[#30363d] hover:bg-[#30363d] flex items-center gap-2">
-            <Download className="w-4 h-4" />
-            Export Report
+          <button className="px-2 py-1 bg-[#21262d] text-gray-300 text-xs rounded border border-[#30363d] hover:bg-[#30363d] flex items-center gap-1">
+            <Download className="w-3 h-3" />
+            Export
           </button>
         </div>
       </div>
       
-      {/* Stats Overview */}
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mt-4">
-        <div className="bg-[#0d1117] p-4 rounded-lg border border-[#30363d]">
-          <div className="flex items-center gap-2 text-gray-400 text-sm mb-1">
-            <HardHat className="w-4 h-4" />
-            IBEW Maintenance
+      {/* Stats - Compact Row */}
+      <div className="grid grid-cols-5 gap-2 mt-2">
+        <div className="bg-[#0d1117] px-2 py-1.5 rounded border border-[#30363d] flex items-center justify-between">
+          <div className="flex items-center gap-1.5 text-gray-400 text-[10px]">
+            <HardHat className="w-3 h-3" />
+            IBEW
           </div>
-          <div className="text-2xl font-bold text-yellow-400">{stats.totalIBEWMaintenanceWorkers.toLocaleString()}</div>
-          <div className="text-xs text-gray-500">workers in {stats.facilitiesWithIBEW} facilities</div>
+          <div className="text-sm font-bold text-yellow-400">{stats.totalIBEWMaintenanceWorkers.toLocaleString()}</div>
         </div>
         
-        <div className="bg-[#0d1117] p-4 rounded-lg border border-[#30363d]">
-          <div className="flex items-center gap-2 text-gray-400 text-sm mb-1">
-            <TrendingUp className="w-4 h-4" />
-            Expansion Potential
+        <div className="bg-[#0d1117] px-2 py-1.5 rounded border border-[#30363d] flex items-center justify-between">
+          <div className="flex items-center gap-1.5 text-gray-400 text-[10px]">
+            <TrendingUp className="w-3 h-3" />
+            Potential
           </div>
-          <div className="text-2xl font-bold text-green-400">{stats.potentialOpsExpansion.toLocaleString()}</div>
-          <div className="text-xs text-gray-500">operations workers reachable</div>
+          <div className="text-sm font-bold text-green-400">{stats.potentialOpsExpansion.toLocaleString()}</div>
         </div>
         
-        <div className="bg-[#0d1117] p-4 rounded-lg border border-[#30363d]">
-          <div className="flex items-center gap-2 text-gray-400 text-sm mb-1">
-            <MapPin className="w-4 h-4" />
-            Corridors Tracked
+        <div className="bg-[#0d1117] px-2 py-1.5 rounded border border-[#30363d] flex items-center justify-between">
+          <div className="flex items-center gap-1.5 text-gray-400 text-[10px]">
+            <MapPin className="w-3 h-3" />
+            Corridors
           </div>
-          <div className="text-2xl font-bold text-blue-400">{stats.corridorsTracked}</div>
-          <div className="text-xs text-gray-500">major data center hubs</div>
+          <div className="text-sm font-bold text-blue-400">{stats.corridorsTracked}</div>
         </div>
         
-        <div className="bg-[#0d1117] p-4 rounded-lg border border-[#30363d]">
-          <div className="flex items-center gap-2 text-gray-400 text-sm mb-1">
-            <Briefcase className="w-4 h-4" />
-            Contractors Mapped
+        <div className="bg-[#0d1117] px-2 py-1.5 rounded border border-[#30363d] flex items-center justify-between">
+          <div className="flex items-center gap-1.5 text-gray-400 text-[10px]">
+            <Briefcase className="w-3 h-3" />
+            Contractors
           </div>
-          <div className="text-2xl font-bold text-purple-400">{stats.contractorsTracked}</div>
-          <div className="text-xs text-gray-500">staffing agencies tracked</div>
+          <div className="text-sm font-bold text-purple-400">{stats.contractorsTracked}</div>
         </div>
         
-        <div className="bg-[#0d1117] p-4 rounded-lg border border-[#30363d]">
-          <div className="flex items-center gap-2 text-gray-400 text-sm mb-1">
-            <Target className="w-4 h-4" />
-            Priority Targets
+        <div className="bg-[#0d1117] px-2 py-1.5 rounded border border-[#30363d] flex items-center justify-between">
+          <div className="flex items-center gap-1.5 text-gray-400 text-[10px]">
+            <Target className="w-3 h-3" />
+            Priority
           </div>
-          <div className="text-2xl font-bold text-red-400">
+          <div className="text-sm font-bold text-red-400">
             {organizingTargets.filter(t => t.priority === 'critical' || t.priority === 'high').length}
           </div>
-          <div className="text-xs text-gray-500">critical/high priority</div>
         </div>
       </div>
     </div>
@@ -439,25 +432,25 @@ export const OrganizingIntelligenceTab: React.FC = () => {
   // =============================================================================
   
   const renderNavigation = () => (
-    <div className="border-b border-[#30363d] bg-[#161b22]">
-      <div className="flex gap-1 p-2">
+    <div className="border-b border-[#30363d] bg-[#161b22] px-2 py-1">
+      <div className="flex gap-0.5">
         {[
-          { id: 'targets', label: 'Target Prioritization', icon: Target },
-          { id: 'contractors', label: 'Contractor Mapping', icon: Users },
-          { id: 'ibew', label: 'IBEW Footprint', icon: Zap },
-          { id: 'corridors', label: 'Corridor Intelligence', icon: MapPin },
-          { id: 'ai-infra', label: '🛰️ AI Infrastructure', icon: Cpu, highlight: true },
+          { id: 'targets', label: 'Targets', icon: Target },
+          { id: 'contractors', label: 'Contractors', icon: Users },
+          { id: 'ibew', label: 'IBEW', icon: Zap },
+          { id: 'corridors', label: 'Corridors', icon: MapPin },
+          { id: 'ai-infra', label: 'AI Infra', icon: Cpu, highlight: true },
         ].map(({ id, label, icon: Icon, highlight }) => (
           <button
             key={id}
             onClick={() => setActiveSection(id as typeof activeSection)}
-            className={`flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
+            className={`flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded transition-colors ${
               activeSection === id
                 ? highlight ? 'bg-cyan-600/30 text-cyan-300 border border-cyan-500/50' : 'bg-[#21262d] text-white'
                 : highlight ? 'text-cyan-400 hover:text-cyan-300 hover:bg-cyan-600/20 border border-transparent' : 'text-gray-400 hover:text-white hover:bg-[#21262d]/50'
             }`}
           >
-            <Icon className="w-4 h-4" />
+            <Icon className="w-3.5 h-3.5" />
             {label}
           </button>
         ))}
@@ -500,23 +493,23 @@ export const OrganizingIntelligenceTab: React.FC = () => {
   }), [filteredTargets]);
   
   const renderTargetSection = () => (
-    <div className="p-4">
+    <div className="p-2 h-[calc(100vh-160px)] flex flex-col">
       {/* Compact Header with Search and Toggle */}
-      <div className="flex items-center gap-3 mb-4">
+      <div className="flex items-center gap-2 mb-2 shrink-0">
         <div className="flex-1 relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+          <Search className="absolute left-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-500" />
           <input
             type="text"
-            placeholder="Search targets... (try 'tx aws' or 'virginia google')"
+            placeholder="Search... (try 'tx aws')"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-9 pr-4 py-1.5 bg-[#0d1117] border border-[#30363d] rounded text-sm text-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-red-500/50"
+            className="w-full pl-7 pr-2 py-1 bg-[#0d1117] border border-[#30363d] rounded text-xs text-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-red-500/50"
           />
         </div>
         <select
           value={priorityFilter}
           onChange={(e) => setPriorityFilter(e.target.value)}
-          className="px-2 py-1.5 bg-[#0d1117] border border-[#30363d] rounded text-sm text-white focus:outline-none"
+          className="px-2 py-1 bg-[#0d1117] border border-[#30363d] rounded text-xs text-white focus:outline-none"
         >
           <option value="all">All</option>
           <option value="critical">Critical</option>
@@ -524,65 +517,66 @@ export const OrganizingIntelligenceTab: React.FC = () => {
           <option value="medium">Medium</option>
           <option value="low">Low</option>
         </select>
-        <div className="flex items-center gap-1 bg-[#21262d] rounded p-0.5">
+        <div className="flex items-center gap-0.5 bg-[#21262d] rounded p-0.5">
           <button 
             onClick={() => setTargetViewMode('table')}
-            className={`p-1.5 rounded ${targetViewMode === 'table' ? 'bg-[#30363d] text-white' : 'text-gray-500'}`}
-            title="Table View"
+            className={`p-1 rounded ${targetViewMode === 'table' ? 'bg-[#30363d] text-white' : 'text-gray-500'}`}
+            title="Table"
           >
-            <Layers className="w-4 h-4" />
+            <Layers className="w-3.5 h-3.5" />
           </button>
           <button 
             onClick={() => setTargetViewMode('cards')}
-            className={`p-1.5 rounded ${targetViewMode === 'cards' ? 'bg-[#30363d] text-white' : 'text-gray-500'}`}
-            title="Card View"
+            className={`p-1 rounded ${targetViewMode === 'cards' ? 'bg-[#30363d] text-white' : 'text-gray-500'}`}
+            title="Cards"
           >
-            <Network className="w-4 h-4" />
+            <Network className="w-3.5 h-3.5" />
           </button>
         </div>
+        <span className="text-[10px] text-gray-500">{filteredTargets.length} targets</span>
       </div>
       
-      <div className="flex gap-4">
-        {/* Main Content Area */}
-        <div className="flex-1 min-w-0">
+      <div className="flex gap-2 flex-1 overflow-hidden">
+        {/* Main Content Area - Scrollable */}
+        <div className="flex-1 min-w-0 overflow-y-auto">
           {targetViewMode === 'table' ? (
             /* HIGH-DENSITY TABLE VIEW with Priority Groups */
-            <div className="space-y-3">
+            <div className="space-y-1.5">
               {/* Priority Group Headers with Accordions */}
               {[
-                { key: 'critical', label: 'Critical Priority', targets: targetsByPriority.critical, color: 'red', bg: 'bg-red-500/10', icon: '🔴' },
-                { key: 'high', label: 'High Priority', targets: targetsByPriority.high, color: 'orange', bg: 'bg-orange-500/10', icon: '🟠' },
-                { key: 'medium', label: 'Medium Priority', targets: targetsByPriority.medium, color: 'yellow', bg: 'bg-yellow-500/10', icon: '🟡' },
-                { key: 'low', label: 'Low Priority', targets: targetsByPriority.low, color: 'gray', bg: 'bg-gray-500/10', icon: '⚪' },
+                { key: 'critical', label: 'Critical', targets: targetsByPriority.critical, color: 'red', bg: 'bg-red-500/10', icon: '🔴' },
+                { key: 'high', label: 'High', targets: targetsByPriority.high, color: 'orange', bg: 'bg-orange-500/10', icon: '🟠' },
+                { key: 'medium', label: 'Medium', targets: targetsByPriority.medium, color: 'yellow', bg: 'bg-yellow-500/10', icon: '🟡' },
+                { key: 'low', label: 'Low', targets: targetsByPriority.low, color: 'gray', bg: 'bg-gray-500/10', icon: '⚪' },
               ].map(group => group.targets.length > 0 && (
-                <div key={group.key} className={`${group.bg} border border-${group.color}-500/20 rounded-lg overflow-hidden`}>
+                <div key={group.key} className={`${group.bg} border border-${group.color}-500/20 rounded overflow-hidden`}>
                   {/* Group Header */}
                   <button
                     onClick={() => toggleRiskGroup(`target-${group.key}`)}
-                    className="w-full px-3 py-2 flex items-center justify-between hover:bg-black/20 transition-colors"
+                    className="w-full px-2 py-1 flex items-center justify-between hover:bg-black/20 transition-colors"
                   >
-                    <div className="flex items-center gap-2">
-                      <span>{group.icon}</span>
-                      <span className={`text-sm font-semibold text-${group.color}-400`}>{group.label}</span>
-                      <span className="text-xs text-gray-500">({group.targets.length} targets)</span>
-                      <span className="text-xs text-gray-600">
-                        • {group.targets.reduce((sum, t) => sum + t.structuralFactors.workerConcentration, 0).toLocaleString()} workers
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-xs">{group.icon}</span>
+                      <span className={`text-xs font-semibold text-${group.color}-400`}>{group.label}</span>
+                      <span className="text-[10px] text-gray-500">({group.targets.length})</span>
+                      <span className="text-[10px] text-gray-600">
+                        • {group.targets.reduce((sum, t) => sum + t.structuralFactors.workerConcentration, 0).toLocaleString()} wkrs
                       </span>
                     </div>
                     {expandedRiskGroups.has(`target-${group.key}`) 
-                      ? <ChevronDown className="w-4 h-4 text-gray-500" /> 
-                      : <ChevronRight className="w-4 h-4 text-gray-500" />}
+                      ? <ChevronDown className="w-3.5 h-3.5 text-gray-500" /> 
+                      : <ChevronRight className="w-3.5 h-3.5 text-gray-500" />}
                   </button>
                   
-                  {/* Collapsed Table */}
+                  {/* Collapsed Table - Scrollable */}
                   {expandedRiskGroups.has(`target-${group.key}`) && (
-                    <div className="border-t border-[#30363d]">
+                    <div className="border-t border-[#30363d] max-h-64 overflow-y-auto">
                       {/* Table Header */}
-                      <div className="grid grid-cols-12 gap-2 px-3 py-1.5 bg-[#0d1117] text-xs text-gray-500 font-medium">
+                      <div className="grid grid-cols-12 gap-1 px-2 py-1 bg-[#0d1117] text-[10px] text-gray-500 font-medium sticky top-0">
                         <div className="col-span-3">Facility</div>
                         <div className="col-span-2">Operator</div>
                         <div className="col-span-2">Location</div>
-                        <div className="col-span-1 text-center">Workers</div>
+                        <div className="col-span-1 text-center">Wkrs</div>
                         <div className="col-span-1 text-center">Union</div>
                         <div className="col-span-3 text-center">Score</div>
                       </div>

@@ -1,8 +1,8 @@
 /**
  * Organizer Command Center
  * 
- * Comprehensive dashboard for labor organizing intelligence.
- * Combines all organizing tools into a unified interface.
+ * HIGH-DENSITY comprehensive dashboard for labor organizing intelligence.
+ * Maximum data per pixel - scrollable cards, minimal spacing.
  */
 
 import React, { useState, useEffect } from 'react';
@@ -11,7 +11,8 @@ import {
   Map, Handshake, Gavel, Bell, ChevronRight, Plus,
   Download, Search, Filter, Clock, Target, Zap,
   CheckCircle2, XCircle, AlertCircle, Briefcase,
-  MapPin, DollarSign, TrendingUp, Shield, FileSearch
+  MapPin, DollarSign, TrendingUp, Shield, FileSearch,
+  ChevronDown, ExternalLink
 } from 'lucide-react';
 
 // Services
@@ -128,619 +129,657 @@ export const OrganizerCommandCenter: React.FC = () => {
     }
   };
 
-  // Navigation tabs
+  // Navigation tabs - compact
   const tabs: { id: ActiveTab; label: string; icon: React.ElementType; color: string }[] = [
     { id: 'overview', label: 'Overview', icon: Target, color: 'text-blue-400' },
-    { id: 'foia', label: 'FOIA Requests', icon: FileSearch, color: 'text-purple-400' },
-    { id: 'incidents', label: 'Worker Incidents', icon: AlertTriangle, color: 'text-red-400' },
+    { id: 'foia', label: 'FOIA', icon: FileSearch, color: 'text-purple-400' },
+    { id: 'incidents', label: 'Incidents', icon: AlertTriangle, color: 'text-red-400' },
     { id: 'contractors', label: 'Contractors', icon: Briefcase, color: 'text-orange-400' },
-    { id: 'cba', label: 'CBA Monitor', icon: Scale, color: 'text-green-400' },
-    { id: 'legislative', label: 'Legislation', icon: Gavel, color: 'text-yellow-400' },
+    { id: 'cba', label: 'CBA', icon: Scale, color: 'text-green-400' },
+    { id: 'legislative', label: 'Bills', icon: Gavel, color: 'text-yellow-400' },
     { id: 'corridors', label: 'Union Map', icon: Map, color: 'text-cyan-400' },
     { id: 'coalition', label: 'Coalition', icon: Handshake, color: 'text-pink-400' },
   ];
 
+  // === Scrollable Card Component ===
+  const ScrollCard: React.FC<{
+    title: string;
+    icon: React.ElementType;
+    color: string;
+    count?: number;
+    height?: string;
+    children: React.ReactNode;
+    actions?: React.ReactNode;
+  }> = ({ title, icon: Icon, color, count, height = 'h-48', children, actions }) => (
+    <div className="bg-[#161b22] rounded border border-[#30363d] flex flex-col">
+      <div className="flex items-center justify-between px-2 py-1 border-b border-[#30363d] bg-[#0d1117]">
+        <div className="flex items-center gap-1.5">
+          <Icon className={`w-3.5 h-3.5 ${color}`} />
+          <span className="text-xs font-medium text-white">{title}</span>
+          {count !== undefined && (
+            <span className="text-[10px] text-gray-500">({count})</span>
+          )}
+        </div>
+        {actions}
+      </div>
+      <div className={`${height} overflow-y-auto overflow-x-hidden`}>
+        {children}
+      </div>
+    </div>
+  );
+
   // === Render Functions ===
 
   const renderOverview = () => (
-    <div className="space-y-6">
-      {/* Key Metrics Grid */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <MetricCard
-          label="Active FOIA Requests"
-          value={foiaRequests.filter(r => !['completed', 'denied'].includes(r.status)).length}
-          icon={FileSearch}
-          color="purple"
-        />
-        <MetricCard
-          label="Incident Reports"
-          value={incidents.length}
-          icon={AlertTriangle}
-          color="red"
-        />
-        <MetricCard
-          label="CBAs Tracked"
-          value={cbas.length}
-          icon={Scale}
-          color="green"
-        />
-        <MetricCard
-          label="Bills Monitored"
-          value={bills.length}
-          icon={Gavel}
-          color="yellow"
-        />
-      </div>
-
-      {/* Quick Actions */}
-      <div className="bg-[#161b22] rounded-lg border border-[#30363d] p-4">
-        <h3 className="text-white font-semibold mb-4 flex items-center gap-2">
-          <Zap className="w-5 h-5 text-yellow-400" />
-          Quick Actions
-        </h3>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          <QuickActionButton
-            label="New FOIA Request"
-            icon={Plus}
-            onClick={() => setActiveTab('foia')}
-          />
-          <QuickActionButton
-            label="Report Incident"
-            icon={AlertCircle}
-            onClick={() => setActiveTab('incidents')}
-          />
-          <QuickActionButton
-            label="Track Bill"
-            icon={FileText}
-            onClick={() => setActiveTab('legislative')}
-          />
-          <QuickActionButton
-            label="Add Partner"
-            icon={Handshake}
-            onClick={() => setActiveTab('coalition')}
-          />
+    <div className="grid grid-cols-12 gap-2 h-full">
+      {/* Left Column - Stats + Quick Actions */}
+      <div className="col-span-3 flex flex-col gap-2">
+        {/* Key Metrics - Compact Grid */}
+        <div className="grid grid-cols-2 gap-1">
+          <MiniMetric label="FOIA Active" value={foiaRequests.filter(r => !['completed', 'denied'].includes(r.status)).length} color="purple" />
+          <MiniMetric label="Incidents" value={incidents.length} color="red" />
+          <MiniMetric label="CBAs" value={cbas.length} color="green" />
+          <MiniMetric label="Bills" value={bills.length} color="yellow" />
+          <MiniMetric label="Corridors" value={DATA_CENTER_CORRIDORS.length} color="cyan" />
+          <MiniMetric label="Partners" value={partners.length} color="pink" />
         </div>
-      </div>
 
-      {/* Priority Alerts */}
-      <div className="grid md:grid-cols-2 gap-6">
-        {/* High Priority Items */}
-        <div className="bg-[#161b22] rounded-lg border border-[#30363d] p-4">
-          <h3 className="text-white font-semibold mb-4 flex items-center gap-2">
-            <Bell className="w-5 h-5 text-red-400" />
-            Priority Alerts
-          </h3>
-          <div className="space-y-3">
-            {corridorStats && corridorStats.corridors
-              .filter(c => c.organizingPriority === 'high')
-              .slice(0, 3)
-              .map(corridor => (
-                <AlertItem
-                  key={corridor.id}
-                  title={`${corridor.name} - Low Union Density`}
-                  description={`${corridor.unionDensity}% density, ${corridor.facilityCount} facilities`}
-                  type="warning"
-                />
-              ))}
-            {bills.filter(b => b.status === 'in-committee').slice(0, 2).map(bill => (
-              <AlertItem
-                key={bill.id}
-                title={`${bill.billNumber} - ${bill.state}`}
-                description={bill.title}
-                type="info"
-              />
+        {/* Quick Actions - Scrollable */}
+        <ScrollCard title="Quick Actions" icon={Zap} color="text-yellow-400" height="h-32">
+          <div className="p-1 space-y-1">
+            {[
+              { label: 'New FOIA', icon: Plus, tab: 'foia' as ActiveTab },
+              { label: 'Report Incident', icon: AlertCircle, tab: 'incidents' as ActiveTab },
+              { label: 'Track Bill', icon: FileText, tab: 'legislative' as ActiveTab },
+              { label: 'Add Partner', icon: Handshake, tab: 'coalition' as ActiveTab },
+            ].map(action => (
+              <button
+                key={action.label}
+                onClick={() => setActiveTab(action.tab)}
+                className="w-full flex items-center gap-2 px-2 py-1 bg-[#21262d] rounded text-xs text-white hover:bg-[#30363d] transition-colors"
+              >
+                <action.icon className="w-3 h-3" />
+                {action.label}
+              </button>
             ))}
           </div>
-        </div>
+        </ScrollCard>
 
-        {/* Organizing Targets */}
-        <div className="bg-[#161b22] rounded-lg border border-[#30363d] p-4">
-          <h3 className="text-white font-semibold mb-4 flex items-center gap-2">
-            <Target className="w-5 h-5 text-blue-400" />
-            Top Organizing Targets
-          </h3>
-          <div className="space-y-3">
+        {/* Organizing Targets - Scrollable */}
+        <ScrollCard title="Top Targets" icon={Target} color="text-blue-400" height="flex-1">
+          <div className="p-1 space-y-1">
             {contractors
               .filter(c => c.organizingPriority === 'high')
-              .slice(0, 4)
+              .slice(0, 10)
               .map(contractor => (
-                <div
-                  key={contractor.id}
-                  className="flex items-center justify-between p-3 bg-[#0d1117] rounded-lg"
-                >
-                  <div>
-                    <div className="text-white font-medium">{contractor.name}</div>
-                    <div className="text-sm text-gray-400">{contractor.type}</div>
+                <div key={contractor.id} className="flex items-center justify-between px-1.5 py-1 bg-[#0d1117] rounded text-xs">
+                  <div className="truncate flex-1">
+                    <div className="text-white truncate">{contractor.name}</div>
+                    <div className="text-[10px] text-gray-500">{contractor.type}</div>
                   </div>
-                  <span className={`px-2 py-1 text-xs rounded-full ${
+                  <span className={`ml-1 px-1 py-0.5 text-[9px] rounded ${
                     contractor.unionStatus === 'non-union' 
                       ? 'bg-red-900/30 text-red-400'
-                      : contractor.unionStatus === 'mixed'
-                      ? 'bg-yellow-900/30 text-yellow-400'
-                      : 'bg-green-900/30 text-green-400'
+                      : 'bg-yellow-900/30 text-yellow-400'
                   }`}>
-                    {contractor.unionStatus}
+                    {contractor.unionStatus === 'non-union' ? 'NON' : 'MIX'}
                   </span>
                 </div>
               ))}
           </div>
+        </ScrollCard>
+      </div>
+
+      {/* Center Column - Main Content */}
+      <div className="col-span-6 flex flex-col gap-2">
+        {/* Corridors Grid */}
+        <ScrollCard title="Data Center Corridors" icon={Map} color="text-cyan-400" height="h-40" count={DATA_CENTER_CORRIDORS.length}>
+          <div className="grid grid-cols-2 gap-1 p-1">
+            {DATA_CENTER_CORRIDORS.map(corridor => (
+              <div key={corridor.id} className="p-1.5 bg-[#0d1117] rounded border border-[#21262d]">
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-xs text-white font-medium truncate">{corridor.name}</span>
+                  <span className={`px-1 py-0.5 text-[9px] rounded ${
+                    corridor.organizingPriority === 'high' ? 'bg-red-900/30 text-red-400' :
+                    corridor.organizingPriority === 'medium' ? 'bg-yellow-900/30 text-yellow-400' :
+                    'bg-green-900/30 text-green-400'
+                  }`}>
+                    {corridor.organizingPriority.toUpperCase()}
+                  </span>
+                </div>
+                <div className="grid grid-cols-4 gap-1 text-[10px]">
+                  <div><span className="text-gray-500">Fac:</span> <span className="text-white">{corridor.facilityCount}</span></div>
+                  <div><span className="text-gray-500">Wkrs:</span> <span className="text-white">{(corridor.totalWorkers/1000).toFixed(0)}k</span></div>
+                  <div><span className="text-gray-500">Union:</span> <span className="text-white">{corridor.unionDensity}%</span></div>
+                  <div><span className="text-gray-500">IBEW:</span> <span className="text-white">{corridor.ibewLocals[0]}</span></div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </ScrollCard>
+
+        {/* Bills + CBAs Side by Side */}
+        <div className="grid grid-cols-2 gap-2 flex-1">
+          {/* Legislative Alerts */}
+          <ScrollCard title="Active Bills" icon={Gavel} color="text-yellow-400" height="h-full" count={bills.length}>
+            <div className="p-1 space-y-1">
+              {bills.map(bill => (
+                <div key={bill.id} className="p-1.5 bg-[#0d1117] rounded text-xs">
+                  <div className="flex items-center justify-between">
+                    <span className="text-white font-medium">{bill.billNumber}</span>
+                    <span className="text-[10px] text-gray-500">{bill.state}</span>
+                  </div>
+                  <div className="text-[10px] text-gray-400 truncate">{bill.title}</div>
+                  <div className="flex gap-1 mt-1">
+                    {bill.category.slice(0, 2).map(cat => (
+                      <span key={cat} className="px-1 py-0.5 bg-[#21262d] text-[9px] text-gray-400 rounded">{cat}</span>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </ScrollCard>
+
+          {/* CBA Monitor */}
+          <ScrollCard title="CBA Compliance" icon={Scale} color="text-green-400" height="h-full" count={cbas.length}>
+            <div className="p-1 space-y-1">
+              {cbas.map(cba => (
+                <div key={cba.id} className="p-1.5 bg-[#0d1117] rounded text-xs">
+                  <div className="flex items-center justify-between">
+                    <span className="text-white font-medium truncate">{cba.company}</span>
+                    <span className={`px-1 py-0.5 text-[9px] rounded ${
+                      cba.status === 'active' ? 'bg-green-900/30 text-green-400' : 'bg-gray-900/30 text-gray-400'
+                    }`}>{cba.status}</span>
+                  </div>
+                  <div className="text-[10px] text-gray-400">{cba.city}, {cba.state}</div>
+                  <div className="text-[10px] text-gray-500">{cba.commitments.length} commitments</div>
+                </div>
+              ))}
+            </div>
+          </ScrollCard>
         </div>
       </div>
 
-      {/* Data Center Corridors Summary */}
-      <div className="bg-[#161b22] rounded-lg border border-[#30363d] p-4">
-        <h3 className="text-white font-semibold mb-4 flex items-center gap-2">
-          <Map className="w-5 h-5 text-cyan-400" />
-          Data Center Corridors
-        </h3>
-        <div className="grid md:grid-cols-3 gap-4">
-          {DATA_CENTER_CORRIDORS.map(corridor => (
-            <div
-              key={corridor.id}
-              className="p-4 bg-[#0d1117] rounded-lg border border-[#30363d]"
-            >
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-white font-medium">{corridor.name}</span>
-                <span className={`px-2 py-0.5 text-xs rounded-full ${
-                  corridor.organizingPriority === 'high'
-                    ? 'bg-red-900/30 text-red-400'
-                    : corridor.organizingPriority === 'medium'
-                    ? 'bg-yellow-900/30 text-yellow-400'
-                    : 'bg-green-900/30 text-green-400'
-                }`}>
-                  {corridor.organizingPriority}
-                </span>
+      {/* Right Column - Alerts & Partners */}
+      <div className="col-span-3 flex flex-col gap-2">
+        {/* Priority Alerts */}
+        <ScrollCard title="Priority Alerts" icon={Bell} color="text-red-400" height="h-40">
+          <div className="p-1 space-y-1">
+            {corridorStats && corridorStats.corridors
+              .filter(c => c.organizingPriority === 'high')
+              .map(corridor => (
+                <div key={corridor.id} className="p-1.5 bg-[#0d1117] rounded border-l-2 border-yellow-500">
+                  <div className="text-xs text-white">{corridor.name}</div>
+                  <div className="text-[10px] text-gray-400">{corridor.unionDensity}% density • {corridor.facilityCount} facilities</div>
+                </div>
+              ))}
+            {bills.filter(b => b.status === 'in-committee').slice(0, 2).map(bill => (
+              <div key={bill.id} className="p-1.5 bg-[#0d1117] rounded border-l-2 border-blue-500">
+                <div className="text-xs text-white">{bill.billNumber} - {bill.state}</div>
+                <div className="text-[10px] text-gray-400 truncate">{bill.title}</div>
               </div>
-              <div className="grid grid-cols-2 gap-2 text-sm">
-                <div className="text-gray-400">
-                  Facilities: <span className="text-white">{corridor.facilityCount}</span>
+            ))}
+          </div>
+        </ScrollCard>
+
+        {/* IBEW Locals */}
+        <ScrollCard title="IBEW Locals" icon={Zap} color="text-yellow-400" height="h-36" count={IBEW_LOCALS.filter(l => l.dataCenterExperience).length}>
+          <div className="p-1 space-y-1">
+            {IBEW_LOCALS.filter(l => l.dataCenterExperience).slice(0, 8).map(local => (
+              <div key={local.localNumber} className="flex items-center justify-between px-1.5 py-1 bg-[#0d1117] rounded text-xs">
+                <div>
+                  <span className="text-white">Local {local.localNumber}</span>
+                  <span className="text-[10px] text-gray-500 ml-1">{local.jurisdiction[0]}</span>
                 </div>
-                <div className="text-gray-400">
-                  Workers: <span className="text-white">{corridor.totalWorkers.toLocaleString()}</span>
-                </div>
-                <div className="text-gray-400">
-                  Union: <span className="text-white">{corridor.unionDensity}%</span>
-                </div>
-                <div className="text-gray-400">
-                  IBEW: <span className="text-white">Local {corridor.ibewLocals.join(', ')}</span>
-                </div>
+                {local.memberCount && <span className="text-[10px] text-gray-400">{(local.memberCount/1000).toFixed(1)}k</span>}
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        </ScrollCard>
+
+        {/* Coalition Partners */}
+        <ScrollCard title="Coalition Partners" icon={Handshake} color="text-pink-400" height="flex-1" count={partners.length}>
+          <div className="p-1 space-y-1">
+            {partners.map(partner => (
+              <div key={partner.id} className="p-1.5 bg-[#0d1117] rounded text-xs">
+                <div className="flex items-center justify-between">
+                  <span className="text-white font-medium truncate">{partner.shortName || partner.name}</span>
+                  <span className={`px-1 py-0.5 text-[9px] rounded ${
+                    partner.engagementStatus === 'active-partner' ? 'bg-green-900/30 text-green-400' :
+                    partner.engagementStatus === 'data-sharing' ? 'bg-blue-900/30 text-blue-400' :
+                    'bg-gray-900/30 text-gray-400'
+                  }`}>{partner.type}</span>
+                </div>
+                <div className="text-[10px] text-gray-500 truncate">{partner.focusAreas.slice(0, 2).join(', ')}</div>
+              </div>
+            ))}
+          </div>
+        </ScrollCard>
       </div>
     </div>
   );
 
   const renderFOIA = () => (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h3 className="text-white font-semibold">FOIA Request Generator & Tracker</h3>
-        <div className="flex gap-2">
-          <button className="px-3 py-1.5 bg-purple-600 text-white rounded-lg text-sm flex items-center gap-2 hover:bg-purple-500">
-            <Plus className="w-4 h-4" />
-            New Request
-          </button>
-          <button className="px-3 py-1.5 bg-[#21262d] text-white rounded-lg text-sm flex items-center gap-2 hover:bg-[#30363d]">
-            <Download className="w-4 h-4" />
-            Export
-          </button>
-        </div>
-      </div>
-
+    <div className="grid grid-cols-12 gap-2 h-full">
       {/* State Templates */}
-      <div className="bg-[#161b22] rounded-lg border border-[#30363d] p-4">
-        <h4 className="text-white font-medium mb-3">Available State Templates</h4>
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-3">
-          {STATE_FOIA_TEMPLATES.map(template => (
-            <div
-              key={template.id}
-              className="p-3 bg-[#0d1117] rounded-lg border border-[#30363d] hover:border-purple-500 cursor-pointer transition-colors"
-            >
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-white font-medium">{template.state}</span>
-                <span className="text-xs text-gray-400">{template.responseDeadline} day response</span>
-              </div>
-              <div className="text-sm text-gray-400">{template.lawName}</div>
-              <div className="flex gap-2 mt-2">
-                {template.feeWaiverAvailable && (
-                  <span className="px-1.5 py-0.5 bg-green-900/30 text-green-400 text-xs rounded">
-                    Fee Waiver
-                  </span>
-                )}
-                {template.electronicSubmission && (
-                  <span className="px-1.5 py-0.5 bg-blue-900/30 text-blue-400 text-xs rounded">
-                    Electronic
-                  </span>
-                )}
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Active Requests */}
-      <div className="bg-[#161b22] rounded-lg border border-[#30363d] p-4">
-        <h4 className="text-white font-medium mb-3">Active Requests ({foiaRequests.length})</h4>
-        {foiaRequests.length === 0 ? (
-          <div className="text-center py-8 text-gray-400">
-            <FileSearch className="w-12 h-12 mx-auto mb-2 opacity-50" />
-            <p>No FOIA requests yet. Create your first request to start tracking.</p>
-          </div>
-        ) : (
-          <div className="space-y-2">
-            {foiaRequests.map(request => (
-              <div
-                key={request.id}
-                className="flex items-center justify-between p-3 bg-[#0d1117] rounded-lg"
-              >
-                <div>
-                  <div className="text-white font-medium">{request.subject}</div>
-                  <div className="text-sm text-gray-400">
-                    {request.state} • {request.agency}
-                  </div>
+      <div className="col-span-4">
+        <ScrollCard title="State Templates" icon={FileSearch} color="text-purple-400" height="h-full" count={STATE_FOIA_TEMPLATES.length}
+          actions={<button className="text-[10px] text-purple-400 hover:text-purple-300">+ New</button>}>
+          <div className="p-1 space-y-1">
+            {STATE_FOIA_TEMPLATES.map(template => (
+              <div key={template.id} className="p-1.5 bg-[#0d1117] rounded border border-[#21262d] hover:border-purple-500 cursor-pointer transition-colors">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-white font-medium">{template.state}</span>
+                  <span className="text-[10px] text-gray-500">{template.responseDeadline}d</span>
                 </div>
-                <StatusBadge status={request.status} />
+                <div className="text-[10px] text-gray-400 truncate">{template.lawName}</div>
+                <div className="flex gap-1 mt-1">
+                  {template.feeWaiverAvailable && <span className="px-1 py-0.5 bg-green-900/30 text-green-400 text-[9px] rounded">Fee Waiver</span>}
+                  {template.electronicSubmission && <span className="px-1 py-0.5 bg-blue-900/30 text-blue-400 text-[9px] rounded">E-File</span>}
+                </div>
               </div>
             ))}
           </div>
-        )}
+        </ScrollCard>
+      </div>
+
+      {/* Active Requests */}
+      <div className="col-span-8">
+        <ScrollCard title="Active Requests" icon={Clock} color="text-blue-400" height="h-full" count={foiaRequests.length}
+          actions={
+            <div className="flex gap-1">
+              <button className="text-[10px] text-blue-400 hover:text-blue-300">Export</button>
+            </div>
+          }>
+          {foiaRequests.length === 0 ? (
+            <div className="flex flex-col items-center justify-center h-full text-gray-500">
+              <FileSearch className="w-8 h-8 mb-2 opacity-50" />
+              <span className="text-xs">No FOIA requests yet</span>
+            </div>
+          ) : (
+            <div className="p-1">
+              <table className="w-full text-xs">
+                <thead className="bg-[#0d1117] sticky top-0">
+                  <tr className="text-gray-500">
+                    <th className="text-left p-1">Subject</th>
+                    <th className="text-left p-1">State</th>
+                    <th className="text-left p-1">Agency</th>
+                    <th className="text-left p-1">Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {foiaRequests.map(request => (
+                    <tr key={request.id} className="border-t border-[#21262d] hover:bg-[#21262d]">
+                      <td className="p-1 text-white truncate max-w-[200px]">{request.subject}</td>
+                      <td className="p-1 text-gray-400">{request.state}</td>
+                      <td className="p-1 text-gray-400 truncate max-w-[150px]">{request.agency}</td>
+                      <td className="p-1"><StatusBadge status={request.status} /></td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </ScrollCard>
       </div>
     </div>
   );
 
   const renderIncidents = () => (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h3 className="text-white font-semibold">Worker Incident Reports</h3>
-        <button className="px-3 py-1.5 bg-red-600 text-white rounded-lg text-sm flex items-center gap-2 hover:bg-red-500">
-          <Plus className="w-4 h-4" />
-          Report Incident
-        </button>
-      </div>
-
-      {/* Incident Type Cards */}
-      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {Object.entries(INCIDENT_TYPES).slice(0, 6).map(([type, info]) => (
-          <div
-            key={type}
-            className="p-4 bg-[#161b22] rounded-lg border border-[#30363d]"
-          >
-            <div className="text-white font-medium mb-1">{info.label}</div>
-            <div className="text-sm text-gray-400 mb-3">{info.description}</div>
-            <div className="text-xs text-gray-500">
-              {info.filingAgencies.length > 0 && (
-                <span>File with: {info.filingAgencies.join(', ')}</span>
-              )}
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {/* Recent Incidents */}
-      <div className="bg-[#161b22] rounded-lg border border-[#30363d] p-4">
-        <h4 className="text-white font-medium mb-3">Recent Reports ({incidents.length})</h4>
-        {incidents.length === 0 ? (
-          <div className="text-center py-8 text-gray-400">
-            <AlertTriangle className="w-12 h-12 mx-auto mb-2 opacity-50" />
-            <p>No incidents reported yet. Help protect workers by reporting issues.</p>
-          </div>
-        ) : (
-          <div className="space-y-2">
-            {incidents.map(incident => (
-              <div
-                key={incident.id}
-                className="flex items-center justify-between p-3 bg-[#0d1117] rounded-lg"
-              >
-                <div>
-                  <div className="text-white font-medium">{incident.title}</div>
-                  <div className="text-sm text-gray-400">
-                    {INCIDENT_TYPES[incident.incidentType]?.label} • {incident.facility?.city}, {incident.facility?.state}
-                  </div>
-                </div>
-                <span className={`px-2 py-1 text-xs rounded-full ${
-                  incident.severity === 'critical' ? 'bg-red-900/30 text-red-400' :
-                  incident.severity === 'high' ? 'bg-orange-900/30 text-orange-400' :
-                  incident.severity === 'medium' ? 'bg-yellow-900/30 text-yellow-400' :
-                  'bg-blue-900/30 text-blue-400'
-                }`}>
-                  {incident.severity}
-                </span>
+    <div className="grid grid-cols-12 gap-2 h-full">
+      {/* Incident Types */}
+      <div className="col-span-4">
+        <ScrollCard title="Incident Types" icon={AlertTriangle} color="text-red-400" height="h-full"
+          actions={<button className="text-[10px] text-red-400 hover:text-red-300">+ Report</button>}>
+          <div className="p-1 space-y-1">
+            {Object.entries(INCIDENT_TYPES).map(([type, info]) => (
+              <div key={type} className="p-1.5 bg-[#0d1117] rounded text-xs hover:bg-[#21262d] cursor-pointer">
+                <div className="text-white font-medium">{info.label}</div>
+                <div className="text-[10px] text-gray-500 line-clamp-2">{info.description}</div>
               </div>
             ))}
           </div>
-        )}
+        </ScrollCard>
+      </div>
+
+      {/* Recent Incidents */}
+      <div className="col-span-8">
+        <ScrollCard title="Recent Reports" icon={FileText} color="text-orange-400" height="h-full" count={incidents.length}>
+          {incidents.length === 0 ? (
+            <div className="flex flex-col items-center justify-center h-full text-gray-500">
+              <AlertTriangle className="w-8 h-8 mb-2 opacity-50" />
+              <span className="text-xs">No incidents reported</span>
+            </div>
+          ) : (
+            <div className="p-1">
+              <table className="w-full text-xs">
+                <thead className="bg-[#0d1117] sticky top-0">
+                  <tr className="text-gray-500">
+                    <th className="text-left p-1">Title</th>
+                    <th className="text-left p-1">Type</th>
+                    <th className="text-left p-1">Location</th>
+                    <th className="text-left p-1">Severity</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {incidents.map(incident => (
+                    <tr key={incident.id} className="border-t border-[#21262d] hover:bg-[#21262d]">
+                      <td className="p-1 text-white truncate max-w-[200px]">{incident.title}</td>
+                      <td className="p-1 text-gray-400">{INCIDENT_TYPES[incident.incidentType]?.label}</td>
+                      <td className="p-1 text-gray-400">{incident.facility?.city}, {incident.facility?.state}</td>
+                      <td className="p-1">
+                        <span className={`px-1 py-0.5 text-[9px] rounded ${
+                          incident.severity === 'critical' ? 'bg-red-900/30 text-red-400' :
+                          incident.severity === 'high' ? 'bg-orange-900/30 text-orange-400' :
+                          'bg-yellow-900/30 text-yellow-400'
+                        }`}>{incident.severity}</span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </ScrollCard>
       </div>
     </div>
   );
 
   const renderContractors = () => (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h3 className="text-white font-semibold">Contractor Intelligence Network</h3>
-        <div className="flex gap-2">
-          <select className="px-3 py-1.5 bg-[#21262d] text-white rounded-lg text-sm border border-[#30363d]">
-            <option value="all">All Types</option>
-            <option value="staffing">Staffing Agencies</option>
-            <option value="electrical">Electrical</option>
-            <option value="general">General Contractors</option>
-          </select>
-          <select className="px-3 py-1.5 bg-[#21262d] text-white rounded-lg text-sm border border-[#30363d]">
-            <option value="all">Union Status</option>
-            <option value="non-union">Non-Union</option>
-            <option value="mixed">Mixed</option>
-            <option value="fully-union">Fully Union</option>
-          </select>
-        </div>
-      </div>
+    <div className="h-full">
+      <ScrollCard title="Contractor Intelligence" icon={Briefcase} color="text-orange-400" height="h-full" count={contractors.length}
+        actions={
+          <div className="flex gap-2 items-center">
+            <select className="text-[10px] bg-[#21262d] border-none text-gray-400 rounded px-1">
+              <option>All Types</option>
+              <option>Staffing</option>
+              <option>Electrical</option>
+              <option>GC</option>
+            </select>
+            <select className="text-[10px] bg-[#21262d] border-none text-gray-400 rounded px-1">
+              <option>Union Status</option>
+              <option>Non-Union</option>
+              <option>Mixed</option>
+              <option>Union</option>
+            </select>
+          </div>
+        }>
+        <table className="w-full text-xs">
+          <thead className="bg-[#0d1117] sticky top-0">
+            <tr className="text-gray-500">
+              <th className="text-left p-1.5">Contractor</th>
+              <th className="text-left p-1.5">Type</th>
+              <th className="text-left p-1.5">Location</th>
+              <th className="text-left p-1.5">Union</th>
+              <th className="text-left p-1.5">Projects</th>
+              <th className="text-left p-1.5">Priority</th>
+            </tr>
+          </thead>
+          <tbody>
+            {contractors.map(contractor => (
+              <tr key={contractor.id} className="border-t border-[#21262d] hover:bg-[#21262d]">
+                <td className="p-1.5">
+                  <div className="text-white">{contractor.name}</div>
+                </td>
+                <td className="p-1.5 text-gray-400">{contractor.type}</td>
+                <td className="p-1.5 text-gray-400">{contractor.headquarters?.city}, {contractor.headquarters?.state}</td>
+                <td className="p-1.5">
+                  <span className={`px-1 py-0.5 text-[9px] rounded ${
+                    contractor.unionStatus === 'fully-union' ? 'bg-green-900/30 text-green-400' :
+                    contractor.unionStatus === 'mixed' ? 'bg-yellow-900/30 text-yellow-400' :
+                    'bg-red-900/30 text-red-400'
+                  }`}>{contractor.unionStatus}</span>
+                </td>
+                <td className="p-1.5 text-gray-400">{contractor.operatorRelationships.reduce((s, r) => s + r.projectCount, 0)}</td>
+                <td className="p-1.5">
+                  <span className={`px-1 py-0.5 text-[9px] rounded ${
+                    contractor.organizingPriority === 'high' ? 'bg-red-900/30 text-red-400' :
+                    contractor.organizingPriority === 'medium' ? 'bg-yellow-900/30 text-yellow-400' :
+                    'bg-green-900/30 text-green-400'
+                  }`}>{contractor.organizingPriority}</span>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </ScrollCard>
+    </div>
+  );
 
-      {/* Contractor List */}
-      <div className="bg-[#161b22] rounded-lg border border-[#30363d]">
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr className="border-b border-[#30363d]">
-                <th className="text-left p-3 text-gray-400 font-medium">Contractor</th>
-                <th className="text-left p-3 text-gray-400 font-medium">Type</th>
-                <th className="text-left p-3 text-gray-400 font-medium">Union Status</th>
-                <th className="text-left p-3 text-gray-400 font-medium">Projects</th>
-                <th className="text-left p-3 text-gray-400 font-medium">Priority</th>
+  const renderCBA = () => (
+    <div className="grid grid-cols-12 gap-2 h-full">
+      {/* Stats Row */}
+      <div className="col-span-12 grid grid-cols-4 gap-1">
+        {cbaStats && (
+          <>
+            <MiniMetric label="Total CBAs" value={cbaStats.total} color="green" />
+            <MiniMetric label="Avg Compliance" value={`${cbaStats.averageComplianceScore}%`} color="blue" />
+            <MiniMetric label="At Risk" value={cbaStats.atRiskCount} color="yellow" />
+            <MiniMetric label="Failed" value={cbaStats.failedCount} color="red" />
+          </>
+        )}
+      </div>
+      
+      {/* CBA List */}
+      <div className="col-span-12">
+        <ScrollCard title="Community Benefits Agreements" icon={Scale} color="text-green-400" height="h-[calc(100%-40px)]" count={cbas.length}
+          actions={<button className="text-[10px] text-green-400 hover:text-green-300">+ Add CBA</button>}>
+          <table className="w-full text-xs">
+            <thead className="bg-[#0d1117] sticky top-0">
+              <tr className="text-gray-500">
+                <th className="text-left p-1.5">Company</th>
+                <th className="text-left p-1.5">Facility</th>
+                <th className="text-left p-1.5">Location</th>
+                <th className="text-left p-1.5">Partners</th>
+                <th className="text-left p-1.5">Commitments</th>
+                <th className="text-left p-1.5">Status</th>
               </tr>
             </thead>
             <tbody>
-              {contractors.map(contractor => (
-                <tr key={contractor.id} className="border-b border-[#30363d]/50 hover:bg-[#21262d]">
-                  <td className="p-3">
-                    <div className="text-white font-medium">{contractor.name}</div>
-                    <div className="text-sm text-gray-400">{contractor.headquarters?.city}, {contractor.headquarters?.state}</div>
-                  </td>
-                  <td className="p-3 text-gray-300 text-sm">{contractor.type}</td>
-                  <td className="p-3">
-                    <span className={`px-2 py-1 text-xs rounded-full ${
-                      contractor.unionStatus === 'fully-union' ? 'bg-green-900/30 text-green-400' :
-                      contractor.unionStatus === 'mixed' ? 'bg-yellow-900/30 text-yellow-400' :
-                      'bg-red-900/30 text-red-400'
-                    }`}>
-                      {contractor.unionStatus}
-                    </span>
-                  </td>
-                  <td className="p-3 text-gray-300 text-sm">
-                    {contractor.operatorRelationships.reduce((sum, r) => sum + r.projectCount, 0)}
-                  </td>
-                  <td className="p-3">
-                    <span className={`px-2 py-1 text-xs rounded-full ${
-                      contractor.organizingPriority === 'high' ? 'bg-red-900/30 text-red-400' :
-                      contractor.organizingPriority === 'medium' ? 'bg-yellow-900/30 text-yellow-400' :
-                      'bg-green-900/30 text-green-400'
-                    }`}>
-                      {contractor.organizingPriority}
-                    </span>
+              {cbas.map(cba => (
+                <tr key={cba.id} className="border-t border-[#21262d] hover:bg-[#21262d]">
+                  <td className="p-1.5 text-white">{cba.company}</td>
+                  <td className="p-1.5 text-gray-400 truncate max-w-[150px]">{cba.facilityName}</td>
+                  <td className="p-1.5 text-gray-400">{cba.city}, {cba.state}</td>
+                  <td className="p-1.5 text-gray-400">{cba.communityPartners.length}</td>
+                  <td className="p-1.5 text-gray-400">{cba.commitments.length}</td>
+                  <td className="p-1.5">
+                    <span className={`px-1 py-0.5 text-[9px] rounded ${
+                      cba.status === 'active' ? 'bg-green-900/30 text-green-400' : 'bg-gray-900/30 text-gray-400'
+                    }`}>{cba.status}</span>
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
-        </div>
-      </div>
-    </div>
-  );
-
-  const renderCBA = () => (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h3 className="text-white font-semibold">Community Benefits Agreement Monitor</h3>
-        <button className="px-3 py-1.5 bg-green-600 text-white rounded-lg text-sm flex items-center gap-2 hover:bg-green-500">
-          <Plus className="w-4 h-4" />
-          Add CBA
-        </button>
-      </div>
-
-      {/* CBA Summary Stats */}
-      {cbaStats && (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <MetricCard label="Total CBAs" value={cbaStats.total} icon={Scale} color="green" />
-          <MetricCard label="Avg Compliance" value={`${cbaStats.averageComplianceScore}%`} icon={CheckCircle2} color="blue" />
-          <MetricCard label="At Risk" value={cbaStats.atRiskCount} icon={AlertTriangle} color="yellow" />
-          <MetricCard label="Failed" value={cbaStats.failedCount} icon={XCircle} color="red" />
-        </div>
-      )}
-
-      {/* CBA List */}
-      <div className="bg-[#161b22] rounded-lg border border-[#30363d] p-4">
-        <h4 className="text-white font-medium mb-3">Tracked Agreements ({cbas.length})</h4>
-        <div className="space-y-3">
-          {cbas.map(cba => (
-            <div
-              key={cba.id}
-              className="p-4 bg-[#0d1117] rounded-lg border border-[#30363d]"
-            >
-              <div className="flex items-center justify-between mb-2">
-                <div className="text-white font-medium">{cba.title}</div>
-                <span className={`px-2 py-1 text-xs rounded-full ${
-                  cba.status === 'active' ? 'bg-green-900/30 text-green-400' :
-                  cba.status === 'expired' ? 'bg-gray-900/30 text-gray-400' :
-                  'bg-yellow-900/30 text-yellow-400'
-                }`}>
-                  {cba.status}
-                </span>
-              </div>
-              <div className="text-sm text-gray-400 mb-3">
-                {cba.company} • {cba.city}, {cba.state}
-              </div>
-              <div className="flex items-center gap-4 text-sm">
-                <span className="text-gray-400">
-                  Commitments: <span className="text-white">{cba.commitments.length}</span>
-                </span>
-                <span className="text-gray-400">
-                  Partners: <span className="text-white">{cba.communityPartners.length}</span>
-                </span>
-                <button className="text-blue-400 hover:text-blue-300">View Report</button>
-              </div>
-            </div>
-          ))}
-        </div>
+        </ScrollCard>
       </div>
     </div>
   );
 
   const renderLegislative = () => (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h3 className="text-white font-semibold">Legislative Alert System</h3>
-        <div className="flex gap-2">
-          <button className="px-3 py-1.5 bg-yellow-600 text-white rounded-lg text-sm flex items-center gap-2 hover:bg-yellow-500">
-            <Plus className="w-4 h-4" />
-            Track Bill
-          </button>
-        </div>
+    <div className="grid grid-cols-12 gap-2 h-full">
+      {/* Stats Row */}
+      <div className="col-span-12 grid grid-cols-4 gap-1">
+        {legislativeStats && (
+          <>
+            <MiniMetric label="Bills Tracked" value={legislativeStats.totalTracked} color="yellow" />
+            <MiniMetric label="Deadlines" value={legislativeStats.upcomingDeadlines} color="orange" />
+            <MiniMetric label="Pro-Worker" value={legislativeStats.positiveImpact} color="green" />
+            <MiniMetric label="Anti-Worker" value={legislativeStats.negativeImpact} color="red" />
+          </>
+        )}
       </div>
 
-      {/* Legislative Stats */}
-      {legislativeStats && (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <MetricCard label="Bills Tracked" value={legislativeStats.totalTracked} icon={Gavel} color="yellow" />
-          <MetricCard label="Upcoming Deadlines" value={legislativeStats.upcomingDeadlines} icon={Clock} color="orange" />
-          <MetricCard label="Pro-Worker Bills" value={legislativeStats.positiveImpact} icon={TrendingUp} color="green" />
-          <MetricCard label="Anti-Worker Bills" value={legislativeStats.negativeImpact} icon={AlertTriangle} color="red" />
-        </div>
-      )}
-
-      {/* Bills List */}
-      <div className="bg-[#161b22] rounded-lg border border-[#30363d] p-4">
-        <h4 className="text-white font-medium mb-3">Tracked Bills ({bills.length})</h4>
-        <div className="space-y-3">
-          {bills.map(bill => (
-            <div
-              key={bill.id}
-              className="p-4 bg-[#0d1117] rounded-lg border border-[#30363d]"
-            >
-              <div className="flex items-center justify-between mb-2">
-                <div className="flex items-center gap-2">
-                  <span className="text-white font-medium">{bill.billNumber}</span>
-                  <span className="text-gray-400">•</span>
-                  <span className="text-gray-400">{bill.state}</span>
-                </div>
-                <span className={`px-2 py-1 text-xs rounded-full ${
-                  bill.status === 'signed' ? 'bg-green-900/30 text-green-400' :
-                  bill.status === 'in-committee' ? 'bg-blue-900/30 text-blue-400' :
-                  'bg-gray-900/30 text-gray-400'
-                }`}>
-                  {bill.status}
-                </span>
-              </div>
-              <div className="text-white mb-2">{bill.title}</div>
-              <div className="text-sm text-gray-400 mb-2">{bill.summary}</div>
-              <div className="flex flex-wrap gap-2">
-                {bill.category.map(cat => (
-                  <span key={cat} className="px-2 py-0.5 bg-[#21262d] text-gray-300 text-xs rounded">
-                    {cat}
-                  </span>
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
+      {/* Bills Table */}
+      <div className="col-span-12">
+        <ScrollCard title="Tracked Bills" icon={Gavel} color="text-yellow-400" height="h-[calc(100%-40px)]" count={bills.length}
+          actions={<button className="text-[10px] text-yellow-400 hover:text-yellow-300">+ Track Bill</button>}>
+          <table className="w-full text-xs">
+            <thead className="bg-[#0d1117] sticky top-0">
+              <tr className="text-gray-500">
+                <th className="text-left p-1.5">Bill</th>
+                <th className="text-left p-1.5">State</th>
+                <th className="text-left p-1.5">Title</th>
+                <th className="text-left p-1.5">Categories</th>
+                <th className="text-left p-1.5">Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {bills.map(bill => (
+                <tr key={bill.id} className="border-t border-[#21262d] hover:bg-[#21262d]">
+                  <td className="p-1.5 text-white font-medium">{bill.billNumber}</td>
+                  <td className="p-1.5 text-gray-400">{bill.state}</td>
+                  <td className="p-1.5 text-gray-400 truncate max-w-[250px]">{bill.title}</td>
+                  <td className="p-1.5">
+                    <div className="flex gap-0.5 flex-wrap">
+                      {bill.category.slice(0, 2).map(cat => (
+                        <span key={cat} className="px-1 py-0.5 bg-[#21262d] text-[9px] text-gray-400 rounded">{cat}</span>
+                      ))}
+                    </div>
+                  </td>
+                  <td className="p-1.5">
+                    <span className={`px-1 py-0.5 text-[9px] rounded ${
+                      bill.status === 'signed' ? 'bg-green-900/30 text-green-400' :
+                      bill.status === 'in-committee' ? 'bg-blue-900/30 text-blue-400' :
+                      'bg-gray-900/30 text-gray-400'
+                    }`}>{bill.status}</span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </ScrollCard>
       </div>
     </div>
   );
 
   const renderCorridors = () => (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h3 className="text-white font-semibold">Union Density Heatmap</h3>
+    <div className="grid grid-cols-12 gap-2 h-full">
+      {/* Stats Row */}
+      <div className="col-span-12 grid grid-cols-4 gap-1">
+        {corridorStats && (
+          <>
+            <MiniMetric label="Facilities" value={corridorStats.totalFacilities} color="blue" />
+            <MiniMetric label="Workers" value={`${(corridorStats.totalWorkers/1000).toFixed(0)}k`} color="green" />
+            <MiniMetric label="Avg Union" value={`${corridorStats.avgUnionDensity}%`} color="cyan" />
+            <MiniMetric label="High Priority" value={corridorStats.highPriorityCount} color="red" />
+          </>
+        )}
       </div>
 
-      {/* Corridor Stats */}
-      {corridorStats && (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <MetricCard label="Total Facilities" value={corridorStats.totalFacilities} icon={Building2} color="blue" />
-          <MetricCard label="Total Workers" value={corridorStats.totalWorkers.toLocaleString()} icon={Users} color="green" />
-          <MetricCard label="Avg Union Density" value={`${corridorStats.avgUnionDensity}%`} icon={Shield} color="cyan" />
-          <MetricCard label="High Priority" value={corridorStats.highPriorityCount} icon={Target} color="red" />
-        </div>
-      )}
+      {/* Split View */}
+      <div className="col-span-8">
+        <ScrollCard title="Data Center Corridors" icon={Map} color="text-cyan-400" height="h-[calc(100%-40px)]" count={DATA_CENTER_CORRIDORS.length}>
+          <table className="w-full text-xs">
+            <thead className="bg-[#0d1117] sticky top-0">
+              <tr className="text-gray-500">
+                <th className="text-left p-1.5">Corridor</th>
+                <th className="text-left p-1.5">Facilities</th>
+                <th className="text-left p-1.5">Workers</th>
+                <th className="text-left p-1.5">Union %</th>
+                <th className="text-left p-1.5">IBEW</th>
+                <th className="text-left p-1.5">Priority</th>
+              </tr>
+            </thead>
+            <tbody>
+              {DATA_CENTER_CORRIDORS.map(corridor => (
+                <tr key={corridor.id} className="border-t border-[#21262d] hover:bg-[#21262d]">
+                  <td className="p-1.5 text-white">{corridor.name}</td>
+                  <td className="p-1.5 text-gray-400">{corridor.facilityCount}</td>
+                  <td className="p-1.5 text-gray-400">{corridor.totalWorkers.toLocaleString()}</td>
+                  <td className="p-1.5 text-gray-400">{corridor.unionDensity}%</td>
+                  <td className="p-1.5 text-gray-400">Local {corridor.ibewLocals.join(', ')}</td>
+                  <td className="p-1.5">
+                    <span className={`px-1 py-0.5 text-[9px] rounded ${
+                      corridor.organizingPriority === 'high' ? 'bg-red-900/30 text-red-400' :
+                      corridor.organizingPriority === 'medium' ? 'bg-yellow-900/30 text-yellow-400' :
+                      'bg-green-900/30 text-green-400'
+                    }`}>{corridor.organizingPriority}</span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </ScrollCard>
+      </div>
 
       {/* IBEW Locals */}
-      <div className="bg-[#161b22] rounded-lg border border-[#30363d] p-4">
-        <h4 className="text-white font-medium mb-3">IBEW Locals with Data Center Experience</h4>
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-3">
-          {IBEW_LOCALS.filter(l => l.dataCenterExperience).map(local => (
-            <div
-              key={local.localNumber}
-              className="p-3 bg-[#0d1117] rounded-lg border border-[#30363d]"
-            >
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-white font-medium">Local {local.localNumber}</span>
-                {local.memberCount && (
-                  <span className="text-gray-400 text-sm">{local.memberCount.toLocaleString()} members</span>
-                )}
+      <div className="col-span-4">
+        <ScrollCard title="IBEW Locals" icon={Zap} color="text-yellow-400" height="h-[calc(100%-40px)]" count={IBEW_LOCALS.filter(l => l.dataCenterExperience).length}>
+          <div className="p-1 space-y-1">
+            {IBEW_LOCALS.filter(l => l.dataCenterExperience).map(local => (
+              <div key={local.localNumber} className="p-1.5 bg-[#0d1117] rounded text-xs">
+                <div className="flex items-center justify-between">
+                  <span className="text-white font-medium">Local {local.localNumber}</span>
+                  {local.memberCount && <span className="text-[10px] text-gray-500">{local.memberCount.toLocaleString()} mbrs</span>}
+                </div>
+                <div className="text-[10px] text-gray-400 truncate">{local.jurisdiction.join(', ')}</div>
+                {local.notes && <div className="text-[9px] text-gray-500 mt-0.5 line-clamp-1">{local.notes}</div>}
               </div>
-              <div className="text-sm text-gray-400">{local.jurisdiction.join(', ')}</div>
-              {local.notes && (
-                <div className="text-xs text-gray-500 mt-2">{local.notes}</div>
-              )}
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        </ScrollCard>
       </div>
     </div>
   );
 
   const renderCoalition = () => (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h3 className="text-white font-semibold">Coalition Coordination Hub</h3>
-        <button className="px-3 py-1.5 bg-pink-600 text-white rounded-lg text-sm flex items-center gap-2 hover:bg-pink-500">
-          <Plus className="w-4 h-4" />
-          Add Partner
-        </button>
+    <div className="grid grid-cols-12 gap-2 h-full">
+      {/* Stats Row */}
+      <div className="col-span-12 grid grid-cols-4 gap-1">
+        {coalitionStats && (
+          <>
+            <MiniMetric label="Partners" value={coalitionStats.totalPartners} color="pink" />
+            <MiniMetric label="Watchlists" value={coalitionStats.activeWatchlists} color="blue" />
+            <MiniMetric label="Campaigns" value={coalitionStats.activeCampaigns} color="yellow" />
+            <MiniMetric label="Data Sharing" value={coalitionStats.byEngagement['data-sharing'] || 0} color="green" />
+          </>
+        )}
       </div>
 
-      {/* Coalition Stats */}
-      {coalitionStats && (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <MetricCard label="Partners" value={coalitionStats.totalPartners} icon={Handshake} color="pink" />
-          <MetricCard label="Watchlists" value={coalitionStats.activeWatchlists} icon={Target} color="blue" />
-          <MetricCard label="Campaigns" value={coalitionStats.activeCampaigns} icon={Zap} color="yellow" />
-          <MetricCard 
-            label="Data Sharing" 
-            value={coalitionStats.byEngagement['data-sharing'] || 0} 
-            icon={Shield} 
-            color="green" 
-          />
-        </div>
-      )}
-
-      {/* Partners List */}
-      <div className="bg-[#161b22] rounded-lg border border-[#30363d] p-4">
-        <h4 className="text-white font-medium mb-3">Coalition Partners ({partners.length})</h4>
-        <div className="space-y-3">
-          {partners.map(partner => (
-            <div
-              key={partner.id}
-              className="p-4 bg-[#0d1117] rounded-lg border border-[#30363d]"
-            >
-              <div className="flex items-center justify-between mb-2">
-                <div className="text-white font-medium">{partner.name}</div>
-                <span className={`px-2 py-1 text-xs rounded-full ${
-                  partner.engagementStatus === 'active-partner' ? 'bg-green-900/30 text-green-400' :
-                  partner.engagementStatus === 'data-sharing' ? 'bg-blue-900/30 text-blue-400' :
-                  'bg-gray-900/30 text-gray-400'
-                }`}>
-                  {partner.engagementStatus}
-                </span>
-              </div>
-              <div className="text-sm text-gray-400 mb-2">{partner.description}</div>
-              <div className="flex flex-wrap gap-2">
-                {partner.focusAreas.map(area => (
-                  <span key={area} className="px-2 py-0.5 bg-[#21262d] text-gray-300 text-xs rounded">
-                    {area}
-                  </span>
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
+      {/* Partners Table */}
+      <div className="col-span-12">
+        <ScrollCard title="Coalition Partners" icon={Handshake} color="text-pink-400" height="h-[calc(100%-40px)]" count={partners.length}
+          actions={<button className="text-[10px] text-pink-400 hover:text-pink-300">+ Add Partner</button>}>
+          <table className="w-full text-xs">
+            <thead className="bg-[#0d1117] sticky top-0">
+              <tr className="text-gray-500">
+                <th className="text-left p-1.5">Organization</th>
+                <th className="text-left p-1.5">Type</th>
+                <th className="text-left p-1.5">Focus Areas</th>
+                <th className="text-left p-1.5">Scope</th>
+                <th className="text-left p-1.5">Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {partners.map(partner => (
+                <tr key={partner.id} className="border-t border-[#21262d] hover:bg-[#21262d]">
+                  <td className="p-1.5">
+                    <div className="text-white">{partner.name}</div>
+                    <div className="text-[10px] text-gray-500 truncate max-w-[200px]">{partner.description}</div>
+                  </td>
+                  <td className="p-1.5 text-gray-400">{partner.type}</td>
+                  <td className="p-1.5">
+                    <div className="flex gap-0.5 flex-wrap">
+                      {partner.focusAreas.slice(0, 2).map(area => (
+                        <span key={area} className="px-1 py-0.5 bg-[#21262d] text-[9px] text-gray-400 rounded">{area}</span>
+                      ))}
+                    </div>
+                  </td>
+                  <td className="p-1.5 text-gray-400 text-[10px]">{partner.geographicScope}</td>
+                  <td className="p-1.5">
+                    <span className={`px-1 py-0.5 text-[9px] rounded ${
+                      partner.engagementStatus === 'active-partner' ? 'bg-green-900/30 text-green-400' :
+                      partner.engagementStatus === 'data-sharing' ? 'bg-blue-900/30 text-blue-400' :
+                      'bg-gray-900/30 text-gray-400'
+                    }`}>{partner.engagementStatus}</span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </ScrollCard>
       </div>
     </div>
   );
@@ -761,55 +800,50 @@ export const OrganizerCommandCenter: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#0d1117] flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+      <div className="h-full bg-[#0d1117] flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#0d1117]">
-      {/* Header */}
-      <div className="bg-[#161b22] border-b border-[#30363d] px-6 py-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Target className="w-8 h-8 text-blue-400" />
-            <div>
-              <h1 className="text-xl font-bold text-white">Organizer Command Center</h1>
-              <p className="text-sm text-gray-400">Labor intelligence & campaign coordination</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-3">
-            <button className="px-3 py-1.5 bg-[#21262d] text-white rounded-lg text-sm flex items-center gap-2 hover:bg-[#30363d]">
-              <Download className="w-4 h-4" />
-              Export All
-            </button>
-          </div>
+    <div className="h-full bg-[#0d1117] flex flex-col overflow-hidden">
+      {/* Compact Header */}
+      <div className="bg-[#161b22] border-b border-[#30363d] px-3 py-1.5 flex items-center justify-between shrink-0">
+        <div className="flex items-center gap-2">
+          <Target className="w-5 h-5 text-blue-400" />
+          <span className="text-sm font-bold text-white">Organizer Command Center</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <button className="px-2 py-1 bg-[#21262d] text-white rounded text-xs flex items-center gap-1 hover:bg-[#30363d]">
+            <Download className="w-3 h-3" />
+            Export
+          </button>
         </div>
       </div>
 
-      {/* Navigation Tabs */}
-      <div className="bg-[#161b22] border-b border-[#30363d] px-6">
-        <div className="flex gap-1 overflow-x-auto py-2">
+      {/* Compact Navigation Tabs */}
+      <div className="bg-[#161b22] border-b border-[#30363d] px-2 shrink-0">
+        <div className="flex gap-0.5 py-1 overflow-x-auto">
           {tabs.map(tab => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm whitespace-nowrap transition-colors ${
+              className={`flex items-center gap-1 px-2 py-1 rounded text-xs whitespace-nowrap transition-colors ${
                 activeTab === tab.id
                   ? 'bg-[#21262d] text-white'
                   : 'text-gray-400 hover:text-white hover:bg-[#21262d]/50'
               }`}
             >
-              <tab.icon className={`w-4 h-4 ${activeTab === tab.id ? tab.color : ''}`} />
+              <tab.icon className={`w-3 h-3 ${activeTab === tab.id ? tab.color : ''}`} />
               {tab.label}
             </button>
           ))}
         </div>
       </div>
 
-      {/* Content */}
-      <div className="p-6">
+      {/* Content - Takes remaining space */}
+      <div className="flex-1 p-2 overflow-hidden">
         {renderContent()}
       </div>
     </div>
@@ -818,67 +852,26 @@ export const OrganizerCommandCenter: React.FC = () => {
 
 // === Helper Components ===
 
-const MetricCard: React.FC<{
+const MiniMetric: React.FC<{
   label: string;
   value: number | string;
-  icon: React.ElementType;
   color: string;
-}> = ({ label, value, icon: Icon, color }) => {
+}> = ({ label, value, color }) => {
   const colorClasses: Record<string, string> = {
-    blue: 'text-blue-400 bg-blue-900/20',
-    green: 'text-green-400 bg-green-900/20',
-    red: 'text-red-400 bg-red-900/20',
-    yellow: 'text-yellow-400 bg-yellow-900/20',
-    orange: 'text-orange-400 bg-orange-900/20',
-    purple: 'text-purple-400 bg-purple-900/20',
-    cyan: 'text-cyan-400 bg-cyan-900/20',
-    pink: 'text-pink-400 bg-pink-900/20',
+    blue: 'text-blue-400',
+    green: 'text-green-400',
+    red: 'text-red-400',
+    yellow: 'text-yellow-400',
+    orange: 'text-orange-400',
+    purple: 'text-purple-400',
+    cyan: 'text-cyan-400',
+    pink: 'text-pink-400',
   };
 
   return (
-    <div className="bg-[#161b22] rounded-lg border border-[#30363d] p-4">
-      <div className="flex items-center gap-3">
-        <div className={`p-2 rounded-lg ${colorClasses[color]}`}>
-          <Icon className="w-5 h-5" />
-        </div>
-        <div>
-          <div className="text-2xl font-bold text-white">{value}</div>
-          <div className="text-sm text-gray-400">{label}</div>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-const QuickActionButton: React.FC<{
-  label: string;
-  icon: React.ElementType;
-  onClick: () => void;
-}> = ({ label, icon: Icon, onClick }) => (
-  <button
-    onClick={onClick}
-    className="flex items-center gap-2 px-4 py-3 bg-[#21262d] rounded-lg text-white text-sm hover:bg-[#30363d] transition-colors"
-  >
-    <Icon className="w-4 h-4" />
-    {label}
-  </button>
-);
-
-const AlertItem: React.FC<{
-  title: string;
-  description: string;
-  type: 'warning' | 'info' | 'error';
-}> = ({ title, description, type }) => {
-  const typeStyles = {
-    warning: 'border-l-yellow-500',
-    info: 'border-l-blue-500',
-    error: 'border-l-red-500',
-  };
-
-  return (
-    <div className={`p-3 bg-[#0d1117] rounded-lg border-l-4 ${typeStyles[type]}`}>
-      <div className="text-white font-medium text-sm">{title}</div>
-      <div className="text-gray-400 text-xs">{description}</div>
+    <div className="bg-[#161b22] rounded border border-[#30363d] px-2 py-1.5 flex items-center justify-between">
+      <span className="text-[10px] text-gray-400">{label}</span>
+      <span className={`text-sm font-bold ${colorClasses[color]}`}>{value}</span>
     </div>
   );
 };
@@ -897,9 +890,8 @@ const StatusBadge: React.FC<{ status: FOIAStatus }> = ({ status }) => {
   };
 
   return (
-    <span className={`px-2 py-1 text-xs rounded-full ${statusStyles[status]}`}>
+    <span className={`px-1 py-0.5 text-[9px] rounded ${statusStyles[status]}`}>
       {status}
     </span>
   );
 };
-
