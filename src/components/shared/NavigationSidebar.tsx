@@ -366,7 +366,7 @@ export function NavigationSidebar({
     return (
       <div className="w-16 bg-gray-900 border-r border-gray-800 flex flex-col items-center py-4 space-y-2">
         {/* Expand button */}
-        <Tooltip content="Expand Navigation" placement="right">
+        <Tooltip content="Expand Navigation" position="right">
           <button
             onClick={onToggleCollapse}
             className="p-2 hover:bg-gray-800 rounded-lg transition-colors text-gray-400 hover:text-white"
@@ -383,7 +383,7 @@ export function NavigationSidebar({
           const badge = getBadge(item.id);
 
           return (
-            <Tooltip key={item.id} content={item.label} placement="right">
+            <Tooltip key={item.id} content={item.label} position="right">
               <button
                 onClick={() => onTabChange(item.id)}
                 className={`relative p-2 rounded-lg transition-all ${
@@ -464,7 +464,7 @@ export function NavigationSidebar({
                   const badge = getBadge(item.id);
 
                   return (
-                    <Tooltip key={item.id} content={item.description} placement="right">
+                    <Tooltip key={item.id} content={item.description} position="right">
                       <button
                         onClick={() => onTabChange(item.id)}
                         className={`w-full px-4 py-2 flex items-center justify-between hover:bg-gray-800/70 transition-all ${

@@ -15,7 +15,9 @@
  */
 
 import { useEffect, useRef, useState, useMemo } from 'react';
+// @ts-expect-error react-cytoscapejs doesn't have types
 import CytoscapeComponent from 'react-cytoscapejs';
+import cytoscape from 'cytoscape';
 import { Facility } from '../../types';
 import { 
   TrendingUp, 
@@ -61,8 +63,8 @@ export function ComplianceFlowTab({ facilities }: ComplianceFlowTabProps) {
     // Create operator nodes (parent level)
     operatorGroups.forEach((facilityList, operator) => {
       const totalGap = facilityList.reduce((sum, f) => sum + (f.subsidyGap || 0), 0);
-      const totalPromised = facilityList.reduce((sum, f) => sum + (f.promisedJobs || 0), 0);
-      const totalActual = facilityList.reduce((sum, f) => sum + (f.actualJobs || 0), 0);
+      const totalPromised = facilityList.reduce((sum, f) => sum + (f.jobsPromised || 0), 0);
+      const totalActual = facilityList.reduce((sum, f) => sum + (f.jobsCreated || 0), 0);
       const complianceRate = facilityList.filter(f => f.complianceStatus === 'Compliant').length / facilityList.length;
       
       const health = complianceRate > 0.7 ? 'healthy' : complianceRate > 0.4 ? 'warning' : 'critical';
@@ -137,8 +139,8 @@ export function ComplianceFlowTab({ facilities }: ComplianceFlowTabProps) {
     // Add intent vs actual comparison nodes (for validation view)
     if (viewMode === 'validation') {
       // Add summary intent node
-      const totalPromised = facilities.reduce((sum, f) => sum + (f.promisedJobs || 0), 0);
-      const totalActual = facilities.reduce((sum, f) => sum + (f.actualJobs || 0), 0);
+      const totalPromised = facilities.reduce((sum, f) => sum + (f.jobsPromised || 0), 0);
+      const totalActual = facilities.reduce((sum, f) => sum + (f.jobsCreated || 0), 0);
       const totalGap = facilities.reduce((sum, f) => sum + (f.subsidyGap || 0), 0);
 
       elements.push({
@@ -604,7 +606,7 @@ export function ComplianceFlowTab({ facilities }: ComplianceFlowTabProps) {
             style={{ width: '100%', height: '100%' }}
             stylesheet={stylesheet}
             layout={layouts[layoutMode]}
-            cy={(cy) => {
+            cy={(cy: cytoscape.Core) => {
               cyRef.current = cy;
               cy.on('tap', 'node', handleNodeTap);
             }}

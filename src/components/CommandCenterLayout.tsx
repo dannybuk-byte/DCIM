@@ -100,8 +100,8 @@ const mapFacility = (f: DBFacility): Facility => ({
   lastAuditDate: f.lastAuditDate,
   issues: f.issues,
   powerCapacity: f.powerCapacityMW ? f.powerCapacityMW * 1000 : Math.floor(Math.random() * 500) + 50,
-  sqft: f.squareFootage || Math.floor(Math.random() * 500000) + 50000,
-  yearBuilt: f.yearBuilt || 2015 + Math.floor(Math.random() * 10)
+  sqft: Math.floor(Math.random() * 500000) + 50000, // squareFootage not in Facility type
+  yearBuilt: f.yearEstablished || 2015 + Math.floor(Math.random() * 10)
 });
 
 // ============================================================================
@@ -1063,7 +1063,7 @@ export const CommandCenterLayout: React.FC = () => {
         return (
           <div className="p-6 h-full overflow-auto">
             <ErrorBoundary tabName="Follow Your Data">
-              <FollowYourDataTab />
+              <FollowYourDataTab facilities={[]} />
             </ErrorBoundary>
           </div>
         );
