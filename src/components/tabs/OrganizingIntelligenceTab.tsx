@@ -26,6 +26,7 @@ import {
   Zap,
   ChevronDown,
   ChevronRight,
+  ChevronLeft,
   Search,
   Filter,
   Download,
@@ -44,6 +45,13 @@ import {
   Clock,
   Bot,
   Cpu,
+  PanelLeftClose,
+  PanelLeftOpen,
+  PanelRightClose,
+  PanelRightOpen,
+  Maximize2,
+  Minimize2,
+  Settings2,
 } from 'lucide-react';
 import { ContextualNLPWidget, SectionNLPBar } from '../shared/ContextualNLPWidget';
 import { NLPAction } from '../../hooks/useSectionNLP';
@@ -166,6 +174,56 @@ const UnionBadge: React.FC<UnionBadgeProps> = ({ union }) => {
 // Nested section IDs for expandable details
 type NestedSection = 'keyFactors' | 'strategic' | 'unionIntel' | 'contractors' | 'timeline' | 'approach' | 'subsidy';
 
+// =============================================================================
+// DENSITY MODE TYPES & CONFIG
+// =============================================================================
+type DensityMode = 'compact' | 'comfortable' | 'spacious';
+
+const DENSITY_CONFIG = {
+  compact: {
+    text: 'text-[10px]',
+    textLg: 'text-xs',
+    padding: 'p-1',
+    paddingX: 'px-1.5',
+    paddingY: 'py-0.5',
+    gap: 'gap-1',
+    cardPadding: 'p-2',
+    rowHeight: 'py-1',
+    iconSize: 'w-3 h-3',
+    iconSizeLg: 'w-4 h-4',
+    headerHeight: 'h-8',
+    sidebarWidth: 'w-48',
+  },
+  comfortable: {
+    text: 'text-xs',
+    textLg: 'text-sm',
+    padding: 'p-2',
+    paddingX: 'px-3',
+    paddingY: 'py-1.5',
+    gap: 'gap-2',
+    cardPadding: 'p-3',
+    rowHeight: 'py-2',
+    iconSize: 'w-4 h-4',
+    iconSizeLg: 'w-5 h-5',
+    headerHeight: 'h-10',
+    sidebarWidth: 'w-56',
+  },
+  spacious: {
+    text: 'text-sm',
+    textLg: 'text-base',
+    padding: 'p-3',
+    paddingX: 'px-4',
+    paddingY: 'py-2',
+    gap: 'gap-3',
+    cardPadding: 'p-4',
+    rowHeight: 'py-3',
+    iconSize: 'w-5 h-5',
+    iconSizeLg: 'w-6 h-6',
+    headerHeight: 'h-12',
+    sidebarWidth: 'w-64',
+  },
+};
+
 export const OrganizingIntelligenceTab: React.FC = () => {
   const [activeSection, setActiveSection] = useState<'targets' | 'contractors' | 'ibew' | 'corridors' | 'ai-infra'>('targets');
   const [searchQuery, setSearchQuery] = useState('');
@@ -173,6 +231,16 @@ export const OrganizingIntelligenceTab: React.FC = () => {
   const [selectedTarget, setSelectedTarget] = useState<OrganizingTarget | null>(null);
   const [expandedLocals, setExpandedLocals] = useState<Set<number>>(new Set());
   const [facilities, setFacilities] = useState<Facility[]>([]);
+  
+  // HYBRID DENSITY CONTROLS
+  const [densityMode, setDensityMode] = useState<DensityMode>('comfortable');
+  const [leftSidebarOpen, setLeftSidebarOpen] = useState(false);
+  const [rightSidebarOpen, setRightSidebarOpen] = useState(true);
+  const [statsBarExpanded, setStatsBarExpanded] = useState(false);
+  
+  // Get current density config
+  const d = DENSITY_CONFIG[densityMode];
+  
   // NLP-driven filters
   const [filters, setFilters] = useState<{
     states?: string[];
@@ -354,76 +422,119 @@ export const OrganizingIntelligenceTab: React.FC = () => {
 
   const renderHeader = () => (
     <div className="bg-gradient-to-r from-[#1a1f35] to-[#0d1117] border-b border-[#30363d] px-3 py-2">
+      {/* Top Row: Title + Controls */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
+          {/* Left Sidebar Toggle */}
+          <button
+            onClick={() => setLeftSidebarOpen(!leftSidebarOpen)}
+            className={`p-1.5 rounded border transition-colors ${
+              leftSidebarOpen 
+                ? 'bg-blue-500/20 border-blue-500/50 text-blue-400' 
+                : 'bg-[#21262d] border-[#30363d] text-gray-400 hover:text-white'
+            }`}
+            title={leftSidebarOpen ? 'Hide quick filters' : 'Show quick filters'}
+          >
+            {leftSidebarOpen ? <PanelLeftClose className="w-4 h-4" /> : <PanelLeftOpen className="w-4 h-4" />}
+          </button>
+          
           <div className="p-1.5 bg-red-500/20 rounded">
             <Target className="w-4 h-4 text-red-400" />
           </div>
-          <div>
-            <h1 className="text-base font-bold text-white">Organizing Intelligence</h1>
-          </div>
+          <h1 className={`font-bold text-white ${d.textLg}`}>Organizing Intelligence</h1>
         </div>
+        
         <div className="flex items-center gap-2">
-          {/* Inline NLP Search Bar */}
-          <div className="w-64">
+          {/* Density Toggle */}
+          <div className="flex items-center bg-[#21262d] rounded-lg p-0.5 border border-[#30363d]">
+            {(['compact', 'comfortable', 'spacious'] as DensityMode[]).map((mode) => (
+              <button
+                key={mode}
+                onClick={() => setDensityMode(mode)}
+                className={`px-2 py-1 text-[10px] rounded transition-colors ${
+                  densityMode === mode
+                    ? 'bg-[#30363d] text-white'
+                    : 'text-gray-500 hover:text-gray-300'
+                }`}
+                title={`${mode.charAt(0).toUpperCase() + mode.slice(1)} view`}
+              >
+                {mode === 'compact' ? <Minimize2 className="w-3 h-3" /> : 
+                 mode === 'spacious' ? <Maximize2 className="w-3 h-3" /> : 
+                 <Settings2 className="w-3 h-3" />}
+              </button>
+            ))}
+          </div>
+          
+          {/* NLP Search */}
+          <div className="w-56">
             <SectionNLPBar 
               context={getNLPContext()} 
               placeholder="Ask AI..."
               onAction={handleNLPAction}
             />
           </div>
+          
           <HelpIcon context={getNLPContext()} />
-          <button className="px-2 py-1 bg-[#21262d] text-gray-300 text-xs rounded border border-[#30363d] hover:bg-[#30363d] flex items-center gap-1">
-            <Download className="w-3 h-3" />
+          
+          <button className={`${d.paddingX} ${d.paddingY} bg-[#21262d] text-gray-300 ${d.text} rounded border border-[#30363d] hover:bg-[#30363d] flex items-center gap-1`}>
+            <Download className={d.iconSize} />
             Export
+          </button>
+          
+          {/* Right Sidebar Toggle */}
+          <button
+            onClick={() => setRightSidebarOpen(!rightSidebarOpen)}
+            className={`p-1.5 rounded border transition-colors ${
+              rightSidebarOpen 
+                ? 'bg-blue-500/20 border-blue-500/50 text-blue-400' 
+                : 'bg-[#21262d] border-[#30363d] text-gray-400 hover:text-white'
+            }`}
+            title={rightSidebarOpen ? 'Hide stats panel' : 'Show stats panel'}
+          >
+            {rightSidebarOpen ? <PanelRightClose className="w-4 h-4" /> : <PanelRightOpen className="w-4 h-4" />}
           </button>
         </div>
       </div>
       
-      {/* Stats - Compact Row */}
-      <div className="grid grid-cols-5 gap-2 mt-2">
-        <div className="bg-[#0d1117] px-2 py-1.5 rounded border border-[#30363d] flex items-center justify-between">
-          <div className="flex items-center gap-1.5 text-gray-400 text-[10px]">
-            <HardHat className="w-3 h-3" />
-            IBEW
+      {/* Collapsible Stats Bar */}
+      <button 
+        onClick={() => setStatsBarExpanded(!statsBarExpanded)}
+        className="w-full mt-2"
+      >
+        {statsBarExpanded ? (
+          /* Expanded Stats Grid */
+          <div className={`grid grid-cols-5 ${d.gap}`}>
+            {[
+              { icon: HardHat, label: 'IBEW', value: stats.totalIBEWMaintenanceWorkers.toLocaleString(), color: 'yellow' },
+              { icon: TrendingUp, label: 'Potential', value: stats.potentialOpsExpansion.toLocaleString(), color: 'green' },
+              { icon: MapPin, label: 'Corridors', value: stats.corridorsTracked, color: 'blue' },
+              { icon: Briefcase, label: 'Contractors', value: stats.contractorsTracked, color: 'purple' },
+              { icon: Target, label: 'Priority', value: organizingTargets.filter(t => t.priority === 'critical' || t.priority === 'high').length, color: 'red' },
+            ].map(({ icon: Icon, label, value, color }) => (
+              <div key={label} className={`bg-[#0d1117] ${d.paddingX} ${d.paddingY} rounded border border-[#30363d] flex items-center justify-between`}>
+                <div className={`flex items-center gap-1.5 text-gray-400 ${d.text}`}>
+                  <Icon className={d.iconSize} />
+                  {label}
+                </div>
+                <div className={`${d.textLg} font-bold text-${color}-400`}>{value}</div>
+              </div>
+            ))}
           </div>
-          <div className="text-sm font-bold text-yellow-400">{stats.totalIBEWMaintenanceWorkers.toLocaleString()}</div>
-        </div>
-        
-        <div className="bg-[#0d1117] px-2 py-1.5 rounded border border-[#30363d] flex items-center justify-between">
-          <div className="flex items-center gap-1.5 text-gray-400 text-[10px]">
-            <TrendingUp className="w-3 h-3" />
-            Potential
+        ) : (
+          /* Compact Stats Inline */
+          <div className="flex items-center justify-between bg-[#0d1117] px-3 py-1.5 rounded border border-[#30363d] hover:border-[#484f58] transition-colors">
+            <div className="flex items-center gap-4 text-[10px]">
+              <span className="text-gray-500">Stats:</span>
+              <span><HardHat className="w-3 h-3 inline mr-1 text-yellow-500" /><span className="text-yellow-400 font-bold">{stats.totalIBEWMaintenanceWorkers.toLocaleString()}</span> IBEW</span>
+              <span><TrendingUp className="w-3 h-3 inline mr-1 text-green-500" /><span className="text-green-400 font-bold">{stats.potentialOpsExpansion.toLocaleString()}</span> Potential</span>
+              <span><MapPin className="w-3 h-3 inline mr-1 text-blue-500" /><span className="text-blue-400 font-bold">{stats.corridorsTracked}</span> Corridors</span>
+              <span><Briefcase className="w-3 h-3 inline mr-1 text-purple-500" /><span className="text-purple-400 font-bold">{stats.contractorsTracked}</span> Contractors</span>
+              <span><Target className="w-3 h-3 inline mr-1 text-red-500" /><span className="text-red-400 font-bold">{organizingTargets.filter(t => t.priority === 'critical' || t.priority === 'high').length}</span> Priority</span>
+            </div>
+            <ChevronDown className={`w-4 h-4 text-gray-500 transition-transform ${statsBarExpanded ? 'rotate-180' : ''}`} />
           </div>
-          <div className="text-sm font-bold text-green-400">{stats.potentialOpsExpansion.toLocaleString()}</div>
-        </div>
-        
-        <div className="bg-[#0d1117] px-2 py-1.5 rounded border border-[#30363d] flex items-center justify-between">
-          <div className="flex items-center gap-1.5 text-gray-400 text-[10px]">
-            <MapPin className="w-3 h-3" />
-            Corridors
-          </div>
-          <div className="text-sm font-bold text-blue-400">{stats.corridorsTracked}</div>
-        </div>
-        
-        <div className="bg-[#0d1117] px-2 py-1.5 rounded border border-[#30363d] flex items-center justify-between">
-          <div className="flex items-center gap-1.5 text-gray-400 text-[10px]">
-            <Briefcase className="w-3 h-3" />
-            Contractors
-          </div>
-          <div className="text-sm font-bold text-purple-400">{stats.contractorsTracked}</div>
-        </div>
-        
-        <div className="bg-[#0d1117] px-2 py-1.5 rounded border border-[#30363d] flex items-center justify-between">
-          <div className="flex items-center gap-1.5 text-gray-400 text-[10px]">
-            <Target className="w-3 h-3" />
-            Priority
-          </div>
-          <div className="text-sm font-bold text-red-400">
-            {organizingTargets.filter(t => t.priority === 'critical' || t.priority === 'high').length}
-          </div>
-        </div>
-      </div>
+        )}
+      </button>
     </div>
   );
   
@@ -493,23 +604,23 @@ export const OrganizingIntelligenceTab: React.FC = () => {
   }), [filteredTargets]);
   
   const renderTargetSection = () => (
-    <div className="p-2 h-[calc(100vh-160px)] flex flex-col">
+    <div className={`${d.padding} h-[calc(100vh-160px)] flex flex-col`}>
       {/* Compact Header with Search and Toggle */}
-      <div className="flex items-center gap-2 mb-2 shrink-0">
+      <div className={`flex items-center ${d.gap} mb-2 shrink-0`}>
         <div className="flex-1 relative">
-          <Search className="absolute left-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-500" />
+          <Search className={`absolute left-2 top-1/2 -translate-y-1/2 ${d.iconSize} text-gray-500`} />
           <input
             type="text"
             placeholder="Search... (try 'tx aws')"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-7 pr-2 py-1 bg-[#0d1117] border border-[#30363d] rounded text-xs text-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-red-500/50"
+            className={`w-full pl-7 pr-2 ${d.paddingY} bg-[#0d1117] border border-[#30363d] rounded ${d.text} text-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-red-500/50`}
           />
         </div>
         <select
           value={priorityFilter}
           onChange={(e) => setPriorityFilter(e.target.value)}
-          className="px-2 py-1 bg-[#0d1117] border border-[#30363d] rounded text-xs text-white focus:outline-none"
+          className={`${d.paddingX} ${d.paddingY} bg-[#0d1117] border border-[#30363d] rounded ${d.text} text-white focus:outline-none`}
         >
           <option value="all">All</option>
           <option value="critical">Critical</option>
@@ -523,20 +634,120 @@ export const OrganizingIntelligenceTab: React.FC = () => {
             className={`p-1 rounded ${targetViewMode === 'table' ? 'bg-[#30363d] text-white' : 'text-gray-500'}`}
             title="Table"
           >
-            <Layers className="w-3.5 h-3.5" />
+            <Layers className={d.iconSize} />
           </button>
           <button 
             onClick={() => setTargetViewMode('cards')}
             className={`p-1 rounded ${targetViewMode === 'cards' ? 'bg-[#30363d] text-white' : 'text-gray-500'}`}
             title="Cards"
           >
-            <Network className="w-3.5 h-3.5" />
+            <Network className={d.iconSize} />
           </button>
         </div>
-        <span className="text-[10px] text-gray-500">{filteredTargets.length} targets</span>
+        <span className={`${d.text} text-gray-500`}>{filteredTargets.length} targets</span>
       </div>
       
-      <div className="flex gap-2 flex-1 overflow-hidden">
+      <div className={`flex ${d.gap} flex-1 overflow-hidden`}>
+        {/* LEFT SIDEBAR - Quick Filters (Collapsible) */}
+        {leftSidebarOpen && (
+          <div className={`${d.sidebarWidth} flex-shrink-0 flex flex-col h-full bg-[#0d1117] border border-[#30363d] rounded-lg overflow-hidden`}>
+            <div className={`${d.cardPadding} border-b border-[#30363d] flex items-center justify-between`}>
+              <h4 className={`${d.text} font-semibold text-gray-400 uppercase tracking-wide`}>Quick Filters</h4>
+              <button onClick={() => setLeftSidebarOpen(false)} className="text-gray-500 hover:text-white">
+                <ChevronLeft className={d.iconSize} />
+              </button>
+            </div>
+            <div className={`flex-1 overflow-y-auto ${d.cardPadding} space-y-3`}>
+              {/* Operators Quick Select */}
+              <div>
+                <div className={`${d.text} text-gray-500 mb-1.5`}>Top Operators</div>
+                <div className="space-y-1">
+                  {Object.entries(
+                    filteredTargets.reduce((acc, t) => {
+                      acc[t.operator] = (acc[t.operator] || 0) + 1;
+                      return acc;
+                    }, {} as Record<string, number>)
+                  ).sort(([, a], [, b]) => b - a).slice(0, 6).map(([op, count]) => (
+                    <button 
+                      key={op}
+                      onClick={() => setSearchQuery(op.toLowerCase())}
+                      className={`w-full flex items-center justify-between ${d.paddingX} ${d.paddingY} ${d.text} rounded transition-colors ${
+                        searchQuery.toLowerCase().includes(op.toLowerCase()) 
+                          ? 'bg-blue-500/20 text-blue-400' 
+                          : 'bg-[#21262d] text-gray-300 hover:bg-[#30363d]'
+                      }`}
+                    >
+                      <span className="truncate">{op}</span>
+                      <span className="text-gray-500">{count}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+              
+              {/* States Quick Select */}
+              <div>
+                <div className={`${d.text} text-gray-500 mb-1.5`}>Top States</div>
+                <div className="space-y-1">
+                  {Object.entries(
+                    filteredTargets.reduce((acc, t) => {
+                      acc[t.location.state] = (acc[t.location.state] || 0) + 1;
+                      return acc;
+                    }, {} as Record<string, number>)
+                  ).sort(([, a], [, b]) => b - a).slice(0, 6).map(([state, count]) => (
+                    <button 
+                      key={state}
+                      onClick={() => setSearchQuery(state.toLowerCase())}
+                      className={`w-full flex items-center justify-between ${d.paddingX} ${d.paddingY} ${d.text} rounded transition-colors ${
+                        searchQuery.toLowerCase().includes(state.toLowerCase()) 
+                          ? 'bg-green-500/20 text-green-400' 
+                          : 'bg-[#21262d] text-gray-300 hover:bg-[#30363d]'
+                      }`}
+                    >
+                      <span>{state}</span>
+                      <span className="text-gray-500">{count}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+              
+              {/* Priority Quick Filter */}
+              <div>
+                <div className={`${d.text} text-gray-500 mb-1.5`}>Priority</div>
+                <div className="space-y-1">
+                  {[
+                    { key: 'critical', label: 'Critical', color: 'red', count: targetsByPriority.critical.length },
+                    { key: 'high', label: 'High', color: 'orange', count: targetsByPriority.high.length },
+                    { key: 'medium', label: 'Medium', color: 'yellow', count: targetsByPriority.medium.length },
+                    { key: 'low', label: 'Low', color: 'gray', count: targetsByPriority.low.length },
+                  ].map(({ key, label, color, count }) => (
+                    <button 
+                      key={key}
+                      onClick={() => setPriorityFilter(priorityFilter === key ? 'all' : key)}
+                      className={`w-full flex items-center justify-between ${d.paddingX} ${d.paddingY} ${d.text} rounded transition-colors ${
+                        priorityFilter === key 
+                          ? `bg-${color}-500/20 text-${color}-400` 
+                          : 'bg-[#21262d] text-gray-300 hover:bg-[#30363d]'
+                      }`}
+                    >
+                      <span>{label}</span>
+                      <span className={`text-${color}-400 font-bold`}>{count}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+              
+              {/* Clear Filters */}
+              {(searchQuery || priorityFilter !== 'all') && (
+                <button 
+                  onClick={() => { setSearchQuery(''); setPriorityFilter('all'); }}
+                  className={`w-full ${d.paddingX} ${d.paddingY} ${d.text} bg-red-500/20 text-red-400 rounded hover:bg-red-500/30 transition-colors`}
+                >
+                  Clear All Filters
+                </button>
+              )}
+            </div>
+          </div>
+        )}
         {/* Main Content Area - Scrollable */}
         <div className="flex-1 min-w-0 overflow-y-auto">
           {/* EMPTY STATE - Show when no targets */}
@@ -872,107 +1083,107 @@ export const OrganizingIntelligenceTab: React.FC = () => {
           )}
         </div>
         
-        {/* Sticky Sidebar - Stats & Quick Actions - Full Height */}
-        <div className="w-64 flex-shrink-0 hidden xl:flex flex-col h-full">
-          <div className="flex-1 flex flex-col gap-2 overflow-y-auto">
-            {/* Priority Summary */}
-            <div className="bg-[#0d1117] border border-[#30363d] rounded-lg p-2.5">
-              <h4 className="text-[10px] font-semibold text-gray-500 mb-1.5 uppercase tracking-wide">Priority Breakdown</h4>
-              <div className="space-y-1.5">
-                {[
-                  { label: 'Critical', count: targetsByPriority.critical.length, color: 'red', icon: '🔴' },
-                  { label: 'High', count: targetsByPriority.high.length, color: 'orange', icon: '🟠' },
-                  { label: 'Medium', count: targetsByPriority.medium.length, color: 'yellow', icon: '🟡' },
-                  { label: 'Low', count: targetsByPriority.low.length, color: 'gray', icon: '⚪' },
-                ].map(({ label, count, color, icon }) => (
-                  <div key={label} className="flex items-center justify-between">
-                    <span className={`text-[11px] text-${color}-400 flex items-center gap-1`}>{icon} {label}</span>
-                    <span className={`text-xs font-bold text-${color}-400 ${count > 0 ? '' : 'opacity-50'}`}>{count}</span>
-                  </div>
-                ))}
-              </div>
-              {filteredTargets.length === 0 && (
-                <div className="mt-2 pt-2 border-t border-[#30363d] text-[10px] text-gray-600">
-                  No data loaded. Import facility data.
-                </div>
-              )}
+        {/* RIGHT SIDEBAR - Stats & Quick Actions (Collapsible) */}
+        {rightSidebarOpen && (
+          <div className={`${d.sidebarWidth} flex-shrink-0 flex flex-col h-full bg-[#0d1117] border border-[#30363d] rounded-lg overflow-hidden`}>
+            <div className={`${d.cardPadding} border-b border-[#30363d] flex items-center justify-between`}>
+              <h4 className={`${d.text} font-semibold text-gray-400 uppercase tracking-wide`}>Stats Panel</h4>
+              <button onClick={() => setRightSidebarOpen(false)} className="text-gray-500 hover:text-white">
+                <ChevronRight className={d.iconSize} />
+              </button>
             </div>
-            
-            {/* Top Operators or Empty State */}
-            <div className="bg-[#0d1117] border border-[#30363d] rounded-lg p-2.5 flex-1 overflow-y-auto">
-              <h4 className="text-[10px] font-semibold text-gray-500 mb-1.5 uppercase tracking-wide">Top Operators</h4>
-              {filteredTargets.length > 0 ? (
-                <div className="space-y-1">
-                  {Object.entries(
-                    filteredTargets.reduce((acc, t) => {
-                      acc[t.operator] = (acc[t.operator] || 0) + 1;
-                      return acc;
-                    }, {} as Record<string, number>)
-                  ).sort(([, a], [, b]) => b - a).slice(0, 8).map(([op, count]) => (
-                    <button 
-                      key={op} 
-                      onClick={() => setSearchQuery(op.toLowerCase())}
-                      className="w-full flex items-center justify-between text-[11px] hover:bg-[#21262d] px-1.5 py-0.5 rounded transition-colors"
+            <div className={`flex-1 flex flex-col ${d.gap} overflow-y-auto ${d.cardPadding}`}>
+              {/* Priority Summary */}
+              <div className={`bg-[#161b22] border border-[#30363d] rounded-lg ${d.cardPadding}`}>
+                <h4 className={`${d.text} font-semibold text-gray-500 mb-1.5 uppercase tracking-wide`}>Priority Breakdown</h4>
+                <div className="space-y-1.5">
+                  {[
+                    { label: 'Critical', count: targetsByPriority.critical.length, color: 'red', icon: '🔴' },
+                    { label: 'High', count: targetsByPriority.high.length, color: 'orange', icon: '🟠' },
+                    { label: 'Medium', count: targetsByPriority.medium.length, color: 'yellow', icon: '🟡' },
+                    { label: 'Low', count: targetsByPriority.low.length, color: 'gray', icon: '⚪' },
+                  ].map(({ label, count, color, icon }) => (
+                    <button
+                      key={label}
+                      onClick={() => setPriorityFilter(priorityFilter === label.toLowerCase() ? 'all' : label.toLowerCase())}
+                      className={`w-full flex items-center justify-between ${d.paddingX} ${d.paddingY} rounded transition-colors ${
+                        priorityFilter === label.toLowerCase() 
+                          ? `bg-${color}-500/20 border border-${color}-500/50` 
+                          : 'hover:bg-[#21262d]'
+                      }`}
                     >
-                      <span className="text-gray-300 truncate">{op}</span>
-                      <span className="text-blue-400 font-medium">{count}</span>
+                      <span className={`${d.text} text-${color}-400 flex items-center gap-1`}>{icon} {label}</span>
+                      <span className={`${d.textLg} font-bold text-${color}-400 ${count > 0 ? '' : 'opacity-50'}`}>{count}</span>
                     </button>
                   ))}
                 </div>
-              ) : (
-                <div className="text-[10px] text-gray-600 space-y-1.5">
-                  <p>Operators will appear here after data import.</p>
-                  <div className="mt-2 p-2 bg-[#21262d] rounded">
-                    <div className="font-medium text-gray-400 mb-1">Expected:</div>
-                    <div className="text-gray-500">• Amazon • Google • Microsoft • Meta • Equinix</div>
-                  </div>
-                </div>
-              )}
-            </div>
-            
-            {/* Quick Filters */}
-            <div className="bg-[#0d1117] border border-[#30363d] rounded-lg p-2.5">
-              <h4 className="text-[10px] font-semibold text-gray-500 mb-1.5 uppercase tracking-wide">Quick Filters</h4>
-              <div className="space-y-1">
-                <button 
-                  onClick={() => setSearchQuery('ibew')}
-                  className="w-full px-2 py-1 text-[11px] text-left bg-[#21262d] hover:bg-[#30363d] rounded text-yellow-400 transition-colors"
-                >
-                  <Zap className="w-3 h-3 inline mr-1" />IBEW Presence
-                </button>
-                <button 
-                  onClick={() => setPriorityFilter('critical')}
-                  className="w-full px-2 py-1 text-[11px] text-left bg-[#21262d] hover:bg-[#30363d] rounded text-red-400 transition-colors"
-                >
-                  <AlertTriangle className="w-3 h-3 inline mr-1" />Critical Only
-                </button>
-                <button 
-                  onClick={() => setSearchQuery('virginia')}
-                  className="w-full px-2 py-1 text-[11px] text-left bg-[#21262d] hover:bg-[#30363d] rounded text-blue-400 transition-colors"
-                >
-                  <MapPin className="w-3 h-3 inline mr-1" />NoVA Corridor
-                </button>
-                <button 
-                  onClick={() => setSearchQuery('texas')}
-                  className="w-full px-2 py-1 text-[11px] text-left bg-[#21262d] hover:bg-[#30363d] rounded text-green-400 transition-colors"
-                >
-                  <MapPin className="w-3 h-3 inline mr-1" />Texas
-                </button>
               </div>
-            </div>
-            
-            {/* Organizing Tips - Fill remaining space */}
-            <div className="bg-gradient-to-b from-red-500/5 to-red-500/10 border border-red-500/20 rounded-lg p-2.5 flex-1 min-h-[100px]">
-              <h4 className="text-[10px] font-semibold text-red-400 mb-1.5 uppercase tracking-wide">💡 Organizing Tips</h4>
-              <div className="text-[10px] text-gray-400 space-y-1.5">
-                <p>• <span className="text-white">Critical</span> = high worker count + low union presence</p>
-                <p>• Focus on <span className="text-blue-400">corridors</span> for coordinated campaigns</p>
-                <p>• Check <span className="text-yellow-400">IBEW locals</span> before outreach</p>
-                <p>• Higher scores = better organizing potential</p>
+              
+              {/* Top Operators */}
+              <div className={`bg-[#161b22] border border-[#30363d] rounded-lg ${d.cardPadding} flex-1 overflow-y-auto min-h-[120px]`}>
+                <h4 className={`${d.text} font-semibold text-gray-500 mb-1.5 uppercase tracking-wide`}>Top Operators</h4>
+                {filteredTargets.length > 0 ? (
+                  <div className="space-y-1">
+                    {Object.entries(
+                      filteredTargets.reduce((acc, t) => {
+                        acc[t.operator] = (acc[t.operator] || 0) + 1;
+                        return acc;
+                      }, {} as Record<string, number>)
+                    ).sort(([, a], [, b]) => b - a).slice(0, 8).map(([op, count]) => (
+                      <button 
+                        key={op} 
+                        onClick={() => setSearchQuery(op.toLowerCase())}
+                        className={`w-full flex items-center justify-between ${d.text} hover:bg-[#21262d] ${d.paddingX} ${d.paddingY} rounded transition-colors`}
+                      >
+                        <span className="text-gray-300 truncate">{op}</span>
+                        <span className="text-blue-400 font-medium">{count}</span>
+                      </button>
+                    ))}
+                  </div>
+                ) : (
+                  <div className={`${d.text} text-gray-600`}>
+                    <p>Operators appear after data import.</p>
+                  </div>
+                )}
+              </div>
+              
+              {/* Quick Actions */}
+              <div className={`bg-[#161b22] border border-[#30363d] rounded-lg ${d.cardPadding}`}>
+                <h4 className={`${d.text} font-semibold text-gray-500 mb-1.5 uppercase tracking-wide`}>Quick Actions</h4>
+                <div className="space-y-1">
+                  <button 
+                    onClick={() => setSearchQuery('ibew')}
+                    className={`w-full ${d.paddingX} ${d.paddingY} ${d.text} text-left bg-[#21262d] hover:bg-[#30363d] rounded text-yellow-400 transition-colors`}
+                  >
+                    <Zap className={`${d.iconSize} inline mr-1`} />IBEW
+                  </button>
+                  <button 
+                    onClick={() => setSearchQuery('virginia')}
+                    className={`w-full ${d.paddingX} ${d.paddingY} ${d.text} text-left bg-[#21262d] hover:bg-[#30363d] rounded text-blue-400 transition-colors`}
+                  >
+                    <MapPin className={`${d.iconSize} inline mr-1`} />NoVA
+                  </button>
+                  <button 
+                    onClick={() => setSearchQuery('texas')}
+                    className={`w-full ${d.paddingX} ${d.paddingY} ${d.text} text-left bg-[#21262d] hover:bg-[#30363d] rounded text-green-400 transition-colors`}
+                  >
+                    <MapPin className={`${d.iconSize} inline mr-1`} />Texas
+                  </button>
+                </div>
+              </div>
+              
+              {/* Tips */}
+              <div className={`bg-gradient-to-b from-red-500/5 to-red-500/10 border border-red-500/20 rounded-lg ${d.cardPadding} flex-1 min-h-[80px]`}>
+                <h4 className={`${d.text} font-semibold text-red-400 mb-1.5 uppercase tracking-wide`}>💡 Tips</h4>
+                <div className={`${d.text} text-gray-400 space-y-1`}>
+                  <p>• <span className="text-white">Critical</span> = high workers + low union</p>
+                  <p>• Focus on <span className="text-blue-400">corridors</span></p>
+                  <p>• Check <span className="text-yellow-400">IBEW locals</span> first</p>
+                </div>
               </div>
             </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );
