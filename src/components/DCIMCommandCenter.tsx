@@ -56,6 +56,7 @@ import { PredictiveIntelligenceTab } from './tabs/PredictiveIntelligenceTab'; //
 import { ComplianceFlowTab } from './tabs/ComplianceFlowTab'; // Intent-Based Visualization
 import { AssuranceMonitorTab } from './tabs/AssuranceMonitorTab'; // Juniper Marvis-style continuous monitoring
 import { EpochAIIntelligenceTab } from './tabs/EpochAIIntelligenceTab'; // Epoch AI data centers intelligence
+import { SubsidyAccountabilityPanel } from './panels/SubsidyAccountabilityPanel'; // Good Jobs First integration
 import { IntelligenceHubTab } from './tabs/IntelligenceHubTab'; // UNIFIED: All intelligence methods combined
 import { NetworkVisualizationTab } from './tabs/NetworkVisualizationTab'; // Network visualization with tree & globe
 import { PatternIntelligenceDashboard } from './PatternIntelligenceDashboard'; // NEW: Enhanced Surveillance & Pattern Recognition
@@ -122,7 +123,8 @@ export type CommandCenterTab =
   | 'Intelligence' // UNIFIED: Pattern Analysis + Pattern Lab + Assurance + Predictions + Graph
   | 'Compliance Flow' // Visualization-focused view
   | 'Assurance Monitor' // Continuous monitoring
-  | 'Sanctions Monitor'; // NEW: OFAC Sanctions Network Hygiene Enforcement
+  | 'Sanctions Monitor' // NEW: OFAC Sanctions Network Hygiene Enforcement
+  | 'Subsidy Accountability'; // NEW: Good Jobs First subsidy accountability tracking
   // | 'POC';  // Disabled - requires @kuzu/kuzu-wasm
 
 interface DCIMCommandCenterProps {
@@ -926,6 +928,7 @@ export default function DCIMCommandCenter({ onActionRequested: _onActionRequeste
     'Deep Intelligence', // NEW: Full API data extraction - OpenCorp, SEC, PeeringDB
     'Predictive Intel', // Deep dive forecasting (kept separate for detail)
     'Predictive Subsidy', // NEW: Good Jobs First-style subsidy risk prediction
+    'Subsidy Accountability', // NEW: Good Jobs First accountability tracking
     'Regulatory Toolkit', // NEW: Municipal DCIM scrapers and APIs
     'Follow Your Data', // NEW: Infrastructure Discovery with CAP, NPU, ILSR
     'Infrastructure',
@@ -959,6 +962,7 @@ export default function DCIMCommandCenter({ onActionRequested: _onActionRequeste
     { id: 'Deep Intelligence', label: 'Deep Intel', shortLabel: 'Deep', icon: <Database className="w-4 h-4" />, group: 'Analysis & Intelligence', keywords: ['deep', 'api', 'sec', 'peeringdb', 'opencorporates'], description: 'Full API data extraction' },
     { id: 'Predictive Intel', label: 'Predictions', shortLabel: 'Predict', icon: <TrendingUp className="w-4 h-4" />, group: 'Analysis & Intelligence', keywords: ['forecast', 'predict', 'future', 'monte carlo'], description: 'Predictive analytics' },
     { id: 'Predictive Subsidy', label: 'Subsidy Intel', shortLabel: 'Sub Intel', icon: <Target className="w-4 h-4" />, group: 'Analysis & Intelligence', keywords: ['subsidy', 'good jobs first', 'tax break', 'clawback', 'risk'], description: 'Predictive subsidy risk analysis' },
+    { id: 'Subsidy Accountability', label: '💰 Subsidy Accountability', shortLabel: 'Accountability', icon: <DollarSign className="w-4 h-4" />, group: 'Analysis & Intelligence', keywords: ['subsidy', 'accountability', 'jobs promised', 'jobs actual', 'good jobs first', 'transparency', 'state', 'gap'], description: 'Good Jobs First subsidy accountability - verify promises vs reality' },
     { id: 'Regulatory Toolkit', label: 'Regulatory APIs', shortLabel: 'Reg APIs', icon: <Database className="w-4 h-4" />, group: 'Analysis & Intelligence', keywords: ['municipal', 'regulatory', 'scraper', 'api', 'bls', 'sec', 'epa'], description: 'Municipal DCIM scrapers & APIs' },
     { id: 'Follow Your Data', label: 'Follow Your Data', shortLabel: 'Follow', icon: <Globe className="w-4 h-4" />, group: 'Analysis & Intelligence', keywords: ['follow', 'data', 'infrastructure', 'cap', 'npu', 'ilsr', 'community', 'geolocation', 'discovery'], description: 'Infrastructure discovery with CAP taxonomy, NPU framework, ILSR alternatives' },
     { id: 'Infrastructure', label: 'Infrastructure', shortLabel: 'Infra', icon: <Network className="w-4 h-4" />, group: 'Operations', keywords: ['infra', 'network', 'power', 'cooling'], description: 'Infrastructure details' },
@@ -1265,6 +1269,14 @@ export default function DCIMCommandCenter({ onActionRequested: _onActionRequeste
         <ErrorBoundary>
           <div className="p-6 overflow-y-auto h-full bg-slate-50">
             <PredictiveSubsidyDashboard />
+          </div>
+        </ErrorBoundary>
+      )}
+
+      {activeTab === 'Subsidy Accountability' && (
+        <ErrorBoundary>
+          <div className="h-full overflow-hidden">
+            <SubsidyAccountabilityPanel />
           </div>
         </ErrorBoundary>
       )}
