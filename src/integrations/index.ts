@@ -68,6 +68,31 @@ export { nostrRelay, DEFAULT_RELAYS } from './nostrRelay';
 export type { NostrEvent, NostrKeyPair, RelayConnection } from './nostrRelay';
 
 // ============================================
+// AI INFRASTRUCTURE INTELLIGENCE
+// ============================================
+
+// Epoch AI - Frontier Data Centers (✅ CORS OK, CC-BY licensed)
+export { 
+  fetchEpochDataCenters,
+  getFacilitiesInConstructionWindow,
+  getGigawattScaleFacilities,
+  getFacilitiesByOwner,
+  getFacilitiesByState,
+  getPowerByOwner,
+  getTotalPowerConsumption,
+  getPowerCityComparisons,
+  EPOCH_KNOWN_FACILITIES,
+  EPOCH_SOURCES,
+  EPOCH_ATTRIBUTION,
+} from './epochAI';
+export type { 
+  EpochDataCenter, 
+  EpochDataCenterUser, 
+  EpochDataCenterTimeline,
+  EpochCoolingData,
+} from './epochAI';
+
+// ============================================
 // INTEGRATION SUMMARY
 // ============================================
 
@@ -86,5 +111,12 @@ export type { NostrEvent, NostrKeyPair, RelayConnection } from './nostrRelay';
  * | OpenCorporates  | ✅ OK   | Free key | Corporate structures              |
  * | IPFS            | ✅ OK   | None     | Decentralized file storage        |
  * | Nostr           | ✅ OK   | None     | Censorship-resistant publishing   |
+ * | Epoch AI        | ✅ OK   | None     | AI data center power & locations  |
+ * 
+ * NEW: Epoch AI Integration (https://epoch.ai/data/data-centers)
+ * - Tracks 17 frontier AI data centers (OpenAI, Meta, Google, xAI, Anthropic)
+ * - Satellite-verified locations with power consumption data
+ * - Construction timelines for organizing window identification
+ * - CC-BY licensed, updated regularly
  */
 

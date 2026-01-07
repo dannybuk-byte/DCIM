@@ -29,6 +29,7 @@ import {
   ChevronRight,
   HelpCircle,
   Database,
+  Cpu,
 } from 'lucide-react';
 import { Tooltip } from './Tooltip';
 import type { CommandCenterTab } from '../DCIMCommandCenter';
@@ -143,6 +144,14 @@ const NAV_GROUPS: NavGroup[] = [
         color: 'green',
         description: 'Continuous compliance monitoring and validation',
         keywords: ['monitor', 'assurance', 'continuous', 'validate'],
+      },
+      {
+        id: 'AI Infrastructure',
+        label: '🛰️ AI Infrastructure',
+        icon: <Cpu className="w-5 h-5" />,
+        color: 'cyan',
+        description: 'Epoch AI frontier data center tracking - power, location, construction',
+        keywords: ['epoch', 'ai', 'frontier', 'data center', 'power', 'gigawatt', 'openai', 'meta', 'google', 'xai', 'anthropic', 'satellite'],
       },
     ],
   },

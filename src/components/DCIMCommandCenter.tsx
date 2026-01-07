@@ -14,7 +14,7 @@ import { calculateStats } from '../utils/stats';
 import { safeDbOperation } from '../utils/dbOperations';
 import { trackError } from '../utils/errorTracking';
 import { formatCurrency } from '../utils/formatting';
-import { Search, X, Filter, FileText, Sparkles, Building2, Network, Download, Settings, BarChart3, Home, ChevronRight, Maximize2, BookOpenCheck, List, Layout, HelpCircle, DollarSign, Shield, AlertTriangle, Brain, Eye, Target, TrendingUp, Database, Globe, Activity } from 'lucide-react';
+import { Search, X, Filter, FileText, Sparkles, Building2, Network, Download, Settings, BarChart3, Home, ChevronRight, Maximize2, BookOpenCheck, List, Layout, HelpCircle, DollarSign, Shield, AlertTriangle, Brain, Eye, Target, TrendingUp, Database, Globe, Activity, Cpu } from 'lucide-react';
 import { ViewModeToggle, ViewMode } from './shared/ViewModeToggle';
 import { LayerTogglesPanel, LayerState } from './shared/LayerTogglesPanel';
 import { ExpandableSection } from './shared/ExpandableSection';
@@ -55,6 +55,7 @@ import { PredictiveIntelligenceTab } from './tabs/PredictiveIntelligenceTab'; //
 // import { GraphDatabasePOC } from './tabs/GraphDatabasePOC'; // POC requires @kuzu/kuzu-wasm (uninstalled)
 import { ComplianceFlowTab } from './tabs/ComplianceFlowTab'; // Intent-Based Visualization
 import { AssuranceMonitorTab } from './tabs/AssuranceMonitorTab'; // Juniper Marvis-style continuous monitoring
+import { EpochAIIntelligenceTab } from './tabs/EpochAIIntelligenceTab'; // Epoch AI data centers intelligence
 import { IntelligenceHubTab } from './tabs/IntelligenceHubTab'; // UNIFIED: All intelligence methods combined
 import { NetworkVisualizationTab } from './tabs/NetworkVisualizationTab'; // Network visualization with tree & globe
 import { PatternIntelligenceDashboard } from './PatternIntelligenceDashboard'; // NEW: Enhanced Surveillance & Pattern Recognition
@@ -969,6 +970,7 @@ export default function DCIMCommandCenter({ onActionRequested: _onActionRequeste
     { id: 'Compliance Flow', label: 'Compliance Flow', shortLabel: 'Flow', icon: <Network className="w-4 h-4" />, group: 'Visualization', keywords: ['flow', 'process', 'compliance', 'workflow'], description: 'Compliance workflow view' },
     { id: 'Assurance Monitor', label: 'Assurance Monitor', shortLabel: 'Monitor', icon: <Activity className="w-4 h-4" />, group: 'Operations', keywords: ['monitor', 'continuous', 'live', 'realtime'], description: 'Continuous assurance monitoring' },
     { id: 'Sanctions Monitor', label: 'OFAC Sanctions Monitor', shortLabel: 'Sanctions', icon: <Shield className="w-4 h-4" />, group: 'Analysis & Intelligence', keywords: ['ofac', 'sanctions', 'sdn', 'treasury', 'compliance', 'whistleblower', 'russia', 'iran'], description: 'Network hygiene enforcement - OFAC/FinCEN sanctions monitoring' },
+    { id: 'AI Infrastructure', label: 'AI Infrastructure', shortLabel: 'AI Infra', icon: <Cpu className="w-4 h-4" />, group: 'Analysis & Intelligence', keywords: ['epoch', 'ai', 'frontier', 'data center', 'power', 'gigawatt', 'openai', 'meta', 'google', 'xai', 'anthropic', 'satellite'], description: 'Epoch AI frontier data center intelligence' },
   ], []);
 
   // State for smart search modal
@@ -1303,6 +1305,13 @@ export default function DCIMCommandCenter({ onActionRequested: _onActionRequeste
       {activeTab === 'Sanctions Monitor' && (
         <ErrorBoundary>
           <SanctionsMonitorTab facilities={deferredFacilities} />
+        </ErrorBoundary>
+      )}
+
+      {/* NEW: AI Infrastructure Intelligence - Epoch AI */}
+      {activeTab === 'AI Infrastructure' && (
+        <ErrorBoundary>
+          <EpochAIIntelligenceTab />
         </ErrorBoundary>
       )}
 
