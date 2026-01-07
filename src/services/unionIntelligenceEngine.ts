@@ -358,7 +358,7 @@ class UnionIntelligenceEngine {
    */
   getStats(): {
     labordata: { available: boolean };
-    geocoder: { cacheSize: number };
+    geocoder: { size: number; keys: string[] };
     jurisdiction: ReturnType<typeof unionJurisdictionService.getDatabaseStats>;
     goodJobsFirst: ReturnType<typeof goodJobsFirstService.getStats>;
     cache: { size: number; entries: string[] };

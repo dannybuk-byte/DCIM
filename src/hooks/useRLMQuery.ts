@@ -12,7 +12,7 @@ import {
   detectPatternsRLM,
   searchFacilitiesRLM
 } from '../services/recursiveQueryEngine';
-import type { Facility } from '../db/database';
+import type { Facility } from '../types';
 
 interface RLMQueryState<T> {
   loading: boolean;

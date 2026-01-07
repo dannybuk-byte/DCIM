@@ -11,7 +11,8 @@
  * This is the main interface for getting comprehensive facility intelligence.
  */
 
-import { db, Facility } from '../db/database';
+import { db } from '../db/database';
+import type { Facility } from '../types';
 import { EXPANDED_SUBSIDIES, VerifiedSubsidy, getSubsidiesByCompany, getSubsidiesByState } from './expandedSubsidies';
 import { STATE_AUDIT_FINDINGS, StateAuditFinding, getAuditsByCompany, getAuditsByState } from './stateAuditReports';
 import { CORSProxy, EPAFacility, OSHAInspection, OSHAViolation } from './corsProxy';

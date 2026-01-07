@@ -17,7 +17,8 @@
  * 7. Self-healing with exponential backoff
  */
 
-import { db, Facility } from '../db/database';
+import { db } from '../db/database';
+import type { Facility } from '../types';
 
 // ============================================================================
 // TYPES
@@ -115,13 +116,13 @@ const decompositionStrategies: DecompositionStrategy[] = [
   {
     name: 'status',
     canDecompose: (data) => {
-      const statuses = new Set(data.map(f => f.status));
+      const statuses = new Set(data.map(f => f.complianceStatus));
       return statuses.size > 1;
     },
     decompose: (data) => {
       const byStatus = new Map<string, Facility[]>();
       data.forEach(f => {
-        const status = f.status || 'Unknown';
+        const status = f.complianceStatus || 'Unknown';
         if (!byStatus.has(status)) byStatus.set(status, []);
         byStatus.get(status)!.push(f);
       });
@@ -553,8 +554,8 @@ export async function analyzeComplianceRLM(): Promise<RLMResult<{
 
     return {
       total: facilities.length,
-      compliant: facilities.filter(f => f.status === 'Compliant').length,
-      nonCompliant: facilities.filter(f => f.status === 'Non-Compliant').length,
+      compliant: facilities.filter(f => f.complianceStatus === 'Compliant').length,
+      nonCompliant: facilities.filter(f => f.complianceStatus === 'Non-Compliant').length,
       subsidyGap: facilities.reduce((sum, f) => sum + (f.subsidyGap || 0), 0),
       byCountry
     };
@@ -641,7 +642,7 @@ export async function detectPatternsRLM(
         facilities.forEach(f => {
           const stats = operatorStats.get(f.operator) || { total: 0, nonCompliant: 0 };
           stats.total++;
-          if (f.status === 'Non-Compliant') stats.nonCompliant++;
+          if (f.complianceStatus === 'Non-Compliant') stats.nonCompliant++;
           operatorStats.set(f.operator, stats);
         });
 
@@ -689,7 +690,7 @@ export async function searchFacilitiesRLM(
         f.country,
         f.state,
         f.city,
-        f.status
+        f.complianceStatus
       ].filter(Boolean).join(' ').toLowerCase();
 
       // Match any term

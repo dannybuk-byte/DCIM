@@ -199,8 +199,8 @@ export function useNaturalLanguageSearch(): [SearchState, SearchActions] {
       }
 
       // Track API usage if we used a paid external API
-      if (provider === 'openai' || provider === 'cloudflare-worker') {
-        trackAPIUsage(500, provider); // Estimate 500 tokens for query conversion
+      if (provider === 'openai') {
+        trackAPIUsage(500, 'openai'); // Estimate 500 tokens for query conversion
       }
       
       setState(prev => ({

@@ -46,7 +46,7 @@ const TAB_HIERARCHY: Record<CommandCenterTab, { category: string; label: string 
   'Sanctions Monitor': { category: 'Monitoring', label: 'Sanctions Monitor' },
   'Subsidy Accountability': { category: 'Compliance', label: 'Subsidy Accountability' },
   'Organizer Hub': { category: 'Organizing', label: 'Organizer Command Center' },
-  'POC': { category: 'Tools', label: 'Proof of Concept' },
+  // 'POC' is disabled - requires @kuzu/kuzu-wasm
 };
 
 export function Breadcrumbs({ currentTab, onNavigate }: BreadcrumbsProps) {

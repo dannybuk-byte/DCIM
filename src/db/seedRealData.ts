@@ -280,7 +280,7 @@ async function overlayVerifiedData(): Promise<number> {
           jobsCreated: stateAudit?.jobs_actual ?? subsidy.jobs_verified ?? undefined,
         };
         
-        await db.facilities.add(newFacility);
+        await db.facilities.add(newFacility as Facility);
         addedCount++;
       }
     } catch (error) {

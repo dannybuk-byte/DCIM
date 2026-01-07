@@ -129,6 +129,11 @@ export const mockStats: ComplianceStats = {
   atRisk: mockFacilities.filter(f => f.complianceStatus === 'At Risk').length,
   unknown: mockFacilities.filter(f => f.complianceStatus === 'Unknown').length,
   totalSubsidyGap: mockFacilities.reduce((sum, f) => sum + f.subsidyGap, 0),
+  totalIssues: mockFacilities.reduce((sum, f) => sum + (f.issues?.length || 0), 0),
+  avgDaysSinceAudit: 45,
+  overdueAudits: 2,
+  medianSubsidyGap: 3000000,
+  maxSubsidyGap: 10000000,
 };
 
 /**
