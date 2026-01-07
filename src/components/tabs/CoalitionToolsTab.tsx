@@ -81,37 +81,60 @@ export const CoalitionToolsTab: React.FC = () => {
   const [activeSection, setActiveSection] = useState<'cba' | 'whistleblower' | 'scoring'>('cba');
   
   return (
-    <div className="min-h-screen bg-[#0d1117]">
-      {/* Header */}
-      <div className="bg-gradient-to-r from-[#1a1f35] to-[#0d1117] border-b border-[#30363d] p-6">
-        <div className="flex items-center gap-3 mb-4">
-          <div className="p-2 bg-purple-500/20 rounded-lg">
-            <Users className="w-6 h-6 text-purple-400" />
+    <div className="min-h-screen bg-slate-50 p-3">
+      {/* Mission Header */}
+      <div className="bg-gradient-to-r from-purple-900 via-indigo-900 to-blue-900 rounded-xl p-4 shadow-xl border border-purple-500/30 mb-3">
+        <div className="flex items-center justify-between">
+          {/* Left: Title and Mission */}
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center shadow-lg shadow-purple-500/30">
+              <Users size={28} className="text-white" />
+            </div>
+            <div>
+              <h1 className="text-xl font-bold text-white tracking-tight">
+                Coalition Tools
+              </h1>
+              <p className="text-purple-200 text-sm">
+                Build power through Community Benefits Agreements & accountability
+              </p>
+            </div>
           </div>
-          <div>
-            <h1 className="text-xl font-bold text-white">Coalition Tools</h1>
-            <p className="text-sm text-gray-400">CBA Generator, Whistleblower Portal, Compliance Scoring</p>
+          
+          {/* Right: Tool Stats */}
+          <div className="flex items-center gap-6">
+            <div className="text-center">
+              <div className="text-2xl font-bold text-blue-400">19</div>
+              <div className="text-purple-200 text-xs">CBA Provisions</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-yellow-400">5</div>
+              <div className="text-purple-200 text-xs">Report Channels</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-green-400">A-F</div>
+              <div className="text-purple-200 text-xs">P&I Scoring</div>
+            </div>
           </div>
         </div>
         
-        {/* Navigation */}
-        <div className="flex gap-2">
+        {/* Navigation Pills */}
+        <div className="flex gap-2 mt-4 pt-3 border-t border-purple-500/30">
           {[
-            { id: 'cba', label: 'CBA Generator', icon: FileText, color: 'blue' },
-            { id: 'whistleblower', label: 'Whistleblower Portal', icon: Shield, color: 'yellow' },
-            { id: 'scoring', label: 'Compliance Scoring', icon: BarChart3, color: 'green' },
-          ].map(({ id, label, icon: Icon, color }) => (
+            { id: 'cba', label: '📝 CBA Generator', desc: 'Draft binding agreements' },
+            { id: 'whistleblower', label: '🛡️ Whistleblower Portal', desc: 'Safe reporting channels' },
+            { id: 'scoring', label: '📊 Compliance Scoring', desc: 'P&I-style grading' },
+          ].map(({ id, label, desc }) => (
             <button
               key={id}
               onClick={() => setActiveSection(id as typeof activeSection)}
-              className={`flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
+              className={`flex-1 px-4 py-2 text-sm font-medium rounded-lg transition-all ${
                 activeSection === id
-                  ? `bg-${color}-500/20 text-${color}-400 border border-${color}-500/30`
-                  : 'text-gray-400 hover:text-white hover:bg-[#21262d]/50'
+                  ? 'bg-white text-purple-900 shadow-lg'
+                  : 'bg-white/10 text-purple-200 hover:bg-white/20'
               }`}
             >
-              <Icon className="w-4 h-4" />
-              {label}
+              <div className="font-semibold">{label}</div>
+              <div className={`text-xs mt-0.5 ${activeSection === id ? 'text-purple-600' : 'text-purple-300'}`}>{desc}</div>
             </button>
           ))}
         </div>

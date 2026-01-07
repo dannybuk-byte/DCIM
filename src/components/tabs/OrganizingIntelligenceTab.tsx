@@ -421,120 +421,105 @@ export const OrganizingIntelligenceTab: React.FC = () => {
   }, []);
 
   const renderHeader = () => (
-    <div className="bg-gradient-to-r from-[#1a1f35] to-[#0d1117] border-b border-[#30363d] px-3 py-2">
-      {/* Top Row: Title + Controls */}
+    <div className="bg-gradient-to-r from-red-900 via-orange-900 to-amber-900 rounded-xl mx-3 mt-3 p-4 shadow-xl border border-red-500/30">
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          {/* Left Sidebar Toggle */}
-          <button
-            onClick={() => setLeftSidebarOpen(!leftSidebarOpen)}
-            className={`p-1.5 rounded border transition-colors ${
-              leftSidebarOpen 
-                ? 'bg-blue-500/20 border-blue-500/50 text-blue-400' 
-                : 'bg-[#21262d] border-[#30363d] text-gray-400 hover:text-white'
-            }`}
-            title={leftSidebarOpen ? 'Hide quick filters' : 'Show quick filters'}
-          >
-            {leftSidebarOpen ? <PanelLeftClose className="w-4 h-4" /> : <PanelLeftOpen className="w-4 h-4" />}
-          </button>
-          
-          <div className="p-1.5 bg-red-500/20 rounded">
-            <Target className="w-4 h-4 text-red-400" />
+        {/* Left: Title and Mission */}
+        <div className="flex items-center gap-3">
+          <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-red-500 to-orange-500 flex items-center justify-center shadow-lg shadow-red-500/30">
+            <Target size={28} className="text-white" />
           </div>
-          <h1 className={`font-bold text-white ${d.textLg}`}>Organizing Intelligence</h1>
+          <div>
+            <h1 className="text-xl font-bold text-white tracking-tight">
+              Organizing Intelligence
+            </h1>
+            <p className="text-orange-200 text-sm">
+              Strategic targets for labor organizing • "Docks to Data Centers"
+            </p>
+          </div>
         </div>
         
+        {/* Right: Stats */}
+        <div className="flex items-center gap-6">
+          <div className="text-center">
+            <div className="text-2xl font-bold text-yellow-400">{stats.totalIBEWMaintenanceWorkers.toLocaleString()}</div>
+            <div className="text-orange-200 text-xs">IBEW Workers</div>
+          </div>
+          <div className="text-center">
+            <div className="text-2xl font-bold text-green-400">{stats.potentialOpsExpansion.toLocaleString()}</div>
+            <div className="text-orange-200 text-xs">Potential Targets</div>
+          </div>
+          <div className="text-center">
+            <div className="text-2xl font-bold text-cyan-400">{stats.corridorsTracked}</div>
+            <div className="text-orange-200 text-xs">Corridors</div>
+          </div>
+          <div className="text-center">
+            <div className="text-2xl font-bold text-red-400">{organizingTargets.filter(t => t.priority === 'critical' || t.priority === 'high').length}</div>
+            <div className="text-orange-200 text-xs">Priority</div>
+          </div>
+        </div>
+      </div>
+      
+      {/* Controls Row */}
+      <div className="flex items-center justify-between mt-3 pt-3 border-t border-red-500/30">
         <div className="flex items-center gap-2">
+          <button
+            onClick={() => setLeftSidebarOpen(!leftSidebarOpen)}
+            className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+              leftSidebarOpen 
+                ? 'bg-white/20 text-white' 
+                : 'bg-white/10 text-orange-200 hover:bg-white/15'
+            }`}
+          >
+            {leftSidebarOpen ? '◀ Filters' : '▶ Filters'}
+          </button>
+          
           {/* Density Toggle */}
-          <div className="flex items-center bg-[#21262d] rounded-lg p-0.5 border border-[#30363d]">
+          <div className="flex items-center bg-white/10 rounded-lg p-0.5">
             {(['compact', 'comfortable', 'spacious'] as DensityMode[]).map((mode) => (
               <button
                 key={mode}
                 onClick={() => setDensityMode(mode)}
-                className={`px-2 py-1 text-[10px] rounded transition-colors ${
+                className={`px-2 py-1 text-xs rounded transition-colors ${
                   densityMode === mode
-                    ? 'bg-[#30363d] text-white'
-                    : 'text-gray-500 hover:text-gray-300'
+                    ? 'bg-white/20 text-white'
+                    : 'text-orange-200 hover:text-white'
                 }`}
-                title={`${mode.charAt(0).toUpperCase() + mode.slice(1)} view`}
               >
-                {mode === 'compact' ? <Minimize2 className="w-3 h-3" /> : 
-                 mode === 'spacious' ? <Maximize2 className="w-3 h-3" /> : 
-                 <Settings2 className="w-3 h-3" />}
+                {mode === 'compact' ? '▪' : mode === 'spacious' ? '▪▪▪' : '▪▪'}
               </button>
             ))}
           </div>
-          
+        </div>
+        
+        <div className="flex items-center gap-2">
           {/* NLP Search */}
-          <div className="w-56">
+          <div className="w-64">
             <SectionNLPBar 
               context={getNLPContext()} 
-              placeholder="Ask AI..."
+              placeholder="Ask AI about organizing targets..."
               onAction={handleNLPAction}
             />
           </div>
           
           <HelpIcon context={getNLPContext()} />
           
-          <button className={`${d.paddingX} ${d.paddingY} bg-[#21262d] text-gray-300 ${d.text} rounded border border-[#30363d] hover:bg-[#30363d] flex items-center gap-1`}>
-            <Download className={d.iconSize} />
+          <button className="px-3 py-1.5 bg-white/10 text-white text-sm rounded-lg hover:bg-white/20 flex items-center gap-1.5 transition-colors">
+            <Download className="w-4 h-4" />
             Export
           </button>
           
-          {/* Right Sidebar Toggle */}
           <button
             onClick={() => setRightSidebarOpen(!rightSidebarOpen)}
-            className={`p-1.5 rounded border transition-colors ${
+            className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
               rightSidebarOpen 
-                ? 'bg-blue-500/20 border-blue-500/50 text-blue-400' 
-                : 'bg-[#21262d] border-[#30363d] text-gray-400 hover:text-white'
+                ? 'bg-white/20 text-white' 
+                : 'bg-white/10 text-orange-200 hover:bg-white/15'
             }`}
-            title={rightSidebarOpen ? 'Hide stats panel' : 'Show stats panel'}
           >
-            {rightSidebarOpen ? <PanelRightClose className="w-4 h-4" /> : <PanelRightOpen className="w-4 h-4" />}
+            {rightSidebarOpen ? 'Stats ▶' : 'Stats ◀'}
           </button>
         </div>
       </div>
-      
-      {/* Collapsible Stats Bar */}
-      <button 
-        onClick={() => setStatsBarExpanded(!statsBarExpanded)}
-        className="w-full mt-2"
-      >
-        {statsBarExpanded ? (
-          /* Expanded Stats Grid */
-          <div className={`grid grid-cols-5 ${d.gap}`}>
-            {[
-              { icon: HardHat, label: 'IBEW', value: stats.totalIBEWMaintenanceWorkers.toLocaleString(), color: 'yellow' },
-              { icon: TrendingUp, label: 'Potential', value: stats.potentialOpsExpansion.toLocaleString(), color: 'green' },
-              { icon: MapPin, label: 'Corridors', value: stats.corridorsTracked, color: 'blue' },
-              { icon: Briefcase, label: 'Contractors', value: stats.contractorsTracked, color: 'purple' },
-              { icon: Target, label: 'Priority', value: organizingTargets.filter(t => t.priority === 'critical' || t.priority === 'high').length, color: 'red' },
-            ].map(({ icon: Icon, label, value, color }) => (
-              <div key={label} className={`bg-[#0d1117] ${d.paddingX} ${d.paddingY} rounded border border-[#30363d] flex items-center justify-between`}>
-                <div className={`flex items-center gap-1.5 text-gray-400 ${d.text}`}>
-                  <Icon className={d.iconSize} />
-                  {label}
-                </div>
-                <div className={`${d.textLg} font-bold text-${color}-400`}>{value}</div>
-              </div>
-            ))}
-          </div>
-        ) : (
-          /* Compact Stats Inline */
-          <div className="flex items-center justify-between bg-[#0d1117] px-3 py-1.5 rounded border border-[#30363d] hover:border-[#484f58] transition-colors">
-            <div className="flex items-center gap-4 text-[10px]">
-              <span className="text-gray-500">Stats:</span>
-              <span><HardHat className="w-3 h-3 inline mr-1 text-yellow-500" /><span className="text-yellow-400 font-bold">{stats.totalIBEWMaintenanceWorkers.toLocaleString()}</span> IBEW</span>
-              <span><TrendingUp className="w-3 h-3 inline mr-1 text-green-500" /><span className="text-green-400 font-bold">{stats.potentialOpsExpansion.toLocaleString()}</span> Potential</span>
-              <span><MapPin className="w-3 h-3 inline mr-1 text-blue-500" /><span className="text-blue-400 font-bold">{stats.corridorsTracked}</span> Corridors</span>
-              <span><Briefcase className="w-3 h-3 inline mr-1 text-purple-500" /><span className="text-purple-400 font-bold">{stats.contractorsTracked}</span> Contractors</span>
-              <span><Target className="w-3 h-3 inline mr-1 text-red-500" /><span className="text-red-400 font-bold">{organizingTargets.filter(t => t.priority === 'critical' || t.priority === 'high').length}</span> Priority</span>
-            </div>
-            <ChevronDown className={`w-4 h-4 text-gray-500 transition-transform ${statsBarExpanded ? 'rotate-180' : ''}`} />
-          </div>
-        )}
-      </button>
     </div>
   );
   
