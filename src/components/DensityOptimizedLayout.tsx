@@ -30,6 +30,7 @@ import { Facility as DBFacility } from '../types';
 import { ErrorBoundary } from './ErrorBoundary';
 import { OrganizingIntelligenceTab } from './tabs/OrganizingIntelligenceTab';
 import { CoalitionToolsTab } from './tabs/CoalitionToolsTab';
+import { MissionHeader, SubsidyGapHero, ComplianceBadge } from './shared/HumanizedStats';
 
 // ============================================================================
 // DENSITY CONTEXT
@@ -568,8 +569,16 @@ const SpaceFillingOverviewGrid: React.FC<OverviewGridProps> = ({
         </div>
       </div>
 
-      {/* Subsidy Gap + Trend */}
-      <div className="bg-gradient-to-r from-red-500 to-orange-500 rounded overflow-hidden flex items-center justify-between px-3">
+      {/* Subsidy Gap Hero - Humanized */}
+      <div className="rounded overflow-hidden">
+        <SubsidyGapHero 
+          amount={stats.subsidyGap}
+          violatorCount={stats.nonCompliant}
+          avgSalary={50000}
+        />
+      </div>
+      {/* LEGACY: Subsidy Gap + Trend - Hidden */}
+      <div className="hidden bg-gradient-to-r from-red-500 to-orange-500 rounded overflow-hidden flex items-center justify-between px-3">
         <div className="text-white">
           <div className="text-white/70 text-[9px] leading-none">Total Subsidy Gap</div>
           <div className="font-bold text-xl leading-tight">${(stats.subsidyGap / 1e9).toFixed(2)}B</div>

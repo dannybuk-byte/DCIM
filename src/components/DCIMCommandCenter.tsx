@@ -1354,16 +1354,6 @@ export default function DCIMCommandCenter({ onActionRequested: _onActionRequeste
 
   return (
     <>
-      {/* First-Time User Onboarding Modal */}
-      <WelcomeOnboarding
-        totalFacilities={stats?.totalFacilities ?? 11992}
-        subsidyGap={stats?.totalSubsidyGap ?? 5380000000}
-        violatorCount={stats?.nonCompliant ?? 3205}
-        onComplete={() => {
-          // Optional: Track onboarding completion
-          console.info('User completed onboarding');
-        }}
-      />
 
       {/* MISSION CONTROL LAYOUT - NEW */}
       {useMissionControl ? (

@@ -14,5 +14,125 @@
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
+    
+    <!-- Welcome Onboarding Modal - Shows for first-time users -->
+    <script>
+      (function() {
+        // Check if user has already onboarded
+        const hasOnboarded = localStorage.getItem('dcim_onboarded');
+        if (hasOnboarded === 'true' || hasOnboarded === 'skipped') return;
+        
+        // Wait for DOM to be ready
+        if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', showOnboarding);
+        } else {
+          setTimeout(showOnboarding, 500); // Wait for React to mount
+        }
+        
+        function showOnboarding() {
+          const modal = document.createElement('div');
+          modal.id = 'welcome-onboarding-modal';
+          modal.innerHTML = `
+            <div style="
+              position: fixed;
+              inset: 0;
+              background: rgba(0,0,0,0.6);
+              backdrop-filter: blur(8px);
+              z-index: 99999;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              padding: 20px;
+              animation: fadeIn 0.3s ease-out;
+            ">
+              <style>
+                @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+                @keyframes slideIn { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+              </style>
+              <div style="
+                background: white;
+                border-radius: 16px;
+                max-width: 500px;
+                width: 100%;
+                box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
+                overflow: hidden;
+                animation: slideIn 0.3s ease-out;
+              ">
+                <div style="padding: 8px 16px 0; display: flex; gap: 4px;">
+                  <div style="height: 4px; flex: 1; border-radius: 4px; background: #3b82f6;"></div>
+                  <div style="height: 4px; flex: 1; border-radius: 4px; background: #e2e8f0;"></div>
+                  <div style="height: 4px; flex: 1; border-radius: 4px; background: #e2e8f0;"></div>
+                </div>
+                
+                <div style="padding: 24px; text-align: center;">
+                  <div style="font-size: 64px; margin-bottom: 16px;">💪</div>
+                  
+                  <h1 style="font-size: 24px; font-weight: bold; color: #1e293b; margin-bottom: 8px; font-family: 'Space Grotesk', sans-serif;">
+                    Data Center Accountability Dashboard
+                  </h1>
+                  <p style="color: #64748b; margin-bottom: 24px; font-family: 'DM Sans', sans-serif;">
+                    Arming labor unions with data to fight Big Tech's broken job creation promises
+                  </p>
+                  
+                  <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 24px;">
+                    <div style="padding: 12px; background: #fef2f2; border: 2px solid #fecaca; border-radius: 12px;">
+                      <div style="font-size: 20px; font-weight: bold; color: #dc2626; font-family: 'Space Grotesk', sans-serif;">$5.8B</div>
+                      <div style="font-size: 11px; color: #b91c1c;">Subsidy Gap</div>
+                    </div>
+                    <div style="padding: 12px; background: #eff6ff; border: 2px solid #bfdbfe; border-radius: 12px;">
+                      <div style="font-size: 20px; font-weight: bold; color: #2563eb; font-family: 'Space Grotesk', sans-serif;">11,992</div>
+                      <div style="font-size: 11px; color: #1d4ed8;">Facilities</div>
+                    </div>
+                    <div style="padding: 12px; background: #fffbeb; border: 2px solid #fde68a; border-radius: 12px;">
+                      <div style="font-size: 20px; font-weight: bold; color: #d97706; font-family: 'Space Grotesk', sans-serif;">3,363</div>
+                      <div style="font-size: 11px; color: #b45309;">Violators</div>
+                    </div>
+                  </div>
+                  
+                  <div style="background: #f1f5f9; border-radius: 8px; padding: 12px; font-size: 13px; color: #475569; margin-bottom: 24px; font-family: 'DM Sans', sans-serif;">
+                    <strong style="color: #dc2626;">$5.8B</strong> in broken promises = <strong>116,000 jobs</strong> at $50k/year
+                  </div>
+                  
+                  <p style="font-size: 11px; color: #94a3b8; margin-bottom: 12px;">Supporting labor organizers at:</p>
+                  <div style="display: flex; justify-content: center; gap: 8px; flex-wrap: wrap;">
+                    <span style="padding: 4px 12px; background: #f1f5f9; border-radius: 999px; font-size: 11px; color: #64748b; font-weight: 500;">TWC</span>
+                    <span style="padding: 4px 12px; background: #f1f5f9; border-radius: 999px; font-size: 11px; color: #64748b; font-weight: 500;">CODE-CWA</span>
+                    <span style="padding: 4px 12px; background: #f1f5f9; border-radius: 999px; font-size: 11px; color: #64748b; font-weight: 500;">UPROSE</span>
+                    <span style="padding: 4px 12px; background: #f1f5f9; border-radius: 999px; font-size: 11px; color: #64748b; font-weight: 500;">IBEW</span>
+                  </div>
+                </div>
+                
+                <div style="padding: 16px 24px; display: flex; gap: 12px; border-top: 1px solid #e2e8f0;">
+                  <button onclick="localStorage.setItem('dcim_onboarded', 'skipped'); this.closest('#welcome-onboarding-modal').remove();" style="
+                    padding: 10px 20px;
+                    color: #64748b;
+                    font-weight: 500;
+                    cursor: pointer;
+                    background: none;
+                    border: none;
+                    font-family: 'DM Sans', sans-serif;
+                  ">Skip</button>
+                  <div style="flex: 1;"></div>
+                  <button onclick="localStorage.setItem('dcim_onboarded', 'true'); this.closest('#welcome-onboarding-modal').remove();" style="
+                    padding: 10px 24px;
+                    background: #3b82f6;
+                    color: white;
+                    font-weight: 600;
+                    border-radius: 8px;
+                    cursor: pointer;
+                    border: none;
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+                    font-family: 'DM Sans', sans-serif;
+                  ">🚀 Start Exploring</button>
+                </div>
+              </div>
+            </div>
+          `;
+          document.body.appendChild(modal);
+        }
+      })();
+    </script>
   </body>
 </html>
