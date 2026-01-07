@@ -212,16 +212,8 @@ function assessProviderRisk(facility: Facility): RiskFactor | null {
     };
   }
 
-  // Check for known acquisition/merger scenarios
-  if (provider !== operator && provider && operator) {
-    return {
-      category: 'provider',
-      severity: 'low',
-      description: 'Provider and operator differ - potential acquisition scenario',
-      impact: 5,
-      recommendation: 'Verify ownership chain and compliance responsibility',
-    };
-  }
+  // Provider-based checks removed - Facility type doesn't have provider field
+  // Operator information is sufficient for risk assessment
 
   return null;
 }

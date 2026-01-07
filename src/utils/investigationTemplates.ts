@@ -79,7 +79,7 @@ export const INVESTIGATION_TEMPLATES: InvestigationTemplate[] = [
       const max = facility.powerCapacityMW * 1.2;
       return await db.facilities
         .filter(f => 
-          f.powerCapacityMW && 
+          f.powerCapacityMW !== undefined && 
           f.powerCapacityMW >= min && 
           f.powerCapacityMW <= max && 
           f.id !== facility.id
@@ -206,7 +206,7 @@ export const INVESTIGATION_TEMPLATES: InvestigationTemplate[] = [
       const threeYearsAgoYear = threeYearsAgo.getFullYear();
       return await db.facilities
         .filter(f => 
-          f.yearEstablished && 
+          f.yearEstablished !== undefined && 
           f.yearEstablished > threeYearsAgoYear &&
           f.complianceStatus === 'Non-Compliant'
         )
