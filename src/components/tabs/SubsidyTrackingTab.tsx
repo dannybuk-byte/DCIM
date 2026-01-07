@@ -246,7 +246,7 @@ export const SubsidyTrackingTab = memo(({ facilities, stats }: SubsidyTrackingTa
                                   </div>
                                   <div className="bg-[#161b22] p-2 rounded">
                                     <div className="text-gray-500 mb-1">Jobs Actual</div>
-                                    <div className="text-white font-medium">{facility.jobsActual?.toLocaleString() || 'N/A'}</div>
+                                    <div className="text-white font-medium">{facility.jobsCreated?.toLocaleString() || 'N/A'}</div>
                                   </div>
                                   <div className="bg-[#161b22] p-2 rounded">
                                     <div className="text-gray-500 mb-1">Tax Incentives</div>

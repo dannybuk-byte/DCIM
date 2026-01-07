@@ -40,6 +40,13 @@ const TAB_HIERARCHY: Record<CommandCenterTab, { category: string; label: string 
   'Reports': { category: 'Tools', label: 'Report Generator' },
   'Pattern Analysis': { category: 'Analysis', label: 'Pattern Analysis' },
   'Pattern Lab': { category: 'Analysis', label: 'Pattern Laboratory' },
+  'AI Infrastructure': { category: 'Analysis', label: 'AI Infrastructure Intelligence' },
+  'Network Map': { category: 'Geographic', label: 'Network Map' },
+  'Follow Your Data': { category: 'Analysis', label: 'Follow Your Data' },
+  'Sanctions Monitor': { category: 'Monitoring', label: 'Sanctions Monitor' },
+  'Subsidy Accountability': { category: 'Compliance', label: 'Subsidy Accountability' },
+  'Organizer Hub': { category: 'Organizing', label: 'Organizer Command Center' },
+  'POC': { category: 'Tools', label: 'Proof of Concept' },
 };
 
 export function Breadcrumbs({ currentTab, onNavigate }: BreadcrumbsProps) {

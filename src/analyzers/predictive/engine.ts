@@ -224,7 +224,8 @@ export function calculateFacilityRisk(
   });
   
   // Factor 2: Days Since Audit
-  const daysSinceAudit = facility.daysSinceLastAudit || 365;
+  const lastAudit = facility.lastAuditDate ? new Date(facility.lastAuditDate) : null;
+  const daysSinceAudit = lastAudit ? Math.floor((Date.now() - lastAudit.getTime()) / (1000 * 60 * 60 * 24)) : 365;
   const auditScore = Math.min(100, (daysSinceAudit / 365) * 100);
   factors.push({
     name: 'Audit Recency',
@@ -285,8 +286,11 @@ export function calculateFacilityRisk(
     description: RISK_FACTORS.geographicRisk.description,
   });
   
-  // Factor 7: Facility Age (simulated based on ID hash)
-  const ageScore = ((facility.id?.charCodeAt(0) || 50) % 100);
+  // Factor 7: Facility Age (simulated based on year established or ID)
+  const baseAge = facility.yearEstablished 
+    ? (new Date().getFullYear() - facility.yearEstablished) * 5 
+    : ((facility.id || 50) % 100);
+  const ageScore = Math.min(100, baseAge);
   factors.push({
     name: 'Infrastructure Age',
     weight: RISK_FACTORS.facilityAge.weight,
@@ -329,7 +333,7 @@ export function calculateFacilityRisk(
   }
   
   return {
-    facilityId: facility.id,
+    facilityId: String(facility.id),
     facilityName: facility.name,
     operator: facility.operator,
     state: facility.state,

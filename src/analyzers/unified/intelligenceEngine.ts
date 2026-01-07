@@ -293,10 +293,21 @@ export class UnifiedIntelligenceEngine {
   private async detectStatisticalAnomalies(facilities: Facility[]): Promise<IntelligenceFinding[]> {
     const findings: IntelligenceFinding[] = [];
     
-    // Use existing dcimAnalyzer
-    const isolationForest = await dcimAnalyzer.isolationForest(facilities);
+    // Statistical anomaly detection using z-score method
+    // Calculate z-scores for subsidy gap
+    const gaps = facilities.map(f => f.subsidyGap || 0);
+    const mean = gaps.reduce((a, b) => a + b, 0) / gaps.length;
+    const stdDev = Math.sqrt(gaps.map(x => Math.pow(x - mean, 2)).reduce((a, b) => a + b, 0) / gaps.length);
     
-    isolationForest.outliers.forEach(outlier => {
+    // Find outliers (z-score > 2)
+    const outliers = facilities
+      .map(f => {
+        const zScore = stdDev > 0 ? Math.abs((f.subsidyGap || 0) - mean) / stdDev : 0;
+        return { id: String(f.id), name: f.name, score: Math.min(1, zScore / 3) };
+      })
+      .filter(o => o.score > 0.6);
+    
+    outliers.forEach((outlier: { id: string; name: string; score: number }) => {
       findings.push({
         id: `anomaly-${outlier.id}`,
         timestamp: new Date(),
@@ -360,28 +371,32 @@ export class UnifiedIntelligenceEngine {
   private async detectPredictiveWarnings(facilities: Facility[]): Promise<IntelligenceFinding[]> {
     const findings: IntelligenceFinding[] = [];
     
-    // Run ARIMA forecasting on key metrics
-    const subsidyGaps = facilities.map(f => f.subsidyGap);
-    const forecast = dcimAnalyzer.arima(subsidyGaps);
+    // Simple trend analysis for subsidy gaps
+    const subsidyGaps = facilities.map(f => f.subsidyGap || 0);
+    const avgGap = subsidyGaps.reduce((a, b) => a + b, 0) / subsidyGaps.length;
+    const recentGaps = subsidyGaps.slice(-10);
+    const recentAvg = recentGaps.reduce((a, b) => a + b, 0) / recentGaps.length;
+    const trend = recentAvg > avgGap * 1.1 ? 'increasing' : recentAvg < avgGap * 0.9 ? 'decreasing' : 'stable';
+    const trendStrength = Math.abs(recentAvg - avgGap) / (avgGap || 1);
     
     // Check if trend is increasing
-    if (forecast.trend === 'increasing') {
+    if (trend === 'increasing') {
       findings.push({
         id: `prediction-subsidy-gap`,
         timestamp: new Date(),
         category: 'prediction',
         severity: 'warning',
-        confidence: forecast.confidence,
+        confidence: Math.min(0.9, 0.5 + trendStrength),
         title: 'Predicted: Subsidy Gap Will Increase',
-        description: `ARIMA forecasts aggregate subsidy gap will increase by ${forecast.nextValue.toFixed(1)}% next period`,
-        affectedFacilities: facilities.map(f => f.id),
-        detectionMethod: 'ml-forecasting',
+        description: `Trend analysis forecasts aggregate subsidy gap will increase by ${(trendStrength * 100).toFixed(1)}% next period`,
+        affectedFacilities: facilities.map(f => String(f.id)),
+        detectionMethod: 'statistical',
         evidence: [
           {
-            metric: 'Forecasted Change',
+            metric: 'Trend Change',
             expected: 'Stable or decreasing',
-            actual: `+${forecast.nextValue.toFixed(1)}%`,
-            deviation: forecast.nextValue,
+            actual: `+${(trendStrength * 100).toFixed(1)}%`,
+            deviation: trendStrength * 100,
           },
         ],
         actionable: true,

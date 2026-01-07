@@ -191,10 +191,10 @@ export function useNLRBCases(): NLRBCaseSearch {
     setError(null);
     
     try {
-      const result = await labordataService.searchByEmployer(employerName, {
+      const result = await labordataService.searchNLRBByEmployer(employerName, {
         pageSize: 100,
       });
-      setCases(result.cases);
+      setCases(result.data);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to search NLRB cases');
       setCases([]);

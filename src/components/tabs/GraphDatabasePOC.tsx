@@ -67,6 +67,7 @@ export function GraphDatabasePOC() {
     try {
       // Step 1: Load Kuzu-WASM
       const loadStart = performance.now();
+      // @ts-ignore - @kuzu/kuzu-wasm is an optional dependency
       const kuzu_wasm = await import('@kuzu/kuzu-wasm');
       const loadTime = performance.now() - loadStart;
       
@@ -131,8 +132,8 @@ export function GraphDatabasePOC() {
           city: f.city || 'Unknown',
           subsidyGap: BigInt(Math.floor(f.subsidyGap || 0)),
           complianceStatus: f.complianceStatus,
-          promisedJobs: f.promisedJobs || 0,
-          actualJobs: f.actualJobs || 0,
+          promisedJobs: f.jobsPromised || 0,
+          actualJobs: f.jobsCreated || 0,
         });
       }
       

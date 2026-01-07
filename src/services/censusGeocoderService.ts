@@ -336,6 +336,5 @@ class CensusGeocoderService {
 // Export singleton instance
 export const censusGeocoderService = new CensusGeocoderService();
 
-// Export types for external use
-export type { CountyInfo, GeocoderResult };
+// Types are already exported at their definitions
 

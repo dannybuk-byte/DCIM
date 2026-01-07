@@ -225,7 +225,7 @@ export const RealTimeIntelligence: React.FC = () => {
   const fetchEPAData = useCallback(async () => {
     updateSource('epa', { status: 'loading', error: null });
     try {
-      const result = await epaEchoApi.searchDataCenterFacilities('data center', 50);
+      const result = await epaEchoApi.searchDataCenterFacilities(undefined, false);
       updateSource('epa', { 
         status: 'success', 
         data: result || [],

@@ -8,6 +8,16 @@ import React, { useRef, useEffect, useState, useCallback } from 'react';
 import { Globe, ZoomIn, ZoomOut, RotateCcw, Layers } from 'lucide-react';
 import { Facility } from '../types';
 
+// Helper: Convert compliance status to numeric score for visualization
+const getComplianceScoreFromStatus = (status: Facility['complianceStatus']): number => {
+  switch (status) {
+    case 'Compliant': return 100;
+    case 'At Risk': return 50;
+    case 'Non-Compliant': return 20;
+    default: return 0;
+  }
+};
+
 interface GlobeViewProps {
   facilities: Facility[];
 }
@@ -211,7 +221,7 @@ export const GlobeView: React.FC<GlobeViewProps> = React.memo(({ facilities }) =
       const [x2d, y2d, visible] = project3Dto2D(x, y, z, width, height, zoom);
 
       if (visible) {
-        const color = getComplianceColor(facility.complianceScore);
+        const color = getComplianceColor(getComplianceScoreFromStatus(facility.complianceStatus));
         ctx.fillStyle = color;
         ctx.beginPath();
         ctx.arc(x2d, y2d, 3 * zoom, 0, Math.PI * 2);
@@ -231,10 +241,11 @@ export const GlobeView: React.FC<GlobeViewProps> = React.memo(({ facilities }) =
       ctx.lineWidth = 1;
       ctx.globalAlpha = 0.2;
 
-      // Draw connections between facilities of same provider
+      // Draw connections between facilities of same operator
       const providerGroups = facilitiesWithCoords.reduce((acc, f) => {
-        if (!acc[f.provider]) acc[f.provider] = [];
-        acc[f.provider].push(f);
+        const op = f.operator || 'Unknown';
+        if (!acc[op]) acc[op] = [];
+        acc[op].push(f);
         return acc;
       }, {} as Record<string, Facility[]>);
 

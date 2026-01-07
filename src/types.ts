@@ -50,6 +50,8 @@ export interface ComplianceStats {
   overdueAudits: number;
   medianSubsidyGap: number;
   maxSubsidyGap: number;
+  totalJobsPromised?: number;
+  totalJobsCreated?: number;
 }
 
 export type TabType = 'Overview' | 'Geography' | 'Problems' | 'Early Warning' | 'Explorer';

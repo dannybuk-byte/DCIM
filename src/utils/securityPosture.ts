@@ -40,7 +40,7 @@ const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
  */
 export function calculateSecurityPosture(facility: Facility): SecurityPosture {
   // Check cache first
-  const cached = scoreCache.get(facility.id);
+  const cached = scoreCache.get(String(facility.id));
   const now = Date.now();
   if (cached && (now - cached.timestamp < CACHE_TTL)) {
     return cached.posture;
@@ -89,7 +89,7 @@ export function calculateSecurityPosture(facility: Facility): SecurityPosture {
     score = Math.max(0, Math.min(100, score));
 
     const posture: SecurityPosture = {
-      facilityId: facility.id,
+      facilityId: String(facility.id),
       facilityName: facility.name,
       score,
       riskLevel: scoreToRiskLevel(score),
@@ -98,14 +98,14 @@ export function calculateSecurityPosture(facility: Facility): SecurityPosture {
     };
 
     // Cache the result
-    scoreCache.set(facility.id, { posture, timestamp: now });
+    scoreCache.set(String(facility.id), { posture, timestamp: now });
 
     return posture;
   } catch (error) {
     console.error(`[SecurityPosture] Error calculating score for ${facility.id}:`, error);
     // Return safe neutral posture on error
     return {
-      facilityId: facility.id,
+      facilityId: String(facility.id),
       facilityName: facility.name,
       score: 50,
       riskLevel: 'medium',
@@ -164,7 +164,7 @@ function assessComplianceRisk(facility: Facility): RiskFactor | null {
  */
 function assessDataQuality(facility: Facility): RiskFactor | null {
   const now = Date.now();
-  const lastUpdated = facility.lastUpdated ? new Date(facility.lastUpdated).getTime() : 0;
+  const lastUpdated = facility.lastAuditDate ? new Date(facility.lastAuditDate).getTime() : 0;
   const ageInDays = (now - lastUpdated) / (1000 * 60 * 60 * 24);
 
   if (ageInDays > 365 || !lastUpdated) {
@@ -194,13 +194,12 @@ function assessDataQuality(facility: Facility): RiskFactor | null {
  * Assess provider-related risks
  */
 function assessProviderRisk(facility: Facility): RiskFactor | null {
-  const provider = (facility.provider || '').toLowerCase();
   const operator = (facility.operator || '').toLowerCase();
 
   // High-risk patterns (Haddix methodology)
   const highRiskPatterns = ['unknown', 'unverified', 'pending', 'tbd', 'n/a'];
   const isHighRisk = highRiskPatterns.some(pattern => 
-    provider.includes(pattern) || operator.includes(pattern)
+    operator.includes(pattern)
   );
 
   if (isHighRisk) {

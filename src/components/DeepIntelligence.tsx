@@ -740,18 +740,24 @@ export const DeepIntelligence: React.FC = () => {
                     <p className="text-slate-500 text-xs p-2">Click "Fetch" to load XBRL company facts</p>
                   ) : (
                     <div className="space-y-2">
-                      {Object.entries((financialData.companyFacts as Record<string, unknown>)?.facts?.['us-gaap'] || {})
+                      {Object.entries(
+                        ((financialData.companyFacts as Record<string, Record<string, Record<string, unknown>>>)?.facts?.['us-gaap'] || {})
+                      )
                         .slice(0, 20)
-                        .map(([key, value]) => (
-                          <div key={key} className="p-2 bg-slate-50 rounded border border-slate-200">
-                            <div className="text-xs text-slate-500 truncate">{key}</div>
-                            <div className="font-mono text-sm text-slate-800">
-                              {Array.isArray((value as Record<string, unknown[]>)?.units?.USD) 
-                                ? `$${((value as Record<string, Array<{ val: number }>>).units.USD[0]?.val / 1e9).toFixed(2)}B`
-                                : 'Data available'}
+                        .map(([key, value]) => {
+                          const xbrlValue = value as { units?: { USD?: Array<{ val: number }> } };
+                          const usdUnits = xbrlValue?.units?.USD;
+                          return (
+                            <div key={key} className="p-2 bg-slate-50 rounded border border-slate-200">
+                              <div className="text-xs text-slate-500 truncate">{key}</div>
+                              <div className="font-mono text-sm text-slate-800">
+                                {Array.isArray(usdUnits) && usdUnits[0]?.val
+                                  ? `$${(usdUnits[0].val / 1e9).toFixed(2)}B`
+                                  : 'Data available'}
+                              </div>
                             </div>
-                          </div>
-                        ))}
+                          );
+                        })}
                     </div>
                   )}
                 </ScrollableSection>

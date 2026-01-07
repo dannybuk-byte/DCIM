@@ -548,7 +548,6 @@ class GoodJobsFirstService {
 // Export singleton instance
 export const goodJobsFirstService = new GoodJobsFirstService();
 
-// Export types and constants
+// Export constants (types are already exported at definition)
 export { GJF_SOURCES, DOCUMENTED_DC_SUBSIDIES, DC_TAX_EXEMPT_STATES, COMPANY_ALIASES };
-export type { SubsidyRecord, ViolationRecord, DataCenterSubsidy, CompanyAccountability, GJFSearchOptions };
 

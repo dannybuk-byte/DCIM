@@ -443,7 +443,7 @@ export const FollowYourDataTab: React.FC<FollowYourDataTabProps> = ({ facilities
       subsidyGap: item.facility.subsidyGap,
       complianceStatus: item.facility.complianceStatus?.toLowerCase().replace('-', '-') as 'compliant' | 'non-compliant' | 'at-risk' | 'unknown',
       jobsPromised: item.facility.jobsPromised,
-      jobsActual: item.facility.jobsActual,
+      jobsActual: item.facility.jobsCreated,
       state: item.facility.state
     }));
 

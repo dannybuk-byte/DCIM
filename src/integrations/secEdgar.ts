@@ -200,7 +200,19 @@ export async function fullTextSearch(
   }
 
   const data = await response.json();
-  return data.hits?.hits?.map((hit: Record<string, unknown>) => ({
+  interface SECHit {
+    _source?: {
+      ciks?: string[];
+      display_names?: string[];
+      file_date?: string;
+      form?: string;
+      file_path?: string;
+    };
+    highlight?: {
+      content?: string[];
+    };
+  }
+  return data.hits?.hits?.map((hit: SECHit) => ({
     cik: hit._source?.ciks?.[0] || '',
     company: hit._source?.display_names?.[0] || '',
     filingDate: hit._source?.file_date || '',

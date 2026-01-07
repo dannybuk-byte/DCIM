@@ -13,7 +13,7 @@
 import { SectionContext } from '../ai/sectionPrompts';
 
 export type SourceCategory = 'primary' | 'secondary' | 'tertiary';
-export type DataFrequency = 'real-time' | 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'annual' | 'static';
+export type DataFrequency = 'real-time' | 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'annual' | 'static' | 'as-filed' | 'as-decided' | 'on-demand';
 
 export interface Citation {
   id: string;

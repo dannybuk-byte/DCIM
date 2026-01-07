@@ -68,7 +68,6 @@ async function loadPipeline(): Promise<boolean> {
     // Dynamic import with workaround to prevent Vite from pre-analyzing
     // The variable assignment prevents static analysis
     const packageName = '@huggingface/transformers';
-    // @ts-expect-error - Dynamic import of optional dependency
     const transformers = await import(/* @vite-ignore */ packageName);
     pipeline = transformers.pipeline;
     console.log('[LocalTransformers] Pipeline loaded');

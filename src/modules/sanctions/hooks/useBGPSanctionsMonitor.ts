@@ -5,7 +5,8 @@
  */
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { SANCTIONED_ASNS, SanctionedASN } from '../services/riskScoring';
+import { SANCTIONED_ASNS } from '../services/riskScoring';
+import type { SanctionedASN } from '../types/sanctions';
 
 interface BGPUpdate {
   type: 'UPDATE' | 'ANNOUNCE' | 'WITHDRAW';

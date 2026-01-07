@@ -74,14 +74,14 @@ export const INVESTIGATION_TEMPLATES: InvestigationTemplate[] = [
     category: 'comparison',
     requiresFacility: true,
     execute: async (facility?: Facility) => {
-      if (!facility || !facility.capacity) return [];
-      const min = facility.capacity * 0.8;
-      const max = facility.capacity * 1.2;
+      if (!facility || !facility.powerCapacityMW) return [];
+      const min = facility.powerCapacityMW * 0.8;
+      const max = facility.powerCapacityMW * 1.2;
       return await db.facilities
         .filter(f => 
-          f.capacity && 
-          f.capacity >= min && 
-          f.capacity <= max && 
+          f.powerCapacityMW && 
+          f.powerCapacityMW >= min && 
+          f.powerCapacityMW <= max && 
           f.id !== facility.id
         )
         .toArray();
@@ -203,10 +203,11 @@ export const INVESTIGATION_TEMPLATES: InvestigationTemplate[] = [
       const threeYearsAgo = new Date();
       threeYearsAgo.setFullYear(threeYearsAgo.getFullYear() - 3);
       
+      const threeYearsAgoYear = threeYearsAgo.getFullYear();
       return await db.facilities
         .filter(f => 
-          f.openedDate && 
-          new Date(f.openedDate) > threeYearsAgo &&
+          f.yearEstablished && 
+          f.yearEstablished > threeYearsAgoYear &&
           f.complianceStatus === 'Non-Compliant'
         )
         .toArray();

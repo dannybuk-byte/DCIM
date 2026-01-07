@@ -281,9 +281,9 @@ const EvidencePanel: React.FC<EvidencePanelProps> = memo(({ className = '' }) =>
                     <div className="flex items-center gap-1">
                       {verification && (
                         verification.isValid ? (
-                          <CheckCircle2 className="w-4 h-4 text-green-400" title="Verified" />
+                          <span title="Verified"><CheckCircle2 className="w-4 h-4 text-green-400" /></span>
                         ) : (
-                          <AlertTriangle className="w-4 h-4 text-red-400" title="Verification Failed" />
+                          <span title="Verification Failed"><AlertTriangle className="w-4 h-4 text-red-400" /></span>
                         )
                       )}
                       <button

@@ -248,7 +248,7 @@ export const MissionControlLayout = memo(function MissionControlLayout({
               <StatCard
                 label="Total Gap"
                 value={formatCurrency(stats.totalSubsidyGap)}
-                color="orange"
+                color="amber"
                 icon={<DollarSign className="w-3 h-3" />}
               />
             </div>

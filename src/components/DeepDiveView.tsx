@@ -482,10 +482,10 @@ export const DeepDiveView: React.FC<DeepDiveViewProps> = ({ facilities, isFullsc
       },
       workforce: {
         current: {
-          total: facility.jobsCurrent || Math.floor(50 + Math.random() * 450),
+          total: facility.jobsCreated || Math.floor(50 + Math.random() * 450),
           promised: facility.jobsPromised || Math.floor(500 + Math.random() * 1500),
-          shortfall: (facility.jobsPromised || 1000) - (facility.jobsCurrent || 200),
-          fulfillment: ((facility.jobsCurrent || 200) / (facility.jobsPromised || 1000) * 100).toFixed(1)
+          shortfall: (facility.jobsPromised || 1000) - (facility.jobsCreated || 200),
+          fulfillment: ((facility.jobsCreated || 200) / (facility.jobsPromised || 1000) * 100).toFixed(1)
         },
         breakdown: [
           { role: 'Data Center Technicians', count: Math.floor(30 + Math.random() * 100), avg_salary: '$65,000' },

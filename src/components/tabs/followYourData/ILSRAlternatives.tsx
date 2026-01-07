@@ -344,7 +344,7 @@ export const ILSRAlternatives: React.FC<ILSRAlternativesProps> = ({ userLocation
                 <h4 className="text-lg font-semibold mb-1 flex items-center gap-2">
                   {network.name}
                   {network.customerSatisfaction && network.customerSatisfaction >= 95 && (
-                    <Award className="w-4 h-4 text-[#d29922]" title="Top rated!" />
+                    <span title="Top rated!"><Award className="w-4 h-4 text-[#d29922]" /></span>
                   )}
                 </h4>
                 <p className="text-sm text-[#8b949e] flex items-center gap-1 mb-2">

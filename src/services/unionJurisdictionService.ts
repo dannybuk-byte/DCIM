@@ -702,6 +702,5 @@ export const unionJurisdictionService = new UnionJurisdictionService();
 // Export the raw database for direct access if needed
 export { UNION_JURISDICTION_DATABASE };
 
-// Export types
-export type { UnionLocal, JurisdictionLookupResult, UnionType };
+// Types are already exported at their definitions
 
