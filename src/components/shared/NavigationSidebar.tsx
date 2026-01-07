@@ -153,6 +153,14 @@ const NAV_GROUPS: NavGroup[] = [
         description: 'Epoch AI frontier data center tracking - power, location, construction',
         keywords: ['epoch', 'ai', 'frontier', 'data center', 'power', 'gigawatt', 'openai', 'meta', 'google', 'xai', 'anthropic', 'satellite'],
       },
+      {
+        id: 'Subsidy Accountability',
+        label: '💰 Subsidy Accountability',
+        icon: <DollarSign className="w-5 h-5" />,
+        color: 'amber',
+        description: 'Good Jobs First data - verify subsidy promises vs. reality',
+        keywords: ['subsidy', 'accountability', 'jobs', 'promised', 'actual', 'good jobs first', 'transparency', 'state', 'gap', 'tax'],
+      },
     ],
   },
   {
