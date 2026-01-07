@@ -43,11 +43,13 @@ import {
   Star,
   Clock,
   Bot,
+  Cpu,
 } from 'lucide-react';
 import { ContextualNLPWidget, SectionNLPBar } from '../shared/ContextualNLPWidget';
 import { NLPAction } from '../../hooks/useSectionNLP';
 import { SectionContext } from '../../ai/sectionPrompts';
 import { HelpIcon } from '../shared/InlineHelpButton';
+import { EpochAIIntelligenceTab } from './EpochAIIntelligenceTab';
 import {
   OrganizingTarget,
   IBEWFootprint,
@@ -165,7 +167,7 @@ const UnionBadge: React.FC<UnionBadgeProps> = ({ union }) => {
 type NestedSection = 'keyFactors' | 'strategic' | 'unionIntel' | 'contractors' | 'timeline' | 'approach' | 'subsidy';
 
 export const OrganizingIntelligenceTab: React.FC = () => {
-  const [activeSection, setActiveSection] = useState<'targets' | 'contractors' | 'ibew' | 'corridors'>('targets');
+  const [activeSection, setActiveSection] = useState<'targets' | 'contractors' | 'ibew' | 'corridors' | 'ai-infra'>('targets');
   const [searchQuery, setSearchQuery] = useState('');
   const [priorityFilter, setPriorityFilter] = useState<string>('all');
   const [selectedTarget, setSelectedTarget] = useState<OrganizingTarget | null>(null);
@@ -444,14 +446,15 @@ export const OrganizingIntelligenceTab: React.FC = () => {
           { id: 'contractors', label: 'Contractor Mapping', icon: Users },
           { id: 'ibew', label: 'IBEW Footprint', icon: Zap },
           { id: 'corridors', label: 'Corridor Intelligence', icon: MapPin },
-        ].map(({ id, label, icon: Icon }) => (
+          { id: 'ai-infra', label: '🛰️ AI Infrastructure', icon: Cpu, highlight: true },
+        ].map(({ id, label, icon: Icon, highlight }) => (
           <button
             key={id}
             onClick={() => setActiveSection(id as typeof activeSection)}
             className={`flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
               activeSection === id
-                ? 'bg-[#21262d] text-white'
-                : 'text-gray-400 hover:text-white hover:bg-[#21262d]/50'
+                ? highlight ? 'bg-cyan-600/30 text-cyan-300 border border-cyan-500/50' : 'bg-[#21262d] text-white'
+                : highlight ? 'text-cyan-400 hover:text-cyan-300 hover:bg-cyan-600/20 border border-transparent' : 'text-gray-400 hover:text-white hover:bg-[#21262d]/50'
             }`}
           >
             <Icon className="w-4 h-4" />
@@ -1721,6 +1724,40 @@ export const OrganizingIntelligenceTab: React.FC = () => {
   // MAIN RENDER
   // =============================================================================
   
+  // AI Infrastructure has its own full-screen layout
+  if (activeSection === 'ai-infra') {
+    return (
+      <div className="min-h-screen bg-[#0d1117]">
+        {/* Minimal nav bar for returning to other sections */}
+        <div className="border-b border-[#30363d] bg-[#161b22] px-4">
+          <div className="flex items-center gap-2 py-2">
+            {[
+              { id: 'targets', label: 'Target Prioritization', icon: Target },
+              { id: 'contractors', label: 'Contractors', icon: Users },
+              { id: 'ibew', label: 'IBEW', icon: Zap },
+              { id: 'corridors', label: 'Corridors', icon: MapPin },
+              { id: 'ai-infra', label: '🛰️ AI Infrastructure', icon: Cpu, highlight: true },
+            ].map(({ id, label, icon: Icon, highlight }) => (
+              <button
+                key={id}
+                onClick={() => setActiveSection(id as typeof activeSection)}
+                className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded transition-colors ${
+                  activeSection === id
+                    ? highlight ? 'bg-cyan-600/30 text-cyan-300 border border-cyan-500/50' : 'bg-[#21262d] text-white'
+                    : highlight ? 'text-cyan-400 hover:text-cyan-300 hover:bg-cyan-600/20' : 'text-gray-500 hover:text-gray-300 hover:bg-[#21262d]/50'
+                }`}
+              >
+                <Icon className="w-3 h-3" />
+                {label}
+              </button>
+            ))}
+          </div>
+        </div>
+        <EpochAIIntelligenceTab />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-[#0d1117]">
       {renderHeader()}
