@@ -526,16 +526,12 @@ const SpaceFillingOverviewGrid: React.FC<OverviewGridProps> = ({
   const avgSalary = 50000;
   const jobsEquivalent = Math.round(safeStats.subsidyGap / avgSalary);
   
-  // Calculate how many items we can fit based on actual available space
-  const itemHeight = 38;
-  const cardHeaderHeight = 26;
-  const bottomRowHeight = availableHeight - 200; // Account for hero section
-  const itemsPerColumn = Math.max(6, Math.floor((bottomRowHeight - cardHeaderHeight) / itemHeight));
-  const violatorsPerColumn = itemsPerColumn;
-  const totalViolators = Math.min(topViolators.length, violatorsPerColumn * 2);
+  // Show all violators split between two columns
+  const halfViolators = Math.ceil(topViolators.length / 2);
+  const totalViolators = topViolators.length;
 
   return (
-    <div className="flex flex-col gap-3 p-3" style={{ height: availableHeight }}>
+    <div className="flex flex-col gap-3 p-3 overflow-auto min-h-0" style={{ height: availableHeight, minHeight: 'auto' }}>
       {/* ========== MISSION HEADER - FULL WIDTH ========== */}
       <div className="bg-gradient-to-r from-slate-900 via-blue-900 to-indigo-900 rounded-xl p-4 shadow-xl border border-blue-500/30">
         <div className="flex items-center justify-between">
@@ -642,8 +638,8 @@ const SpaceFillingOverviewGrid: React.FC<OverviewGridProps> = ({
           </div>
           <div className="flex-1 overflow-hidden grid grid-cols-2 divide-x divide-slate-100">
             {/* Left column */}
-            <div className="overflow-auto">
-              {topViolators.slice(0, violatorsPerColumn).map((f, i) => (
+            <div className="overflow-y-auto max-h-[300px]">
+              {topViolators.slice(0, halfViolators).map((f, i) => (
                 <div 
                   key={f.id}
                   className="flex items-center gap-2 border-b border-slate-100 last:border-0 hover:bg-blue-50/50 cursor-pointer px-3 py-2 transition-colors"
@@ -672,9 +668,9 @@ const SpaceFillingOverviewGrid: React.FC<OverviewGridProps> = ({
               ))}
             </div>
             {/* Right column */}
-            <div className="overflow-auto">
-              {topViolators.slice(violatorsPerColumn, totalViolators).map((f, i) => {
-                const rank = violatorsPerColumn + i + 1;
+            <div className="overflow-y-auto max-h-[300px]">
+              {topViolators.slice(halfViolators).map((f, i) => {
+                const rank = halfViolators + i + 1;
                 return (
                   <div 
                     key={f.id}
@@ -706,8 +702,8 @@ const SpaceFillingOverviewGrid: React.FC<OverviewGridProps> = ({
             <span className="font-semibold text-slate-700">Top Operators</span>
             <span className="ml-auto text-slate-400 text-sm">{operatorCounts.length}</span>
           </div>
-        <div className="flex-1 overflow-auto">
-          {operatorCounts.slice(0, itemsPerColumn).map((op, i) => (
+        <div className="flex-1 overflow-y-auto max-h-[300px]">
+          {operatorCounts.map((op, i) => (
             <div 
               key={op.operator}
               className="flex items-center gap-1.5 border-b border-slate-100 last:border-0 hover:bg-slate-50 cursor-pointer px-2 py-1"
