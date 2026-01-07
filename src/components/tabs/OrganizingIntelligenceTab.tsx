@@ -539,7 +539,63 @@ export const OrganizingIntelligenceTab: React.FC = () => {
       <div className="flex gap-2 flex-1 overflow-hidden">
         {/* Main Content Area - Scrollable */}
         <div className="flex-1 min-w-0 overflow-y-auto">
-          {targetViewMode === 'table' ? (
+          {/* EMPTY STATE - Show when no targets */}
+          {filteredTargets.length === 0 ? (
+            <div className="h-full flex flex-col items-center justify-center p-4 bg-gradient-to-b from-[#0d1117] to-[#161b22] rounded border border-[#30363d]">
+              <div className="text-center max-w-md">
+                {/* Icon */}
+                <div className="mb-3 p-3 bg-red-500/10 rounded-full inline-block">
+                  <Target className="w-8 h-8 text-red-400" />
+                </div>
+                
+                {/* Message */}
+                <h3 className="text-lg font-semibold text-white mb-2">No Organizing Targets Found</h3>
+                <p className="text-sm text-gray-400 mb-4">
+                  {facilities.length === 0 
+                    ? 'Import facility data to begin identifying organizing opportunities.'
+                    : searchQuery 
+                      ? `No targets match "${searchQuery}". Try different keywords.`
+                      : 'No targets match current filters. Adjust priority filter above.'}
+                </p>
+                
+                {/* Quick Actions */}
+                <div className="grid grid-cols-2 gap-2 mb-4">
+                  <button 
+                    onClick={() => { setSearchQuery(''); setPriorityFilter('all'); }}
+                    className="px-3 py-2 bg-[#21262d] hover:bg-[#30363d] text-white text-xs rounded border border-[#30363d] transition-colors"
+                  >
+                    Clear Filters
+                  </button>
+                  <button className="px-3 py-2 bg-red-600/20 hover:bg-red-600/30 text-red-400 text-xs rounded border border-red-500/30 transition-colors">
+                    Import Data
+                  </button>
+                </div>
+                
+                {/* Helpful Info - Fills Space */}
+                <div className="mt-4 p-3 bg-[#0d1117] rounded border border-[#30363d] text-left">
+                  <div className="text-xs font-semibold text-gray-300 mb-2">📊 What This View Shows:</div>
+                  <ul className="text-xs text-gray-500 space-y-1.5">
+                    <li className="flex items-start gap-2">
+                      <span className="text-red-400">•</span>
+                      <span>Facilities ranked by organizing potential (structural, vulnerability, strategic scores)</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-orange-400">•</span>
+                      <span>Worker concentration & contractor fragmentation analysis</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-yellow-400">•</span>
+                      <span>IBEW local alignment & corridor intelligence integration</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-blue-400">•</span>
+                      <span>Search by operator, state, city (e.g., "tx aws" or "google")</span>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          ) : targetViewMode === 'table' ? (
             /* HIGH-DENSITY TABLE VIEW with Priority Groups */
             <div className="space-y-1.5">
               {/* Priority Group Headers with Accordions */}
@@ -816,75 +872,103 @@ export const OrganizingIntelligenceTab: React.FC = () => {
           )}
         </div>
         
-        {/* Sticky Sidebar - Stats & Quick Actions */}
-        <div className="w-64 flex-shrink-0 hidden xl:block">
-          <div className="sticky top-4 space-y-3">
+        {/* Sticky Sidebar - Stats & Quick Actions - Full Height */}
+        <div className="w-64 flex-shrink-0 hidden xl:flex flex-col h-full">
+          <div className="flex-1 flex flex-col gap-2 overflow-y-auto">
             {/* Priority Summary */}
-            <div className="bg-[#0d1117] border border-[#30363d] rounded-lg p-3">
-              <h4 className="text-xs font-semibold text-gray-400 mb-2">PRIORITY BREAKDOWN</h4>
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs text-red-400 flex items-center gap-1">🔴 Critical</span>
-                  <span className="text-sm font-bold text-red-400">{targetsByPriority.critical.length}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-xs text-orange-400 flex items-center gap-1">🟠 High</span>
-                  <span className="text-sm font-bold text-orange-400">{targetsByPriority.high.length}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-xs text-yellow-400 flex items-center gap-1">🟡 Medium</span>
-                  <span className="text-sm font-bold text-yellow-400">{targetsByPriority.medium.length}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-xs text-gray-400 flex items-center gap-1">⚪ Low</span>
-                  <span className="text-sm font-bold text-gray-400">{targetsByPriority.low.length}</span>
-                </div>
-              </div>
-            </div>
-            
-            {/* Top Operators */}
-            <div className="bg-[#0d1117] border border-[#30363d] rounded-lg p-3">
-              <h4 className="text-xs font-semibold text-gray-400 mb-2">TOP OPERATORS</h4>
+            <div className="bg-[#0d1117] border border-[#30363d] rounded-lg p-2.5">
+              <h4 className="text-[10px] font-semibold text-gray-500 mb-1.5 uppercase tracking-wide">Priority Breakdown</h4>
               <div className="space-y-1.5">
-                {Object.entries(
-                  filteredTargets.reduce((acc, t) => {
-                    acc[t.operator] = (acc[t.operator] || 0) + 1;
-                    return acc;
-                  }, {} as Record<string, number>)
-                ).sort(([, a], [, b]) => b - a).slice(0, 5).map(([op, count]) => (
-                  <div key={op} className="flex items-center justify-between text-xs">
-                    <span className="text-gray-300 truncate">{op}</span>
-                    <span className="text-blue-400 font-medium">{count}</span>
+                {[
+                  { label: 'Critical', count: targetsByPriority.critical.length, color: 'red', icon: '🔴' },
+                  { label: 'High', count: targetsByPriority.high.length, color: 'orange', icon: '🟠' },
+                  { label: 'Medium', count: targetsByPriority.medium.length, color: 'yellow', icon: '🟡' },
+                  { label: 'Low', count: targetsByPriority.low.length, color: 'gray', icon: '⚪' },
+                ].map(({ label, count, color, icon }) => (
+                  <div key={label} className="flex items-center justify-between">
+                    <span className={`text-[11px] text-${color}-400 flex items-center gap-1`}>{icon} {label}</span>
+                    <span className={`text-xs font-bold text-${color}-400 ${count > 0 ? '' : 'opacity-50'}`}>{count}</span>
                   </div>
                 ))}
               </div>
+              {filteredTargets.length === 0 && (
+                <div className="mt-2 pt-2 border-t border-[#30363d] text-[10px] text-gray-600">
+                  No data loaded. Import facility data.
+                </div>
+              )}
+            </div>
+            
+            {/* Top Operators or Empty State */}
+            <div className="bg-[#0d1117] border border-[#30363d] rounded-lg p-2.5 flex-1 overflow-y-auto">
+              <h4 className="text-[10px] font-semibold text-gray-500 mb-1.5 uppercase tracking-wide">Top Operators</h4>
+              {filteredTargets.length > 0 ? (
+                <div className="space-y-1">
+                  {Object.entries(
+                    filteredTargets.reduce((acc, t) => {
+                      acc[t.operator] = (acc[t.operator] || 0) + 1;
+                      return acc;
+                    }, {} as Record<string, number>)
+                  ).sort(([, a], [, b]) => b - a).slice(0, 8).map(([op, count]) => (
+                    <button 
+                      key={op} 
+                      onClick={() => setSearchQuery(op.toLowerCase())}
+                      className="w-full flex items-center justify-between text-[11px] hover:bg-[#21262d] px-1.5 py-0.5 rounded transition-colors"
+                    >
+                      <span className="text-gray-300 truncate">{op}</span>
+                      <span className="text-blue-400 font-medium">{count}</span>
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-[10px] text-gray-600 space-y-1.5">
+                  <p>Operators will appear here after data import.</p>
+                  <div className="mt-2 p-2 bg-[#21262d] rounded">
+                    <div className="font-medium text-gray-400 mb-1">Expected:</div>
+                    <div className="text-gray-500">• Amazon • Google • Microsoft • Meta • Equinix</div>
+                  </div>
+                </div>
+              )}
             </div>
             
             {/* Quick Filters */}
-            <div className="bg-[#0d1117] border border-[#30363d] rounded-lg p-3">
-              <h4 className="text-xs font-semibold text-gray-400 mb-2">QUICK FILTERS</h4>
+            <div className="bg-[#0d1117] border border-[#30363d] rounded-lg p-2.5">
+              <h4 className="text-[10px] font-semibold text-gray-500 mb-1.5 uppercase tracking-wide">Quick Filters</h4>
               <div className="space-y-1">
                 <button 
-                  onClick={() => setSearchQuery('ibew presence')}
-                  className="w-full px-2 py-1 text-xs text-left bg-[#21262d] hover:bg-[#30363d] rounded text-yellow-400"
+                  onClick={() => setSearchQuery('ibew')}
+                  className="w-full px-2 py-1 text-[11px] text-left bg-[#21262d] hover:bg-[#30363d] rounded text-yellow-400 transition-colors"
                 >
-                  <Zap className="w-3 h-3 inline mr-1" />
-                  IBEW Presence
+                  <Zap className="w-3 h-3 inline mr-1" />IBEW Presence
                 </button>
                 <button 
                   onClick={() => setPriorityFilter('critical')}
-                  className="w-full px-2 py-1 text-xs text-left bg-[#21262d] hover:bg-[#30363d] rounded text-red-400"
+                  className="w-full px-2 py-1 text-[11px] text-left bg-[#21262d] hover:bg-[#30363d] rounded text-red-400 transition-colors"
                 >
-                  <AlertTriangle className="w-3 h-3 inline mr-1" />
-                  Critical Only
+                  <AlertTriangle className="w-3 h-3 inline mr-1" />Critical Only
                 </button>
                 <button 
                   onClick={() => setSearchQuery('virginia')}
-                  className="w-full px-2 py-1 text-xs text-left bg-[#21262d] hover:bg-[#30363d] rounded text-blue-400"
+                  className="w-full px-2 py-1 text-[11px] text-left bg-[#21262d] hover:bg-[#30363d] rounded text-blue-400 transition-colors"
                 >
-                  <MapPin className="w-3 h-3 inline mr-1" />
-                  NoVA Corridor
+                  <MapPin className="w-3 h-3 inline mr-1" />NoVA Corridor
                 </button>
+                <button 
+                  onClick={() => setSearchQuery('texas')}
+                  className="w-full px-2 py-1 text-[11px] text-left bg-[#21262d] hover:bg-[#30363d] rounded text-green-400 transition-colors"
+                >
+                  <MapPin className="w-3 h-3 inline mr-1" />Texas
+                </button>
+              </div>
+            </div>
+            
+            {/* Organizing Tips - Fill remaining space */}
+            <div className="bg-gradient-to-b from-red-500/5 to-red-500/10 border border-red-500/20 rounded-lg p-2.5 flex-1 min-h-[100px]">
+              <h4 className="text-[10px] font-semibold text-red-400 mb-1.5 uppercase tracking-wide">💡 Organizing Tips</h4>
+              <div className="text-[10px] text-gray-400 space-y-1.5">
+                <p>• <span className="text-white">Critical</span> = high worker count + low union presence</p>
+                <p>• Focus on <span className="text-blue-400">corridors</span> for coordinated campaigns</p>
+                <p>• Check <span className="text-yellow-400">IBEW locals</span> before outreach</p>
+                <p>• Higher scores = better organizing potential</p>
               </div>
             </div>
           </div>
