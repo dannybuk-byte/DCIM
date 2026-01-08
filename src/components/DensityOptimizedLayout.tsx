@@ -40,6 +40,28 @@ import { RecoveryBanner } from './shared/RecoveryBanner';
 import { KeyboardShortcutsHelp } from './shared/KeyboardShortcutsHelp';
 import { ActionHistoryButton } from './shared/ActionHistoryPanel';
 import { logNavigation, logSettingsChange, logSystem, logRecovery } from '../utils/actionHistory';
+import { OfflineBanner, ReconnectionToast } from './shared/ConnectionStatusIndicator';
+import { useConnectionStatus } from '../utils/connectionResilience';
+
+// Simple connection status dot for footer
+const ConnectionStatusDot = () => {
+  const { status, avgLatency } = useConnectionStatus();
+  const colors = {
+    online: 'bg-green-500',
+    offline: 'bg-red-500 animate-pulse',
+    slow: 'bg-yellow-500 animate-pulse',
+    unstable: 'bg-orange-500 animate-pulse',
+  };
+  return (
+    <div 
+      className="flex items-center gap-1.5 px-2 py-1 bg-white shadow-sm border border-slate-200 rounded-lg"
+      title={`${status}${avgLatency > 0 ? ` (${avgLatency}ms)` : ''}`}
+    >
+      <div className={`w-2 h-2 rounded-full ${colors[status]}`} />
+      <span className="text-[10px] capitalize">{status}</span>
+    </div>
+  );
+};
 
 // ============================================================================
 // DENSITY CONTEXT
@@ -1445,6 +1467,9 @@ export const DensityOptimizedLayout: React.FC = () => {
   return (
     <DensityContext.Provider value={{ config, setMode: handleDensityChange }}>
       <div className="min-h-screen bg-slate-100">
+        {/* 🛡️ ANTIFRAGILE: Offline banner when network is down */}
+        <OfflineBanner />
+        
         {/* 🛡️ ANTIFRAGILE: Recovery banner for crash recovery */}
         <RecoveryBanner 
           onRecover={handleRecovery} 
@@ -1456,6 +1481,9 @@ export const DensityOptimizedLayout: React.FC = () => {
           isOpen={showKeyboardHelp}
           onClose={() => setShowKeyboardHelp(false)}
         />
+        
+        {/* 🛡️ ANTIFRAGILE: Toast when reconnected */}
+        <ReconnectionToast />
         
         {/* Sidebar */}
         <CompactSidebar
@@ -1557,10 +1585,13 @@ export const DensityOptimizedLayout: React.FC = () => {
         </main>
 
         {/* Keyboard Hints */}
-        {/* Footer with shortcuts and action history */}
+        {/* Footer with shortcuts, action history, and connection status */}
         <div 
           className="fixed bottom-2 right-2 flex items-center gap-3 text-[10px] text-slate-500"
         >
+          {/* 🛡️ ANTIFRAGILE: Connection status indicator */}
+          <ConnectionStatusDot />
+          
           {/* 🛡️ ANTIFRAGILE: Action history button */}
           <ActionHistoryButton className="bg-white shadow-sm border border-slate-200 rounded-lg" />
           
