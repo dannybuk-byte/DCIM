@@ -67,6 +67,7 @@ import { RegulatoryToolkit } from './RegulatoryToolkit'; // NEW: Municipal DCIM 
 import { FollowYourDataTab } from './tabs/FollowYourDataTab'; // NEW: Infrastructure Discovery with CAP, NPU, ILSR
 import { SanctionsMonitorTab } from './tabs/SanctionsMonitorTab'; // NEW: OFAC Sanctions Network Hygiene Enforcement
 import { SurveillanceInfrastructureTab } from './tabs/SurveillanceInfrastructureTab'; // NEW: ICE/DHS surveillance tracker
+import { SanctuaryCityTab } from './tabs/SanctuaryCityTab'; // NEW: Sanctuary City Infrastructure Accountability
 import { SmartSearchNav, NavProvider, QuickAccessNav } from './AntifragileNavigation'; // NEW: Antifragile Navigation System
 import EvidencePanel from './EvidencePanel'; // FRE 902(13)-(14) Evidence Integrity
 import { NestedFAQ } from './NestedFAQ'; // Comprehensive help documentation
@@ -131,7 +132,8 @@ export type CommandCenterTab =
   | 'Subsidy Accountability' // NEW: Good Jobs First subsidy accountability tracking
   | 'Organizer Hub' // NEW: Labor organizing command center
   | 'AI Infrastructure' // NEW: Epoch AI data center intelligence
-  | 'Surveillance Infrastructure'; // NEW: ICE/DHS surveillance tracker
+  | 'Surveillance Infrastructure' // NEW: ICE/DHS surveillance tracker
+  | 'Sanctuary City'; // NEW: Sanctuary City Infrastructure Accountability
   // | 'POC';  // Disabled - requires @kuzu/kuzu-wasm
 
 interface DCIMCommandCenterProps {
@@ -938,6 +940,7 @@ export default function DCIMCommandCenter({ onActionRequested: _onActionRequeste
     'Subsidy Accountability', // NEW: Good Jobs First accountability tracking
     'Organizer Hub', // NEW: Labor organizing command center
     'Surveillance Infrastructure', // NEW: ICE/DHS surveillance tracker
+    'Sanctuary City', // NEW: Sanctuary City Infrastructure Accountability
     'Regulatory Toolkit', // NEW: Municipal DCIM scrapers and APIs
     'Follow Your Data', // NEW: Infrastructure Discovery with CAP, NPU, ILSR
     'Infrastructure',
@@ -974,6 +977,7 @@ export default function DCIMCommandCenter({ onActionRequested: _onActionRequeste
     { id: 'Subsidy Accountability', label: '💰 Subsidy Accountability', shortLabel: 'Accountability', icon: <DollarSign className="w-4 h-4" />, group: 'Analysis & Intelligence', keywords: ['subsidy', 'accountability', 'jobs promised', 'jobs actual', 'good jobs first', 'transparency', 'state', 'gap'], description: 'Good Jobs First subsidy accountability - verify promises vs reality' },
     { id: 'Organizer Hub', label: '✊ Organizer Hub', shortLabel: 'Organize', icon: <Target className="w-4 h-4" />, group: 'Analysis & Intelligence', keywords: ['organize', 'union', 'labor', 'foia', 'incident', 'contractor', 'cba', 'legislative', 'coalition', 'ibew', 'corridor', 'campaign'], description: 'Labor organizing command center - FOIA, incidents, contractors, CBAs, legislation, union density, coalition coordination' },
     { id: 'Surveillance Infrastructure', label: '🔴 Surveillance Tracker', shortLabel: 'Surveillance', icon: <Eye className="w-4 h-4" />, group: 'Analysis & Intelligence', keywords: ['ice', 'surveillance', 'dhs', 'cbp', 'palantir', 'clearview', 'facial recognition', 'skip tracing', 'deportation', 'immigrant', 'contract', 'federal'], description: 'Track ICE/DHS surveillance infrastructure, contracts, and companies targeting immigrant communities' },
+    { id: 'Sanctuary City', label: '🏛️ Sanctuary City', shortLabel: 'Sanctuary', icon: <Shield className="w-4 h-4" />, group: 'Analysis & Intelligence', keywords: ['sanctuary', 'nyc', 'mayor', 'mamdani', 'carrier hotel', 'reit', 'equinix', 'digital realty', 'franchise', 'nycida', 'enforcement', 'ice', 'data flow', 'executive order', 'regulatory', '111 8th avenue', '60 hudson', 'charter 363'], description: 'NYC ICE Data Infrastructure: REIT Exposure and Mayoral Regulatory Authority' },
     { id: 'Regulatory Toolkit', label: 'Regulatory APIs', shortLabel: 'Reg APIs', icon: <Database className="w-4 h-4" />, group: 'Analysis & Intelligence', keywords: ['municipal', 'regulatory', 'scraper', 'api', 'bls', 'sec', 'epa'], description: 'Municipal DCIM scrapers & APIs' },
     { id: 'Follow Your Data', label: 'Follow Your Data', shortLabel: 'Follow', icon: <Globe className="w-4 h-4" />, group: 'Analysis & Intelligence', keywords: ['follow', 'data', 'infrastructure', 'cap', 'npu', 'ilsr', 'community', 'geolocation', 'discovery'], description: 'Infrastructure discovery with CAP taxonomy, NPU framework, ILSR alternatives' },
     { id: 'Infrastructure', label: 'Infrastructure', shortLabel: 'Infra', icon: <Network className="w-4 h-4" />, group: 'Operations', keywords: ['infra', 'network', 'power', 'cooling'], description: 'Infrastructure details' },
@@ -1304,6 +1308,14 @@ export default function DCIMCommandCenter({ onActionRequested: _onActionRequeste
         <ErrorBoundary>
           <div className="h-full overflow-auto">
             <SurveillanceInfrastructureTab />
+          </div>
+        </ErrorBoundary>
+      )}
+
+      {activeTab === 'Sanctuary City' && (
+        <ErrorBoundary>
+          <div className="h-full overflow-hidden">
+            <SanctuaryCityTab />
           </div>
         </ErrorBoundary>
       )}

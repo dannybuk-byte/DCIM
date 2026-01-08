@@ -177,6 +177,14 @@ const NAV_GROUPS: NavGroup[] = [
         description: 'Track ICE/DHS surveillance infrastructure, contracts, and companies targeting immigrant communities',
         keywords: ['ice', 'surveillance', 'dhs', 'cbp', 'palantir', 'clearview', 'facial recognition', 'skip tracing', 'deportation', 'immigrant', 'contract', 'federal', 'ero', 'hsi'],
       },
+      {
+        id: 'Sanctuary City',
+        label: '🏛️ Sanctuary City',
+        icon: <Shield className="w-5 h-5" />,
+        color: 'rose',
+        description: 'NYC ICE Data Infrastructure: REIT Exposure and Mayoral Regulatory Authority - Carrier Hotels, Enforcement Pyramid, Executive Order Framework',
+        keywords: ['sanctuary', 'nyc', 'mayor', 'mamdani', 'carrier hotel', 'reit', 'equinix', 'digital realty', 'franchise', 'nycida', 'enforcement', 'ice', 'data flow', 'executive order', '111 8th avenue', '60 hudson', 'charter 363', 'mayoral authority'],
+      },
     ],
   },
   {
