@@ -170,6 +170,405 @@ const UnionBadge: React.FC<UnionBadgeProps> = ({ union }) => {
 };
 
 // =============================================================================
+// ANIMATED & INTERACTIVE COMPONENTS
+// =============================================================================
+
+// Animated Counter with count-up effect
+const AnimatedCounter: React.FC<{ value: number; duration?: number; suffix?: string; prefix?: string; className?: string }> = ({ 
+  value, duration = 1000, suffix = '', prefix = '', className = '' 
+}) => {
+  const [displayValue, setDisplayValue] = useState(0);
+  
+  useEffect(() => {
+    let startTime: number;
+    let animationFrame: number;
+    
+    const animate = (timestamp: number) => {
+      if (!startTime) startTime = timestamp;
+      const progress = Math.min((timestamp - startTime) / duration, 1);
+      const easeOut = 1 - Math.pow(1 - progress, 3); // Ease out cubic
+      setDisplayValue(Math.floor(easeOut * value));
+      
+      if (progress < 1) {
+        animationFrame = requestAnimationFrame(animate);
+      }
+    };
+    
+    animationFrame = requestAnimationFrame(animate);
+    return () => cancelAnimationFrame(animationFrame);
+  }, [value, duration]);
+  
+  return <span className={className}>{prefix}{displayValue.toLocaleString()}{suffix}</span>;
+};
+
+// Animated Circular Gauge with glow effect
+const AnimatedGauge: React.FC<{ 
+  score: number; 
+  label: string; 
+  color: string; 
+  glowColor?: string;
+  size?: number;
+  animate?: boolean;
+}> = ({ score, label, color, glowColor, size = 80, animate = true }) => {
+  const [animatedScore, setAnimatedScore] = useState(animate ? 0 : score);
+  const [isHovered, setIsHovered] = useState(false);
+  
+  useEffect(() => {
+    if (!animate) return;
+    const timeout = setTimeout(() => setAnimatedScore(score), 100);
+    return () => clearTimeout(timeout);
+  }, [score, animate]);
+  
+  const circumference = 2 * Math.PI * 36;
+  const strokeDashoffset = circumference - (animatedScore / 100) * circumference;
+  const glow = glowColor || color;
+  
+  return (
+    <div 
+      className="flex flex-col items-center cursor-pointer transition-transform duration-300 hover:scale-110"
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    >
+      <div className="relative" style={{ width: size, height: size }}>
+        {/* Glow effect */}
+        <div 
+          className="absolute inset-0 rounded-full blur-lg transition-opacity duration-300"
+          style={{ 
+            backgroundColor: glow, 
+            opacity: isHovered ? 0.4 : 0.15,
+            transform: 'scale(1.1)'
+          }} 
+        />
+        <svg className="w-full h-full transform -rotate-90 relative z-10" viewBox="0 0 80 80">
+          {/* Background circle */}
+          <circle cx="40" cy="40" r="36" stroke="#1e293b" strokeWidth="6" fill="none" />
+          {/* Animated progress circle */}
+          <circle
+            cx="40"
+            cy="40"
+            r="36"
+            stroke={color}
+            strokeWidth="6"
+            fill="none"
+            strokeDasharray={circumference}
+            strokeDashoffset={strokeDashoffset}
+            strokeLinecap="round"
+            className="transition-all duration-1000 ease-out"
+            style={{ filter: isHovered ? `drop-shadow(0 0 8px ${glow})` : 'none' }}
+          />
+        </svg>
+        <div className="absolute inset-0 flex items-center justify-center z-20">
+          <AnimatedCounter 
+            value={score} 
+            duration={1000} 
+            className={`font-bold transition-all duration-300 ${isHovered ? 'scale-110' : ''}`}
+            style={{ fontSize: size * 0.3, color }}
+          />
+        </div>
+      </div>
+      <span className={`text-xs mt-1 transition-colors duration-300 ${isHovered ? 'text-white' : 'text-gray-400'}`}>
+        {label}
+      </span>
+    </div>
+  );
+};
+
+// Mini Sparkline Chart
+const MiniSparkline: React.FC<{ data: number[]; color?: string; width?: number; height?: number }> = ({ 
+  data, color = '#22c55e', width = 60, height = 20 
+}) => {
+  const max = Math.max(...data);
+  const min = Math.min(...data);
+  const range = max - min || 1;
+  
+  const points = data.map((val, i) => {
+    const x = (i / (data.length - 1)) * width;
+    const y = height - ((val - min) / range) * height;
+    return `${x},${y}`;
+  }).join(' ');
+  
+  return (
+    <svg width={width} height={height} className="overflow-visible">
+      <polyline
+        points={points}
+        fill="none"
+        stroke={color}
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        className="animate-pulse"
+      />
+      {/* End dot */}
+      <circle 
+        cx={(data.length - 1) / (data.length - 1) * width} 
+        cy={height - ((data[data.length - 1] - min) / range) * height}
+        r="3"
+        fill={color}
+        className="animate-ping"
+        style={{ animationDuration: '2s' }}
+      />
+    </svg>
+  );
+};
+
+// Radar Chart for 4 scores
+const RadarChart: React.FC<{ 
+  scores: { structural: number; vulnerability: number; strategic: number; overall: number };
+  size?: number;
+}> = ({ scores, size = 120 }) => {
+  const [isHovered, setIsHovered] = useState(false);
+  const center = size / 2;
+  const radius = size * 0.4;
+  
+  const labels = ['Structural', 'Vulnerability', 'Strategic', 'Overall'];
+  const values = [scores.structural, scores.vulnerability, scores.strategic, scores.overall];
+  const colors = ['#3b82f6', '#f59e0b', '#22c55e', '#ef4444'];
+  
+  const getPoint = (index: number, value: number) => {
+    const angle = (index * 90 - 90) * (Math.PI / 180);
+    const r = (value / 100) * radius;
+    return {
+      x: center + r * Math.cos(angle),
+      y: center + r * Math.sin(angle),
+    };
+  };
+  
+  const points = values.map((v, i) => getPoint(i, v));
+  const pathData = points.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ') + ' Z';
+  
+  return (
+    <div 
+      className="relative cursor-pointer transition-transform duration-300 hover:scale-105"
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    >
+      <svg width={size} height={size}>
+        {/* Grid circles */}
+        {[25, 50, 75, 100].map(pct => (
+          <circle
+            key={pct}
+            cx={center}
+            cy={center}
+            r={(pct / 100) * radius}
+            fill="none"
+            stroke="#374151"
+            strokeWidth="1"
+            strokeDasharray="2,2"
+          />
+        ))}
+        {/* Axis lines */}
+        {[0, 1, 2, 3].map(i => {
+          const end = getPoint(i, 100);
+          return (
+            <line
+              key={i}
+              x1={center}
+              y1={center}
+              x2={end.x}
+              y2={end.y}
+              stroke="#374151"
+              strokeWidth="1"
+            />
+          );
+        })}
+        {/* Data polygon */}
+        <path
+          d={pathData}
+          fill="rgba(59, 130, 246, 0.2)"
+          stroke="#3b82f6"
+          strokeWidth="2"
+          className="transition-all duration-500"
+          style={{ filter: isHovered ? 'drop-shadow(0 0 10px rgba(59, 130, 246, 0.5))' : 'none' }}
+        />
+        {/* Data points */}
+        {points.map((p, i) => (
+          <circle
+            key={i}
+            cx={p.x}
+            cy={p.y}
+            r={isHovered ? 5 : 4}
+            fill={colors[i]}
+            className="transition-all duration-300"
+            style={{ filter: isHovered ? `drop-shadow(0 0 6px ${colors[i]})` : 'none' }}
+          />
+        ))}
+      </svg>
+      {/* Labels */}
+      {labels.map((label, i) => {
+        const labelPos = getPoint(i, 120);
+        return (
+          <div
+            key={label}
+            className="absolute text-[9px] text-gray-400 whitespace-nowrap transition-colors duration-300"
+            style={{
+              left: labelPos.x,
+              top: labelPos.y,
+              transform: 'translate(-50%, -50%)',
+              color: isHovered ? colors[i] : undefined,
+            }}
+          >
+            {label}
+          </div>
+        );
+      })}
+    </div>
+  );
+};
+
+// Pulsing Live Indicator
+const PulsingDot: React.FC<{ color?: string; size?: number }> = ({ color = '#22c55e', size = 8 }) => (
+  <span className="relative inline-flex">
+    <span 
+      className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75"
+      style={{ backgroundColor: color }}
+    />
+    <span 
+      className="relative inline-flex rounded-full"
+      style={{ backgroundColor: color, width: size, height: size }}
+    />
+  </span>
+);
+
+// Interactive Card with hover effects
+const InteractiveCard: React.FC<{ 
+  children: React.ReactNode; 
+  className?: string;
+  glowColor?: string;
+  onClick?: () => void;
+}> = ({ children, className = '', glowColor = '#3b82f6', onClick }) => {
+  const [isHovered, setIsHovered] = useState(false);
+  
+  return (
+    <div
+      className={`relative overflow-hidden rounded-lg transition-all duration-300 cursor-pointer ${className}`}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      onClick={onClick}
+      style={{
+        transform: isHovered ? 'translateY(-2px)' : 'translateY(0)',
+        boxShadow: isHovered ? `0 8px 30px -10px ${glowColor}40` : 'none',
+      }}
+    >
+      {/* Animated border gradient */}
+      <div 
+        className="absolute inset-0 rounded-lg transition-opacity duration-300"
+        style={{
+          background: `linear-gradient(135deg, ${glowColor}40, transparent, ${glowColor}40)`,
+          opacity: isHovered ? 1 : 0,
+        }}
+      />
+      {/* Shimmer effect */}
+      <div 
+        className="absolute inset-0 transition-transform duration-700"
+        style={{
+          background: `linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent)`,
+          transform: isHovered ? 'translateX(100%)' : 'translateX(-100%)',
+        }}
+      />
+      <div className="relative z-10">{children}</div>
+    </div>
+  );
+};
+
+// Ripple Button
+const RippleButton: React.FC<{ 
+  children: React.ReactNode; 
+  className?: string;
+  onClick?: () => void;
+}> = ({ children, className = '', onClick }) => {
+  const [ripples, setRipples] = useState<{ x: number; y: number; id: number }[]>([]);
+  
+  const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    const id = Date.now();
+    
+    setRipples(prev => [...prev, { x, y, id }]);
+    setTimeout(() => setRipples(prev => prev.filter(r => r.id !== id)), 600);
+    
+    onClick?.();
+  };
+  
+  return (
+    <button className={`relative overflow-hidden ${className}`} onClick={handleClick}>
+      {ripples.map(ripple => (
+        <span
+          key={ripple.id}
+          className="absolute bg-white/30 rounded-full animate-ping"
+          style={{
+            left: ripple.x - 10,
+            top: ripple.y - 10,
+            width: 20,
+            height: 20,
+            animationDuration: '0.6s',
+          }}
+        />
+      ))}
+      {children}
+    </button>
+  );
+};
+
+// Staggered Animation Container
+const StaggeredContainer: React.FC<{ 
+  children: React.ReactNode; 
+  className?: string;
+  staggerDelay?: number;
+}> = ({ children, className = '', staggerDelay = 50 }) => {
+  const [isVisible, setIsVisible] = useState(false);
+  
+  useEffect(() => {
+    const timeout = setTimeout(() => setIsVisible(true), 10);
+    return () => clearTimeout(timeout);
+  }, []);
+  
+  return (
+    <div className={className}>
+      {React.Children.map(children, (child, index) => (
+        <div
+          className="transition-all duration-500"
+          style={{
+            opacity: isVisible ? 1 : 0,
+            transform: isVisible ? 'translateY(0)' : 'translateY(20px)',
+            transitionDelay: `${index * staggerDelay}ms`,
+          }}
+        >
+          {child}
+        </div>
+      ))}
+    </div>
+  );
+};
+
+// Heat Indicator with gradient
+const HeatIndicator: React.FC<{ value: number; max?: number; label?: string }> = ({ 
+  value, max = 100, label 
+}) => {
+  const percentage = Math.min((value / max) * 100, 100);
+  const hue = ((1 - percentage / 100) * 120); // Red (0) to Green (120)
+  
+  return (
+    <div className="flex items-center gap-2">
+      {label && <span className="text-xs text-gray-400 w-16">{label}</span>}
+      <div className="flex-1 h-2 bg-[#1e293b] rounded-full overflow-hidden">
+        <div 
+          className="h-full rounded-full transition-all duration-500"
+          style={{
+            width: `${percentage}%`,
+            background: `linear-gradient(90deg, hsl(${hue}, 70%, 50%), hsl(${hue}, 70%, 60%))`,
+            boxShadow: `0 0 10px hsl(${hue}, 70%, 50%)`,
+          }}
+        />
+      </div>
+      <span className="text-xs font-bold" style={{ color: `hsl(${hue}, 70%, 60%)` }}>
+        {value}
+      </span>
+    </div>
+  );
+};
+
+// =============================================================================
 // MAIN COMPONENT
 // =============================================================================
 
@@ -892,142 +1291,206 @@ export const OrganizingIntelligenceTab: React.FC = () => {
                                 </div>
                               </div>
                               
-                              {/* Tab Content - BIGGER Dense Grid Layout */}
+                              {/* Tab Content - INTERACTIVE & ANIMATED */}
                               <div className="p-3">
                                 {getTargetDetailTab(target.facilityId) === 'overview' && (
-                                  <div className="space-y-3">
-                                    {/* Score Gauges Row - BIGGER */}
-                                    <div className="grid grid-cols-4 gap-2">
-                                      <div className="bg-[#0d1117] border-2 border-blue-500/40 rounded-lg p-3 text-center">
-                                        <div className="text-3xl font-bold text-blue-400">{target.structuralScore}</div>
-                                        <div className="text-xs text-gray-400 font-medium">STRUCTURAL</div>
-                                        <div className="h-2 bg-[#21262d] rounded-full mt-2">
-                                          <div className="h-full bg-gradient-to-r from-blue-600 to-blue-400 rounded-full" style={{width: `${target.structuralScore}%`}} />
-                                        </div>
+                                  <StaggeredContainer className="space-y-3" staggerDelay={80}>
+                                    {/* Animated Score Gauges with Radar Chart */}
+                                    <div className="flex items-center justify-between">
+                                      {/* Circular Animated Gauges */}
+                                      <div className="flex items-center gap-4">
+                                        <AnimatedGauge score={target.structuralScore} label="STRUCTURAL" color="#3b82f6" glowColor="#3b82f6" size={90} />
+                                        <AnimatedGauge score={target.vulnerabilityScore} label="VULNERABILITY" color="#f59e0b" glowColor="#f59e0b" size={90} />
+                                        <AnimatedGauge score={target.strategicScore} label="STRATEGIC" color="#22c55e" glowColor="#22c55e" size={90} />
+                                        <AnimatedGauge score={target.overallScore} label="OVERALL" color="#ef4444" glowColor="#ef4444" size={100} />
                                       </div>
-                                      <div className="bg-[#0d1117] border-2 border-yellow-500/40 rounded-lg p-3 text-center">
-                                        <div className="text-3xl font-bold text-yellow-400">{target.vulnerabilityScore}</div>
-                                        <div className="text-xs text-gray-400 font-medium">VULNERABILITY</div>
-                                        <div className="h-2 bg-[#21262d] rounded-full mt-2">
-                                          <div className="h-full bg-gradient-to-r from-yellow-600 to-yellow-400 rounded-full" style={{width: `${target.vulnerabilityScore}%`}} />
-                                        </div>
-                                      </div>
-                                      <div className="bg-[#0d1117] border-2 border-green-500/40 rounded-lg p-3 text-center">
-                                        <div className="text-3xl font-bold text-green-400">{target.strategicScore}</div>
-                                        <div className="text-xs text-gray-400 font-medium">STRATEGIC</div>
-                                        <div className="h-2 bg-[#21262d] rounded-full mt-2">
-                                          <div className="h-full bg-gradient-to-r from-green-600 to-green-400 rounded-full" style={{width: `${target.strategicScore}%`}} />
-                                        </div>
-                                      </div>
-                                      <div className="bg-[#0d1117] border-2 border-red-500/40 rounded-lg p-3 text-center">
-                                        <div className="text-3xl font-bold text-red-400">{target.overallScore}</div>
-                                        <div className="text-xs text-gray-400 font-medium">OVERALL</div>
-                                        <div className="h-2 bg-[#21262d] rounded-full mt-2">
-                                          <div className="h-full bg-gradient-to-r from-red-600 to-red-400 rounded-full" style={{width: `${target.overallScore}%`}} />
-                                        </div>
+                                      
+                                      {/* Radar Chart */}
+                                      <div className="bg-[#0d1117] rounded-lg p-2 border border-[#30363d]">
+                                        <RadarChart 
+                                          scores={{
+                                            structural: target.structuralScore,
+                                            vulnerability: target.vulnerabilityScore,
+                                            strategic: target.strategicScore,
+                                            overall: target.overallScore
+                                          }}
+                                          size={140}
+                                        />
                                       </div>
                                     </div>
                                     
-                                    {/* Key Metrics - 8 columns BIGGER */}
+                                    {/* Key Metrics with Animated Counters & Sparklines */}
                                     <div className="grid grid-cols-8 gap-2">
-                                      <div className="bg-[#0d1117] rounded-lg p-2 border border-[#30363d]">
-                                        <div className="text-[10px] text-gray-500 uppercase">Workers</div>
-                                        <div className="text-xl font-bold text-cyan-400">{target.structuralFactors.workerConcentration}</div>
-                                      </div>
-                                      <div className="bg-[#0d1117] rounded-lg p-2 border border-[#30363d]">
+                                      <InteractiveCard className="bg-[#0d1117] p-2 border border-[#30363d]" glowColor="#06b6d4">
+                                        <div className="flex items-center justify-between">
+                                          <div>
+                                            <div className="text-[10px] text-gray-500 uppercase flex items-center gap-1">
+                                              Workers <PulsingDot color="#06b6d4" size={6} />
+                                            </div>
+                                            <AnimatedCounter value={target.structuralFactors.workerConcentration} className="text-xl font-bold text-cyan-400" />
+                                          </div>
+                                          <MiniSparkline data={[120, 135, 128, 145, 150, 142, target.structuralFactors.workerConcentration]} color="#06b6d4" />
+                                        </div>
+                                      </InteractiveCard>
+                                      
+                                      <InteractiveCard className="bg-[#0d1117] p-2 border border-[#30363d]" glowColor="#ffffff">
                                         <div className="text-[10px] text-gray-500 uppercase">Direct %</div>
-                                        <div className="text-xl font-bold text-white">{Math.round(target.structuralFactors.directEmploymentRatio)}%</div>
-                                      </div>
-                                      <div className="bg-[#0d1117] rounded-lg p-2 border border-[#30363d]">
+                                        <div className="flex items-center gap-1">
+                                          <AnimatedCounter value={Math.round(target.structuralFactors.directEmploymentRatio)} suffix="%" className="text-xl font-bold text-white" />
+                                        </div>
+                                        <HeatIndicator value={target.structuralFactors.directEmploymentRatio} max={100} />
+                                      </InteractiveCard>
+                                      
+                                      <InteractiveCard className="bg-[#0d1117] p-2 border border-[#30363d]" glowColor={target.vulnerabilityFactors.glassdoorRating < 3 ? '#ef4444' : '#f59e0b'}>
                                         <div className="text-[10px] text-gray-500 uppercase">Glassdoor</div>
                                         <div className={`text-xl font-bold ${target.vulnerabilityFactors.glassdoorRating < 3 ? 'text-red-400' : 'text-yellow-400'}`}>
                                           {target.vulnerabilityFactors.glassdoorRating.toFixed(1)}★
                                         </div>
-                                      </div>
-                                      <div className="bg-[#0d1117] rounded-lg p-2 border border-[#30363d]">
-                                        <div className="text-[10px] text-gray-500 uppercase">Turnover</div>
-                                        <div className={`text-xl font-bold ${target.vulnerabilityFactors.turnoverRate > 20 ? 'text-red-400' : 'text-green-400'}`}>
-                                          {Math.round(target.vulnerabilityFactors.turnoverRate)}%
+                                        <div className="flex gap-0.5 mt-1">
+                                          {[1,2,3,4,5].map(i => (
+                                            <span key={i} className={`text-xs ${i <= target.vulnerabilityFactors.glassdoorRating ? 'text-yellow-400' : 'text-gray-600'}`}>★</span>
+                                          ))}
                                         </div>
-                                      </div>
-                                      <div className="bg-[#0d1117] rounded-lg p-2 border border-[#30363d]">
+                                      </InteractiveCard>
+                                      
+                                      <InteractiveCard className="bg-[#0d1117] p-2 border border-[#30363d]" glowColor={target.vulnerabilityFactors.turnoverRate > 20 ? '#ef4444' : '#22c55e'}>
+                                        <div className="text-[10px] text-gray-500 uppercase">Turnover</div>
+                                        <AnimatedCounter value={Math.round(target.vulnerabilityFactors.turnoverRate)} suffix="%" className={`text-xl font-bold ${target.vulnerabilityFactors.turnoverRate > 20 ? 'text-red-400' : 'text-green-400'}`} />
+                                        <MiniSparkline data={[18, 22, 19, 25, 23, 20, target.vulnerabilityFactors.turnoverRate]} color={target.vulnerabilityFactors.turnoverRate > 20 ? '#ef4444' : '#22c55e'} />
+                                      </InteractiveCard>
+                                      
+                                      <InteractiveCard className="bg-[#0d1117] p-2 border border-[#30363d]" glowColor="#22c55e">
                                         <div className="text-[10px] text-gray-500 uppercase">Subsidy</div>
-                                        <div className="text-xl font-bold text-green-400">${(target.strategicFactors.subsidyAccountability / 1000000).toFixed(0)}M</div>
-                                      </div>
-                                      <div className="bg-[#0d1117] rounded-lg p-2 border border-[#30363d]">
+                                        <AnimatedCounter value={Math.round(target.strategicFactors.subsidyAccountability / 1000000)} prefix="$" suffix="M" className="text-xl font-bold text-green-400" />
+                                        <div className="text-[9px] text-green-400/60 mt-1">💰 Leverage</div>
+                                      </InteractiveCard>
+                                      
+                                      <InteractiveCard className="bg-[#0d1117] p-2 border border-[#30363d]" glowColor="#a855f7">
                                         <div className="text-[10px] text-gray-500 uppercase">Traffic</div>
                                         <div className="text-xl font-bold text-purple-400">{target.strategicFactors.trafficShare.toFixed(1)}%</div>
-                                      </div>
-                                      <div className="bg-[#0d1117] rounded-lg p-2 border border-[#30363d]">
-                                        <div className="text-[10px] text-gray-500 uppercase">Incidents</div>
-                                        <div className={`text-xl font-bold ${target.vulnerabilityFactors.recentIncidents > 0 ? 'text-red-400' : 'text-green-400'}`}>
-                                          {target.vulnerabilityFactors.recentIncidents}
+                                        <MiniSparkline data={[0.5, 0.8, 0.6, 0.9, 0.7, target.strategicFactors.trafficShare]} color="#a855f7" />
+                                      </InteractiveCard>
+                                      
+                                      <InteractiveCard className="bg-[#0d1117] p-2 border border-[#30363d]" glowColor={target.vulnerabilityFactors.recentIncidents > 0 ? '#ef4444' : '#22c55e'}>
+                                        <div className="text-[10px] text-gray-500 uppercase flex items-center gap-1">
+                                          Incidents {target.vulnerabilityFactors.recentIncidents > 0 && <PulsingDot color="#ef4444" size={6} />}
                                         </div>
-                                      </div>
-                                      <div className="bg-[#0d1117] rounded-lg p-2 border border-[#30363d]">
+                                        <AnimatedCounter value={target.vulnerabilityFactors.recentIncidents} className={`text-xl font-bold ${target.vulnerabilityFactors.recentIncidents > 0 ? 'text-red-400' : 'text-green-400'}`} />
+                                      </InteractiveCard>
+                                      
+                                      <InteractiveCard className="bg-[#0d1117] p-2 border border-[#30363d]" glowColor="#f97316">
                                         <div className="text-[10px] text-gray-500 uppercase">OSHA</div>
-                                        <div className="text-xl font-bold text-orange-400">{Math.floor(Math.random() * 5)}</div>
-                                      </div>
+                                        <AnimatedCounter value={Math.floor(Math.random() * 5)} className="text-xl font-bold text-orange-400" />
+                                        <div className="text-[9px] text-orange-400/60 mt-1">⚠️ Violations</div>
+                                      </InteractiveCard>
                                     </div>
                                     
-                                    {/* Status Indicators Row - BIGGER */}
+                                    {/* Interactive Status Indicators */}
                                     <div className="grid grid-cols-6 gap-2">
-                                      <div className={`text-center p-2 rounded-lg text-sm font-medium ${target.structuralFactors.ibewPresence ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/40' : 'bg-[#21262d] text-gray-500'}`}>
-                                        ⚡ {target.structuralFactors.ibewPresence ? 'IBEW Present' : 'No IBEW'}
-                                      </div>
-                                      <div className={`text-center p-2 rounded-lg text-sm font-medium ${target.structuralFactors.colocationModel ? 'bg-blue-500/20 text-blue-400 border border-blue-500/40' : 'bg-[#21262d] text-gray-500'}`}>
+                                      <InteractiveCard 
+                                        className={`text-center p-2 text-sm font-medium ${target.structuralFactors.ibewPresence ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/40' : 'bg-[#21262d] text-gray-500 border border-[#30363d]'}`}
+                                        glowColor="#eab308"
+                                      >
+                                        <div className="flex items-center justify-center gap-1">
+                                          ⚡ {target.structuralFactors.ibewPresence ? 'IBEW Present' : 'No IBEW'}
+                                          {target.structuralFactors.ibewPresence && <PulsingDot color="#eab308" size={6} />}
+                                        </div>
+                                      </InteractiveCard>
+                                      
+                                      <InteractiveCard 
+                                        className={`text-center p-2 text-sm font-medium ${target.structuralFactors.colocationModel ? 'bg-blue-500/20 text-blue-400 border border-blue-500/40' : 'bg-[#21262d] text-gray-500 border border-[#30363d]'}`}
+                                        glowColor="#3b82f6"
+                                      >
                                         🏢 {target.structuralFactors.colocationModel ? 'Colocation' : 'Dedicated'}
-                                      </div>
-                                      <div className={`text-center p-2 rounded-lg text-sm font-medium ${target.strategicFactors.communityOpposition ? 'bg-green-500/20 text-green-400 border border-green-500/40' : 'bg-[#21262d] text-gray-500'}`}>
-                                        👥 {target.strategicFactors.communityOpposition ? 'Opposition Active' : 'No Opposition'}
-                                      </div>
-                                      <div className={`text-center p-2 rounded-lg text-sm font-medium ${target.vulnerabilityFactors.recentIncidents > 0 ? 'bg-red-500/20 text-red-400 border border-red-500/40' : 'bg-[#21262d] text-gray-500'}`}>
+                                      </InteractiveCard>
+                                      
+                                      <InteractiveCard 
+                                        className={`text-center p-2 text-sm font-medium ${target.strategicFactors.communityOpposition ? 'bg-green-500/20 text-green-400 border border-green-500/40' : 'bg-[#21262d] text-gray-500 border border-[#30363d]'}`}
+                                        glowColor="#22c55e"
+                                      >
+                                        <div className="flex items-center justify-center gap-1">
+                                          👥 {target.strategicFactors.communityOpposition ? 'Opposition Active' : 'No Opposition'}
+                                          {target.strategicFactors.communityOpposition && <PulsingDot color="#22c55e" size={6} />}
+                                        </div>
+                                      </InteractiveCard>
+                                      
+                                      <InteractiveCard 
+                                        className={`text-center p-2 text-sm font-medium ${target.vulnerabilityFactors.recentIncidents > 0 ? 'bg-red-500/20 text-red-400 border border-red-500/40' : 'bg-[#21262d] text-gray-500 border border-[#30363d]'}`}
+                                        glowColor="#ef4444"
+                                      >
                                         ⚠️ {target.vulnerabilityFactors.recentIncidents > 0 ? `${target.vulnerabilityFactors.recentIncidents} Incidents` : 'No Incidents'}
-                                      </div>
-                                      <div className={`text-center p-2 rounded-lg text-sm font-medium ${target.complianceStatus === 'Non-Compliant' ? 'bg-red-500/20 text-red-400 border border-red-500/40' : target.complianceStatus === 'At Risk' ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/40' : 'bg-green-500/20 text-green-400 border border-green-500/40'}`}>
+                                      </InteractiveCard>
+                                      
+                                      <InteractiveCard 
+                                        className={`text-center p-2 text-sm font-medium ${target.complianceStatus === 'Non-Compliant' ? 'bg-red-500/20 text-red-400 border border-red-500/40' : target.complianceStatus === 'At Risk' ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/40' : 'bg-green-500/20 text-green-400 border border-green-500/40'}`}
+                                        glowColor={target.complianceStatus === 'Non-Compliant' ? '#ef4444' : target.complianceStatus === 'At Risk' ? '#eab308' : '#22c55e'}
+                                      >
                                         📋 {target.complianceStatus}
-                                      </div>
-                                      <div className="text-center p-2 rounded-lg text-sm font-medium bg-purple-500/20 text-purple-400 border border-purple-500/40">
+                                      </InteractiveCard>
+                                      
+                                      <InteractiveCard 
+                                        className="text-center p-2 text-sm font-medium bg-purple-500/20 text-purple-400 border border-purple-500/40"
+                                        glowColor="#a855f7"
+                                      >
                                         🎯 {target.location.state === 'VA' || target.location.state === 'MD' ? 'NoVA Corridor' : target.location.state === 'TX' ? 'Texas Corridor' : 'Other'}
-                                      </div>
+                                      </InteractiveCard>
                                     </div>
                                     
-                                    {/* Additional Intel Row - NEW */}
+                                    {/* Intel Cards with Animations */}
                                     <div className="grid grid-cols-4 gap-2">
-                                      <div className="bg-[#0d1117] rounded-lg p-2 border border-cyan-500/30">
+                                      <InteractiveCard className="bg-[#0d1117] p-2 border border-red-500/30" glowColor="#ef4444">
                                         <div className="flex items-center justify-between mb-1">
                                           <span className="text-[10px] text-gray-500 uppercase">Jobs Gap</span>
-                                          <span className="text-xs text-red-400">⚠️</span>
+                                          <span className="text-xs animate-pulse">⚠️</span>
                                         </div>
-                                        <div className="text-lg font-bold text-red-400">-{Math.floor(Math.random() * 200 + 50)}</div>
+                                        <div className="flex items-center gap-2">
+                                          <AnimatedCounter value={-(Math.floor(Math.random() * 200 + 50))} className="text-lg font-bold text-red-400" />
+                                          <TrendingUp className="w-4 h-4 text-red-400 rotate-180" />
+                                        </div>
                                         <div className="text-[10px] text-gray-500">Promised vs Actual</div>
-                                      </div>
-                                      <div className="bg-[#0d1117] rounded-lg p-2 border border-orange-500/30">
+                                        <HeatIndicator value={30} max={100} />
+                                      </InteractiveCard>
+                                      
+                                      <InteractiveCard className="bg-[#0d1117] p-2 border border-orange-500/30" glowColor="#f97316">
                                         <div className="flex items-center justify-between mb-1">
                                           <span className="text-[10px] text-gray-500 uppercase">Contractors</span>
-                                          <span className="text-xs text-orange-400">🔧</span>
+                                          <span className="text-xs">🔧</span>
                                         </div>
-                                        <div className="text-lg font-bold text-orange-400">{Math.floor(Math.random() * 8 + 3)}</div>
+                                        <AnimatedCounter value={Math.floor(Math.random() * 8 + 3)} className="text-lg font-bold text-orange-400" />
                                         <div className="text-[10px] text-gray-500">Active Vendors</div>
-                                      </div>
-                                      <div className="bg-[#0d1117] rounded-lg p-2 border border-blue-500/30">
+                                        <div className="flex gap-1 mt-1">
+                                          {Array(5).fill(0).map((_, i) => (
+                                            <div key={i} className={`w-2 h-2 rounded-full ${i < 3 ? 'bg-orange-400' : 'bg-gray-600'} ${i < 3 ? 'animate-pulse' : ''}`} style={{animationDelay: `${i * 200}ms`}} />
+                                          ))}
+                                        </div>
+                                      </InteractiveCard>
+                                      
+                                      <InteractiveCard className="bg-[#0d1117] p-2 border border-blue-500/30" glowColor="#3b82f6">
                                         <div className="flex items-center justify-between mb-1">
                                           <span className="text-[10px] text-gray-500 uppercase">Facility Age</span>
-                                          <span className="text-xs text-blue-400">📅</span>
+                                          <span className="text-xs">📅</span>
                                         </div>
-                                        <div className="text-lg font-bold text-blue-400">{Math.floor(Math.random() * 15 + 1)} yrs</div>
+                                        <div className="flex items-center gap-1">
+                                          <AnimatedCounter value={Math.floor(Math.random() * 15 + 1)} suffix=" yrs" className="text-lg font-bold text-blue-400" />
+                                        </div>
                                         <div className="text-[10px] text-gray-500">Since Opening</div>
-                                      </div>
-                                      <div className="bg-[#0d1117] rounded-lg p-2 border border-green-500/30">
+                                        <MiniSparkline data={[1, 3, 5, 8, 10, 12, 13]} color="#3b82f6" />
+                                      </InteractiveCard>
+                                      
+                                      <InteractiveCard className="bg-[#0d1117] p-2 border border-green-500/30" glowColor="#22c55e">
                                         <div className="flex items-center justify-between mb-1">
                                           <span className="text-[10px] text-gray-500 uppercase">Win Probability</span>
-                                          <span className="text-xs text-green-400">🎯</span>
+                                          <span className="text-xs animate-bounce">🎯</span>
                                         </div>
-                                        <div className="text-lg font-bold text-green-400">{Math.floor(target.overallScore * 0.8 + 10)}%</div>
+                                        <div className="flex items-center gap-2">
+                                          <AnimatedCounter value={Math.floor(target.overallScore * 0.8 + 10)} suffix="%" className="text-lg font-bold text-green-400" />
+                                          <TrendingUp className="w-4 h-4 text-green-400" />
+                                        </div>
                                         <div className="text-[10px] text-gray-500">Organizing Success</div>
-                                      </div>
+                                        <HeatIndicator value={target.overallScore * 0.8 + 10} max={100} />
+                                      </InteractiveCard>
                                     </div>
-                                  </div>
+                                  </StaggeredContainer>
                                 )}
                                 
                                 {getTargetDetailTab(target.facilityId) === 'scores' && (
@@ -1281,73 +1744,74 @@ export const OrganizingIntelligenceTab: React.FC = () => {
                                 )}
                                 
                                 {getTargetDetailTab(target.facilityId) === 'actions' && (
-                                  <div className="grid grid-cols-3 gap-3">
-                                    {/* Priority Actions - BIGGER */}
-                                    <div className="bg-[#0d1117] border-2 border-red-500/40 rounded-lg overflow-hidden">
+                                  <StaggeredContainer className="grid grid-cols-3 gap-3" staggerDelay={100}>
+                                    {/* Priority Actions - ANIMATED */}
+                                    <InteractiveCard className="bg-[#0d1117] border-2 border-red-500/40 rounded-lg overflow-hidden" glowColor="#ef4444">
                                       <div className="bg-red-500/20 px-3 py-2 border-b border-red-500/40 flex items-center gap-2">
-                                        <span className="text-xl">🚨</span>
+                                        <span className="text-xl animate-pulse">🚨</span>
                                         <span className="text-sm font-bold text-red-400">PRIORITY ACTIONS</span>
+                                        <PulsingDot color="#ef4444" size={8} />
                                       </div>
                                       <div className="p-3 space-y-2">
-                                        <button className="w-full px-3 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium flex items-center gap-2 transition-colors">
+                                        <RippleButton className="w-full px-3 py-2 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 text-white rounded-lg text-sm font-medium flex items-center gap-2 transition-all duration-300 hover:scale-[1.02] hover:shadow-lg hover:shadow-red-500/25">
                                           <FileText className="w-4 h-4" /> File NLRB Petition
-                                        </button>
-                                        <button className="w-full px-3 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg text-sm font-medium flex items-center gap-2 transition-colors">
-                                          <AlertTriangle className="w-4 h-4" /> Report Violation
-                                        </button>
-                                        <button className="w-full px-3 py-2 bg-yellow-600 hover:bg-yellow-700 text-white rounded-lg text-sm font-medium flex items-center gap-2 transition-colors">
+                                        </RippleButton>
+                                        <RippleButton className="w-full px-3 py-2 bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-500 hover:to-orange-600 text-white rounded-lg text-sm font-medium flex items-center gap-2 transition-all duration-300 hover:scale-[1.02] hover:shadow-lg hover:shadow-orange-500/25">
+                                          <AlertTriangle className="w-4 h-4 animate-pulse" /> Report Violation
+                                        </RippleButton>
+                                        <RippleButton className="w-full px-3 py-2 bg-gradient-to-r from-yellow-600 to-yellow-700 hover:from-yellow-500 hover:to-yellow-600 text-white rounded-lg text-sm font-medium flex items-center gap-2 transition-all duration-300 hover:scale-[1.02] hover:shadow-lg hover:shadow-yellow-500/25">
                                           <Zap className="w-4 h-4" /> Contact IBEW Local
-                                        </button>
-                                        <button className="w-full px-3 py-2 bg-pink-600 hover:bg-pink-700 text-white rounded-lg text-sm font-medium flex items-center gap-2 transition-colors">
+                                        </RippleButton>
+                                        <RippleButton className="w-full px-3 py-2 bg-gradient-to-r from-pink-600 to-pink-700 hover:from-pink-500 hover:to-pink-600 text-white rounded-lg text-sm font-medium flex items-center gap-2 transition-all duration-300 hover:scale-[1.02] hover:shadow-lg hover:shadow-pink-500/25">
                                           <Phone className="w-4 h-4" /> Request Organizer
-                                        </button>
+                                        </RippleButton>
                                       </div>
-                                    </div>
+                                    </InteractiveCard>
                                     
-                                    {/* Research Actions - BIGGER */}
-                                    <div className="bg-[#0d1117] border-2 border-blue-500/40 rounded-lg overflow-hidden">
+                                    {/* Research Actions - ANIMATED */}
+                                    <InteractiveCard className="bg-[#0d1117] border-2 border-blue-500/40 rounded-lg overflow-hidden" glowColor="#3b82f6">
                                       <div className="bg-blue-500/20 px-3 py-2 border-b border-blue-500/40 flex items-center gap-2">
                                         <span className="text-xl">🔍</span>
                                         <span className="text-sm font-bold text-blue-400">RESEARCH</span>
                                       </div>
                                       <div className="p-3 space-y-2">
-                                        <button className="w-full px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium flex items-center gap-2 transition-colors">
+                                        <RippleButton className="w-full px-3 py-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white rounded-lg text-sm font-medium flex items-center gap-2 transition-all duration-300 hover:scale-[1.02] hover:shadow-lg hover:shadow-blue-500/25">
                                           <Search className="w-4 h-4" /> Generate FOIA Request
-                                        </button>
-                                        <button className="w-full px-3 py-2 bg-cyan-600 hover:bg-cyan-700 text-white rounded-lg text-sm font-medium flex items-center gap-2 transition-colors">
+                                        </RippleButton>
+                                        <RippleButton className="w-full px-3 py-2 bg-gradient-to-r from-cyan-600 to-cyan-700 hover:from-cyan-500 hover:to-cyan-600 text-white rounded-lg text-sm font-medium flex items-center gap-2 transition-all duration-300 hover:scale-[1.02] hover:shadow-lg hover:shadow-cyan-500/25">
                                           <FileText className="w-4 h-4" /> Pull SEC Filings
-                                        </button>
-                                        <button className="w-full px-3 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-sm font-medium flex items-center gap-2 transition-colors">
+                                        </RippleButton>
+                                        <RippleButton className="w-full px-3 py-2 bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-500 hover:to-purple-600 text-white rounded-lg text-sm font-medium flex items-center gap-2 transition-all duration-300 hover:scale-[1.02] hover:shadow-lg hover:shadow-purple-500/25">
                                           <MapPin className="w-4 h-4" /> Corridor Analysis
-                                        </button>
-                                        <button className="w-full px-3 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-medium flex items-center gap-2 transition-colors">
+                                        </RippleButton>
+                                        <RippleButton className="w-full px-3 py-2 bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-500 hover:to-indigo-600 text-white rounded-lg text-sm font-medium flex items-center gap-2 transition-all duration-300 hover:scale-[1.02] hover:shadow-lg hover:shadow-indigo-500/25">
                                           <Building className="w-4 h-4" /> Contractor Deep Dive
-                                        </button>
+                                        </RippleButton>
                                       </div>
-                                    </div>
+                                    </InteractiveCard>
                                     
-                                    {/* Track & Export - BIGGER */}
-                                    <div className="bg-[#0d1117] border-2 border-green-500/40 rounded-lg overflow-hidden">
+                                    {/* Track & Export - ANIMATED */}
+                                    <InteractiveCard className="bg-[#0d1117] border-2 border-green-500/40 rounded-lg overflow-hidden" glowColor="#22c55e">
                                       <div className="bg-green-500/20 px-3 py-2 border-b border-green-500/40 flex items-center gap-2">
                                         <span className="text-xl">📊</span>
                                         <span className="text-sm font-bold text-green-400">TRACK & SHARE</span>
                                       </div>
                                       <div className="p-3 space-y-2">
-                                        <button className="w-full px-3 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm font-medium flex items-center gap-2 transition-colors">
-                                          <Star className="w-4 h-4" /> Add to Watchlist
-                                        </button>
-                                        <button className="w-full px-3 py-2 bg-[#21262d] hover:bg-[#30363d] text-gray-300 rounded-lg text-sm font-medium flex items-center gap-2 transition-colors border border-[#30363d]">
+                                        <RippleButton className="w-full px-3 py-2 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-500 hover:to-green-600 text-white rounded-lg text-sm font-medium flex items-center gap-2 transition-all duration-300 hover:scale-[1.02] hover:shadow-lg hover:shadow-green-500/25">
+                                          <Star className="w-4 h-4 animate-spin" style={{animationDuration: '3s'}} /> Add to Watchlist
+                                        </RippleButton>
+                                        <RippleButton className="w-full px-3 py-2 bg-gradient-to-r from-[#21262d] to-[#30363d] hover:from-[#30363d] hover:to-[#3d4450] text-gray-300 rounded-lg text-sm font-medium flex items-center gap-2 transition-all duration-300 hover:scale-[1.02] border border-[#30363d] hover:border-gray-500">
                                           <Download className="w-4 h-4" /> Export Full Report
-                                        </button>
-                                        <button className="w-full px-3 py-2 bg-[#21262d] hover:bg-[#30363d] text-gray-300 rounded-lg text-sm font-medium flex items-center gap-2 transition-colors border border-[#30363d]">
+                                        </RippleButton>
+                                        <RippleButton className="w-full px-3 py-2 bg-gradient-to-r from-[#21262d] to-[#30363d] hover:from-[#30363d] hover:to-[#3d4450] text-gray-300 rounded-lg text-sm font-medium flex items-center gap-2 transition-all duration-300 hover:scale-[1.02] border border-[#30363d] hover:border-gray-500">
                                           <Users className="w-4 h-4" /> Share with Coalition
-                                        </button>
-                                        <button className="w-full px-3 py-2 bg-[#21262d] hover:bg-[#30363d] text-gray-300 rounded-lg text-sm font-medium flex items-center gap-2 transition-colors border border-[#30363d]">
+                                        </RippleButton>
+                                        <RippleButton className="w-full px-3 py-2 bg-gradient-to-r from-[#21262d] to-[#30363d] hover:from-[#30363d] hover:to-[#3d4450] text-gray-300 rounded-lg text-sm font-medium flex items-center gap-2 transition-all duration-300 hover:scale-[1.02] border border-[#30363d] hover:border-gray-500">
                                           <Calendar className="w-4 h-4" /> Schedule Follow-up
-                                        </button>
+                                        </RippleButton>
                                       </div>
-                                    </div>
-                                  </div>
+                                    </InteractiveCard>
+                                  </StaggeredContainer>
                                 )}
                               </div>
                             </div>
