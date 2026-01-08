@@ -54,6 +54,8 @@ import { PerformanceBadge, PerformancePanel } from './shared/PerformanceIndicato
 import { performanceMonitor } from '../utils/performanceMonitor';
 import { AntifragilityDashboard } from './AntifragilityDashboard';
 import { ResourceBadge, ResourceGuardianPanel } from './shared/ResourceGuardianPanel';
+import { LoadBadge, LoadManagerPanel } from './shared/LoadManagerPanel';
+import { ResilienceBadge, ResilienceScorePanel } from './shared/ResilienceScorePanel';
 
 // Simple connection status dot for footer
 const ConnectionStatusDot = () => {
@@ -1349,6 +1351,8 @@ export const DensityOptimizedLayout: React.FC = () => {
   const [showPerformancePanel, setShowPerformancePanel] = useState(false);
   const [showAntifragilityDashboard, setShowAntifragilityDashboard] = useState(false);
   const [showResourceGuardian, setShowResourceGuardian] = useState(false);
+  const [showLoadManager, setShowLoadManager] = useState(false);
+  const [showResilienceScore, setShowResilienceScore] = useState(false);
 
   const config = DENSITY_CONFIGS[densityMode];
 
@@ -1570,6 +1574,18 @@ export const DensityOptimizedLayout: React.FC = () => {
           onClose={() => setShowResourceGuardian(false)}
         />
 
+        {/* 🛡️ ANTIFRAGILE: Load Manager Panel */}
+        <LoadManagerPanel
+          isOpen={showLoadManager}
+          onClose={() => setShowLoadManager(false)}
+        />
+
+        {/* 🛡️ ANTIFRAGILE: Resilience Score Panel */}
+        <ResilienceScorePanel
+          isOpen={showResilienceScore}
+          onClose={() => setShowResilienceScore(false)}
+        />
+
         {/* 🛡️ ANTIFRAGILE: Full Antifragility Dashboard modal */}
         {showAntifragilityDashboard && (
           <div className="fixed inset-0 z-[100] overflow-auto bg-black/50 backdrop-blur-sm">
@@ -1764,6 +1780,18 @@ export const DensityOptimizedLayout: React.FC = () => {
           <ResourceBadge 
             onClick={() => setShowResourceGuardian(true)}
             className="shadow-sm border border-slate-200"
+          />
+
+          {/* 🛡️ ANTIFRAGILE: Load Manager - Shedding, Backpressure, Dead Letters */}
+          <LoadBadge 
+            onClick={() => setShowLoadManager(true)}
+            className="shadow-sm border border-slate-200"
+          />
+
+          {/* 🛡️ ANTIFRAGILE: Resilience Score - Comprehensive Assessment */}
+          <ResilienceBadge 
+            onClick={() => setShowResilienceScore(true)}
+            className="shadow-sm"
           />
 
           <span className="border-l border-slate-300 h-4" />
