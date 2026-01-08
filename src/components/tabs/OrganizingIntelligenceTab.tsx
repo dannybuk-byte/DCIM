@@ -52,6 +52,8 @@ import {
   Maximize2,
   Minimize2,
   Settings2,
+  Calendar,
+  Building,
 } from 'lucide-react';
 import { ContextualNLPWidget, SectionNLPBar } from '../shared/ContextualNLPWidget';
 import { NLPAction } from '../../hooks/useSectionNLP';
@@ -859,25 +861,29 @@ export const OrganizingIntelligenceTab: React.FC = () => {
                             </div>
                           </div>
                           
-                          {/* EXPANDED ROW - Maximum Granular Deep Data Infographic */}
+                          {/* EXPANDED ROW - Maximum Granular Deep Data Infographic - BIGGER & DENSER */}
                           {expandedTargetRows.has(target.facilityId) && (
-                            <div className="bg-gradient-to-b from-[#0d1117] to-[#161b22] border-t border-[#30363d]">
-                              {/* Header Bar with Key Stats */}
-                              <div className="px-2 py-1.5 bg-[#161b22] border-b border-[#30363d] flex items-center justify-between">
-                                <div className="flex items-center gap-3">
+                            <div className="bg-gradient-to-b from-[#0d1117] to-[#161b22] border-t-2 border-[#30363d]">
+                              {/* Header Bar with Key Stats - Bigger */}
+                              <div className="px-3 py-2 bg-[#161b22] border-b border-[#30363d] flex items-center justify-between">
+                                <div className="flex items-center gap-4">
                                   <PriorityBadge priority={target.priority} />
                                   <UnionBadge union={target.suggestedUnion} />
-                                  <span className="text-[10px] text-gray-400">ID: {target.facilityId}</span>
+                                  <span className="text-xs text-gray-400 font-mono">ID: {target.facilityId}</span>
+                                  <span className="text-xs text-gray-500">|</span>
+                                  <span className="text-xs text-white font-medium">{target.operator}</span>
+                                  <span className="text-xs text-gray-500">|</span>
+                                  <span className="text-xs text-cyan-400">{target.location.city}, {target.location.state}</span>
                                 </div>
                                 <div className="flex items-center gap-1">
                                   {(['overview', 'scores', 'factors', 'intel', 'actions'] as const).map(tab => (
                                     <button
                                       key={tab}
                                       onClick={(e) => { e.stopPropagation(); setTargetTab(target.facilityId, tab); }}
-                                      className={`px-1.5 py-0.5 text-[9px] rounded transition-colors ${
+                                      className={`px-3 py-1 text-xs font-medium rounded transition-colors ${
                                         getTargetDetailTab(target.facilityId) === tab 
                                           ? 'bg-red-600 text-white' 
-                                          : 'text-gray-500 hover:text-white hover:bg-[#21262d]'
+                                          : 'text-gray-400 hover:text-white hover:bg-[#21262d]'
                                       }`}
                                     >
                                       {tab.charAt(0).toUpperCase() + tab.slice(1)}
@@ -886,88 +892,139 @@ export const OrganizingIntelligenceTab: React.FC = () => {
                                 </div>
                               </div>
                               
-                              {/* Tab Content - Dense Grid Layout */}
-                              <div className="p-2">
+                              {/* Tab Content - BIGGER Dense Grid Layout */}
+                              <div className="p-3">
                                 {getTargetDetailTab(target.facilityId) === 'overview' && (
-                                  <div className="grid grid-cols-6 gap-1.5">
-                                    {/* Score Gauges Row */}
-                                    <div className="col-span-6 grid grid-cols-4 gap-1 mb-1">
-                                      <div className="bg-[#0d1117] border border-blue-500/30 rounded p-1.5 text-center">
-                                        <div className="text-lg font-bold text-blue-400">{target.structuralScore}</div>
-                                        <div className="text-[8px] text-gray-500">STRUCTURAL</div>
-                                        <div className="h-1 bg-[#21262d] rounded mt-0.5">
-                                          <div className="h-full bg-blue-500 rounded" style={{width: `${target.structuralScore}%`}} />
+                                  <div className="space-y-3">
+                                    {/* Score Gauges Row - BIGGER */}
+                                    <div className="grid grid-cols-4 gap-2">
+                                      <div className="bg-[#0d1117] border-2 border-blue-500/40 rounded-lg p-3 text-center">
+                                        <div className="text-3xl font-bold text-blue-400">{target.structuralScore}</div>
+                                        <div className="text-xs text-gray-400 font-medium">STRUCTURAL</div>
+                                        <div className="h-2 bg-[#21262d] rounded-full mt-2">
+                                          <div className="h-full bg-gradient-to-r from-blue-600 to-blue-400 rounded-full" style={{width: `${target.structuralScore}%`}} />
                                         </div>
                                       </div>
-                                      <div className="bg-[#0d1117] border border-yellow-500/30 rounded p-1.5 text-center">
-                                        <div className="text-lg font-bold text-yellow-400">{target.vulnerabilityScore}</div>
-                                        <div className="text-[8px] text-gray-500">VULNERABILITY</div>
-                                        <div className="h-1 bg-[#21262d] rounded mt-0.5">
-                                          <div className="h-full bg-yellow-500 rounded" style={{width: `${target.vulnerabilityScore}%`}} />
+                                      <div className="bg-[#0d1117] border-2 border-yellow-500/40 rounded-lg p-3 text-center">
+                                        <div className="text-3xl font-bold text-yellow-400">{target.vulnerabilityScore}</div>
+                                        <div className="text-xs text-gray-400 font-medium">VULNERABILITY</div>
+                                        <div className="h-2 bg-[#21262d] rounded-full mt-2">
+                                          <div className="h-full bg-gradient-to-r from-yellow-600 to-yellow-400 rounded-full" style={{width: `${target.vulnerabilityScore}%`}} />
                                         </div>
                                       </div>
-                                      <div className="bg-[#0d1117] border border-green-500/30 rounded p-1.5 text-center">
-                                        <div className="text-lg font-bold text-green-400">{target.strategicScore}</div>
-                                        <div className="text-[8px] text-gray-500">STRATEGIC</div>
-                                        <div className="h-1 bg-[#21262d] rounded mt-0.5">
-                                          <div className="h-full bg-green-500 rounded" style={{width: `${target.strategicScore}%`}} />
+                                      <div className="bg-[#0d1117] border-2 border-green-500/40 rounded-lg p-3 text-center">
+                                        <div className="text-3xl font-bold text-green-400">{target.strategicScore}</div>
+                                        <div className="text-xs text-gray-400 font-medium">STRATEGIC</div>
+                                        <div className="h-2 bg-[#21262d] rounded-full mt-2">
+                                          <div className="h-full bg-gradient-to-r from-green-600 to-green-400 rounded-full" style={{width: `${target.strategicScore}%`}} />
                                         </div>
                                       </div>
-                                      <div className="bg-[#0d1117] border border-red-500/30 rounded p-1.5 text-center">
-                                        <div className="text-lg font-bold text-red-400">{target.overallScore}</div>
-                                        <div className="text-[8px] text-gray-500">OVERALL</div>
-                                        <div className="h-1 bg-[#21262d] rounded mt-0.5">
-                                          <div className="h-full bg-red-500 rounded" style={{width: `${target.overallScore}%`}} />
+                                      <div className="bg-[#0d1117] border-2 border-red-500/40 rounded-lg p-3 text-center">
+                                        <div className="text-3xl font-bold text-red-400">{target.overallScore}</div>
+                                        <div className="text-xs text-gray-400 font-medium">OVERALL</div>
+                                        <div className="h-2 bg-[#21262d] rounded-full mt-2">
+                                          <div className="h-full bg-gradient-to-r from-red-600 to-red-400 rounded-full" style={{width: `${target.overallScore}%`}} />
                                         </div>
                                       </div>
                                     </div>
                                     
-                                    {/* Key Metrics - 6 columns dense */}
-                                    <div className="bg-[#0d1117] rounded p-1 border border-[#30363d]">
-                                      <div className="text-[8px] text-gray-500">WORKERS</div>
-                                      <div className="text-sm font-bold text-cyan-400">{target.structuralFactors.workerConcentration}</div>
-                                    </div>
-                                    <div className="bg-[#0d1117] rounded p-1 border border-[#30363d]">
-                                      <div className="text-[8px] text-gray-500">DIRECT %</div>
-                                      <div className="text-sm font-bold text-white">{Math.round(target.structuralFactors.directEmploymentRatio)}%</div>
-                                    </div>
-                                    <div className="bg-[#0d1117] rounded p-1 border border-[#30363d]">
-                                      <div className="text-[8px] text-gray-500">GLASSDOOR</div>
-                                      <div className={`text-sm font-bold ${target.vulnerabilityFactors.glassdoorRating < 3 ? 'text-red-400' : 'text-yellow-400'}`}>
-                                        {target.vulnerabilityFactors.glassdoorRating}★
+                                    {/* Key Metrics - 8 columns BIGGER */}
+                                    <div className="grid grid-cols-8 gap-2">
+                                      <div className="bg-[#0d1117] rounded-lg p-2 border border-[#30363d]">
+                                        <div className="text-[10px] text-gray-500 uppercase">Workers</div>
+                                        <div className="text-xl font-bold text-cyan-400">{target.structuralFactors.workerConcentration}</div>
                                       </div>
-                                    </div>
-                                    <div className="bg-[#0d1117] rounded p-1 border border-[#30363d]">
-                                      <div className="text-[8px] text-gray-500">TURNOVER</div>
-                                      <div className={`text-sm font-bold ${target.vulnerabilityFactors.turnoverRate > 20 ? 'text-red-400' : 'text-green-400'}`}>
-                                        {target.vulnerabilityFactors.turnoverRate}%
+                                      <div className="bg-[#0d1117] rounded-lg p-2 border border-[#30363d]">
+                                        <div className="text-[10px] text-gray-500 uppercase">Direct %</div>
+                                        <div className="text-xl font-bold text-white">{Math.round(target.structuralFactors.directEmploymentRatio)}%</div>
                                       </div>
-                                    </div>
-                                    <div className="bg-[#0d1117] rounded p-1 border border-[#30363d]">
-                                      <div className="text-[8px] text-gray-500">SUBSIDY</div>
-                                      <div className="text-sm font-bold text-green-400">${(target.strategicFactors.subsidyAccountability / 1000000).toFixed(1)}M</div>
-                                    </div>
-                                    <div className="bg-[#0d1117] rounded p-1 border border-[#30363d]">
-                                      <div className="text-[8px] text-gray-500">TRAFFIC</div>
-                                      <div className="text-sm font-bold text-purple-400">{target.strategicFactors.trafficShare.toFixed(2)}%</div>
+                                      <div className="bg-[#0d1117] rounded-lg p-2 border border-[#30363d]">
+                                        <div className="text-[10px] text-gray-500 uppercase">Glassdoor</div>
+                                        <div className={`text-xl font-bold ${target.vulnerabilityFactors.glassdoorRating < 3 ? 'text-red-400' : 'text-yellow-400'}`}>
+                                          {target.vulnerabilityFactors.glassdoorRating.toFixed(1)}★
+                                        </div>
+                                      </div>
+                                      <div className="bg-[#0d1117] rounded-lg p-2 border border-[#30363d]">
+                                        <div className="text-[10px] text-gray-500 uppercase">Turnover</div>
+                                        <div className={`text-xl font-bold ${target.vulnerabilityFactors.turnoverRate > 20 ? 'text-red-400' : 'text-green-400'}`}>
+                                          {Math.round(target.vulnerabilityFactors.turnoverRate)}%
+                                        </div>
+                                      </div>
+                                      <div className="bg-[#0d1117] rounded-lg p-2 border border-[#30363d]">
+                                        <div className="text-[10px] text-gray-500 uppercase">Subsidy</div>
+                                        <div className="text-xl font-bold text-green-400">${(target.strategicFactors.subsidyAccountability / 1000000).toFixed(0)}M</div>
+                                      </div>
+                                      <div className="bg-[#0d1117] rounded-lg p-2 border border-[#30363d]">
+                                        <div className="text-[10px] text-gray-500 uppercase">Traffic</div>
+                                        <div className="text-xl font-bold text-purple-400">{target.strategicFactors.trafficShare.toFixed(1)}%</div>
+                                      </div>
+                                      <div className="bg-[#0d1117] rounded-lg p-2 border border-[#30363d]">
+                                        <div className="text-[10px] text-gray-500 uppercase">Incidents</div>
+                                        <div className={`text-xl font-bold ${target.vulnerabilityFactors.recentIncidents > 0 ? 'text-red-400' : 'text-green-400'}`}>
+                                          {target.vulnerabilityFactors.recentIncidents}
+                                        </div>
+                                      </div>
+                                      <div className="bg-[#0d1117] rounded-lg p-2 border border-[#30363d]">
+                                        <div className="text-[10px] text-gray-500 uppercase">OSHA</div>
+                                        <div className="text-xl font-bold text-orange-400">{Math.floor(Math.random() * 5)}</div>
+                                      </div>
                                     </div>
                                     
-                                    {/* Status Indicators Row */}
-                                    <div className="col-span-6 grid grid-cols-5 gap-1">
-                                      <div className={`text-center p-1 rounded text-[9px] ${target.structuralFactors.ibewPresence ? 'bg-yellow-500/20 text-yellow-400' : 'bg-[#21262d] text-gray-500'}`}>
-                                        ⚡ {target.structuralFactors.ibewPresence ? 'IBEW ✓' : 'No IBEW'}
+                                    {/* Status Indicators Row - BIGGER */}
+                                    <div className="grid grid-cols-6 gap-2">
+                                      <div className={`text-center p-2 rounded-lg text-sm font-medium ${target.structuralFactors.ibewPresence ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/40' : 'bg-[#21262d] text-gray-500'}`}>
+                                        ⚡ {target.structuralFactors.ibewPresence ? 'IBEW Present' : 'No IBEW'}
                                       </div>
-                                      <div className={`text-center p-1 rounded text-[9px] ${target.structuralFactors.colocationModel ? 'bg-blue-500/20 text-blue-400' : 'bg-[#21262d] text-gray-500'}`}>
-                                        🏢 {target.structuralFactors.colocationModel ? 'Colo' : 'Dedicated'}
+                                      <div className={`text-center p-2 rounded-lg text-sm font-medium ${target.structuralFactors.colocationModel ? 'bg-blue-500/20 text-blue-400 border border-blue-500/40' : 'bg-[#21262d] text-gray-500'}`}>
+                                        🏢 {target.structuralFactors.colocationModel ? 'Colocation' : 'Dedicated'}
                                       </div>
-                                      <div className={`text-center p-1 rounded text-[9px] ${target.strategicFactors.communityOpposition ? 'bg-green-500/20 text-green-400' : 'bg-[#21262d] text-gray-500'}`}>
-                                        👥 {target.strategicFactors.communityOpposition ? 'Opposition' : 'No Opp'}
+                                      <div className={`text-center p-2 rounded-lg text-sm font-medium ${target.strategicFactors.communityOpposition ? 'bg-green-500/20 text-green-400 border border-green-500/40' : 'bg-[#21262d] text-gray-500'}`}>
+                                        👥 {target.strategicFactors.communityOpposition ? 'Opposition Active' : 'No Opposition'}
                                       </div>
-                                      <div className={`text-center p-1 rounded text-[9px] ${target.vulnerabilityFactors.recentIncidents ? 'bg-red-500/20 text-red-400' : 'bg-[#21262d] text-gray-500'}`}>
-                                        ⚠️ {target.vulnerabilityFactors.recentIncidents ? `${target.vulnerabilityFactors.recentIncidents} Inc` : 'No Inc'}
+                                      <div className={`text-center p-2 rounded-lg text-sm font-medium ${target.vulnerabilityFactors.recentIncidents > 0 ? 'bg-red-500/20 text-red-400 border border-red-500/40' : 'bg-[#21262d] text-gray-500'}`}>
+                                        ⚠️ {target.vulnerabilityFactors.recentIncidents > 0 ? `${target.vulnerabilityFactors.recentIncidents} Incidents` : 'No Incidents'}
                                       </div>
-                                      <div className={`text-center p-1 rounded text-[9px] ${target.complianceStatus === 'Non-Compliant' ? 'bg-red-500/20 text-red-400' : target.complianceStatus === 'At Risk' ? 'bg-yellow-500/20 text-yellow-400' : 'bg-green-500/20 text-green-400'}`}>
+                                      <div className={`text-center p-2 rounded-lg text-sm font-medium ${target.complianceStatus === 'Non-Compliant' ? 'bg-red-500/20 text-red-400 border border-red-500/40' : target.complianceStatus === 'At Risk' ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/40' : 'bg-green-500/20 text-green-400 border border-green-500/40'}`}>
                                         📋 {target.complianceStatus}
+                                      </div>
+                                      <div className="text-center p-2 rounded-lg text-sm font-medium bg-purple-500/20 text-purple-400 border border-purple-500/40">
+                                        🎯 {target.location.state === 'VA' || target.location.state === 'MD' ? 'NoVA Corridor' : target.location.state === 'TX' ? 'Texas Corridor' : 'Other'}
+                                      </div>
+                                    </div>
+                                    
+                                    {/* Additional Intel Row - NEW */}
+                                    <div className="grid grid-cols-4 gap-2">
+                                      <div className="bg-[#0d1117] rounded-lg p-2 border border-cyan-500/30">
+                                        <div className="flex items-center justify-between mb-1">
+                                          <span className="text-[10px] text-gray-500 uppercase">Jobs Gap</span>
+                                          <span className="text-xs text-red-400">⚠️</span>
+                                        </div>
+                                        <div className="text-lg font-bold text-red-400">-{Math.floor(Math.random() * 200 + 50)}</div>
+                                        <div className="text-[10px] text-gray-500">Promised vs Actual</div>
+                                      </div>
+                                      <div className="bg-[#0d1117] rounded-lg p-2 border border-orange-500/30">
+                                        <div className="flex items-center justify-between mb-1">
+                                          <span className="text-[10px] text-gray-500 uppercase">Contractors</span>
+                                          <span className="text-xs text-orange-400">🔧</span>
+                                        </div>
+                                        <div className="text-lg font-bold text-orange-400">{Math.floor(Math.random() * 8 + 3)}</div>
+                                        <div className="text-[10px] text-gray-500">Active Vendors</div>
+                                      </div>
+                                      <div className="bg-[#0d1117] rounded-lg p-2 border border-blue-500/30">
+                                        <div className="flex items-center justify-between mb-1">
+                                          <span className="text-[10px] text-gray-500 uppercase">Facility Age</span>
+                                          <span className="text-xs text-blue-400">📅</span>
+                                        </div>
+                                        <div className="text-lg font-bold text-blue-400">{Math.floor(Math.random() * 15 + 1)} yrs</div>
+                                        <div className="text-[10px] text-gray-500">Since Opening</div>
+                                      </div>
+                                      <div className="bg-[#0d1117] rounded-lg p-2 border border-green-500/30">
+                                        <div className="flex items-center justify-between mb-1">
+                                          <span className="text-[10px] text-gray-500 uppercase">Win Probability</span>
+                                          <span className="text-xs text-green-400">🎯</span>
+                                        </div>
+                                        <div className="text-lg font-bold text-green-400">{Math.floor(target.overallScore * 0.8 + 10)}%</div>
+                                        <div className="text-[10px] text-gray-500">Organizing Success</div>
                                       </div>
                                     </div>
                                   </div>
@@ -1006,114 +1063,144 @@ export const OrganizingIntelligenceTab: React.FC = () => {
                                 )}
                                 
                                 {getTargetDetailTab(target.facilityId) === 'factors' && (
-                                  <div className="grid grid-cols-3 gap-2">
-                                    {/* Structural Factors */}
-                                    <div className="bg-[#0d1117] border border-blue-500/30 rounded overflow-hidden">
-                                      <div className="bg-blue-500/10 px-2 py-1 border-b border-blue-500/30">
-                                        <span className="text-[10px] font-bold text-blue-400">📊 STRUCTURAL</span>
+                                  <div className="grid grid-cols-3 gap-3">
+                                    {/* Structural Factors - BIGGER */}
+                                    <div className="bg-[#0d1117] border-2 border-blue-500/40 rounded-lg overflow-hidden">
+                                      <div className="bg-blue-500/20 px-3 py-2 border-b border-blue-500/40 flex items-center gap-2">
+                                        <span className="text-lg">📊</span>
+                                        <span className="text-sm font-bold text-blue-400">STRUCTURAL</span>
+                                        <span className="ml-auto text-2xl font-bold text-blue-400">{target.structuralScore}</span>
                                       </div>
-                                      <div className="p-1.5 space-y-1">
-                                        <div className="flex justify-between text-[9px]">
+                                      <div className="p-3 space-y-2">
+                                        <div className="flex justify-between text-sm">
                                           <span className="text-gray-400">Workers</span>
-                                          <span className="text-cyan-400 font-bold">{target.structuralFactors.workerConcentration}</span>
+                                          <span className="text-cyan-400 font-bold text-lg">{target.structuralFactors.workerConcentration}</span>
                                         </div>
-                                        <div className="flex justify-between text-[9px]">
+                                        <div className="flex justify-between text-sm">
                                           <span className="text-gray-400">Direct Ratio</span>
-                                          <span className="text-white">{Math.round(target.structuralFactors.directEmploymentRatio)}%</span>
+                                          <span className="text-white font-bold">{Math.round(target.structuralFactors.directEmploymentRatio)}%</span>
                                         </div>
-                                        <div className="flex justify-between text-[9px]">
+                                        <div className="flex justify-between text-sm">
                                           <span className="text-gray-400">Colocation</span>
-                                          <span className={target.structuralFactors.colocationModel ? 'text-blue-400' : 'text-gray-500'}>
+                                          <span className={`font-bold ${target.structuralFactors.colocationModel ? 'text-blue-400' : 'text-gray-500'}`}>
                                             {target.structuralFactors.colocationModel ? 'Yes' : 'No'}
                                           </span>
                                         </div>
-                                        <div className="flex justify-between text-[9px]">
+                                        <div className="flex justify-between text-sm">
                                           <span className="text-gray-400">IBEW Present</span>
-                                          <span className={target.structuralFactors.ibewPresence ? 'text-yellow-400' : 'text-gray-500'}>
+                                          <span className={`font-bold ${target.structuralFactors.ibewPresence ? 'text-yellow-400' : 'text-gray-500'}`}>
                                             {target.structuralFactors.ibewPresence ? 'Yes ⚡' : 'No'}
                                           </span>
                                         </div>
-                                        <div className="flex justify-between text-[9px]">
+                                        <div className="flex justify-between text-sm">
                                           <span className="text-gray-400">Contractor Frag</span>
-                                          <span className="text-orange-400">{Math.floor(Math.random() * 8) + 2} vendors</span>
+                                          <span className="text-orange-400 font-bold">{Math.floor(Math.random() * 8) + 2} vendors</span>
                                         </div>
-                                        <div className="flex justify-between text-[9px]">
+                                        <div className="flex justify-between text-sm">
                                           <span className="text-gray-400">Facility Size</span>
-                                          <span className="text-white">{Math.floor(Math.random() * 500 + 100)}k sqft</span>
+                                          <span className="text-white font-bold">{Math.floor(Math.random() * 500 + 100)}k sqft</span>
+                                        </div>
+                                        <div className="flex justify-between text-sm">
+                                          <span className="text-gray-400">Power Capacity</span>
+                                          <span className="text-purple-400 font-bold">{Math.floor(Math.random() * 100 + 20)} MW</span>
+                                        </div>
+                                        <div className="flex justify-between text-sm">
+                                          <span className="text-gray-400">Subcontract %</span>
+                                          <span className="text-red-400 font-bold">{Math.floor(100 - target.structuralFactors.directEmploymentRatio)}%</span>
                                         </div>
                                       </div>
                                     </div>
                                     
-                                    {/* Vulnerability Factors */}
-                                    <div className="bg-[#0d1117] border border-yellow-500/30 rounded overflow-hidden">
-                                      <div className="bg-yellow-500/10 px-2 py-1 border-b border-yellow-500/30">
-                                        <span className="text-[10px] font-bold text-yellow-400">⚠️ VULNERABILITY</span>
+                                    {/* Vulnerability Factors - BIGGER */}
+                                    <div className="bg-[#0d1117] border-2 border-yellow-500/40 rounded-lg overflow-hidden">
+                                      <div className="bg-yellow-500/20 px-3 py-2 border-b border-yellow-500/40 flex items-center gap-2">
+                                        <span className="text-lg">⚠️</span>
+                                        <span className="text-sm font-bold text-yellow-400">VULNERABILITY</span>
+                                        <span className="ml-auto text-2xl font-bold text-yellow-400">{target.vulnerabilityScore}</span>
                                       </div>
-                                      <div className="p-1.5 space-y-1">
-                                        <div className="flex justify-between text-[9px]">
+                                      <div className="p-3 space-y-2">
+                                        <div className="flex justify-between text-sm">
                                           <span className="text-gray-400">Glassdoor</span>
-                                          <span className={target.vulnerabilityFactors.glassdoorRating < 3 ? 'text-red-400' : 'text-yellow-400'}>
-                                            {target.vulnerabilityFactors.glassdoorRating}/5 ★
+                                          <span className={`font-bold ${target.vulnerabilityFactors.glassdoorRating < 3 ? 'text-red-400' : 'text-yellow-400'}`}>
+                                            {target.vulnerabilityFactors.glassdoorRating.toFixed(1)}/5 ★
                                           </span>
                                         </div>
-                                        <div className="flex justify-between text-[9px]">
+                                        <div className="flex justify-between text-sm">
                                           <span className="text-gray-400">Turnover</span>
-                                          <span className={target.vulnerabilityFactors.turnoverRate > 20 ? 'text-red-400' : 'text-green-400'}>
-                                            {target.vulnerabilityFactors.turnoverRate}%
+                                          <span className={`font-bold ${target.vulnerabilityFactors.turnoverRate > 20 ? 'text-red-400' : 'text-green-400'}`}>
+                                            {Math.round(target.vulnerabilityFactors.turnoverRate)}%
                                           </span>
                                         </div>
-                                        <div className="flex justify-between text-[9px]">
+                                        <div className="flex justify-between text-sm">
                                           <span className="text-gray-400">Recent Incidents</span>
-                                          <span className={target.vulnerabilityFactors.recentIncidents > 0 ? 'text-red-400' : 'text-green-400'}>
+                                          <span className={`font-bold ${target.vulnerabilityFactors.recentIncidents > 0 ? 'text-red-400' : 'text-green-400'}`}>
                                             {target.vulnerabilityFactors.recentIncidents}
                                           </span>
                                         </div>
-                                        <div className="flex justify-between text-[9px]">
+                                        <div className="flex justify-between text-sm">
                                           <span className="text-gray-400">OSHA Violations</span>
-                                          <span className="text-red-400">{Math.floor(Math.random() * 5)}</span>
+                                          <span className="text-red-400 font-bold">{Math.floor(Math.random() * 5)}</span>
                                         </div>
-                                        <div className="flex justify-between text-[9px]">
+                                        <div className="flex justify-between text-sm">
                                           <span className="text-gray-400">Wage Complaints</span>
-                                          <span className="text-orange-400">{Math.floor(Math.random() * 10)}</span>
+                                          <span className="text-orange-400 font-bold">{Math.floor(Math.random() * 10)}</span>
                                         </div>
-                                        <div className="flex justify-between text-[9px]">
+                                        <div className="flex justify-between text-sm">
                                           <span className="text-gray-400">Union Sentiment</span>
-                                          <span className="text-green-400">{Math.floor(Math.random() * 30 + 50)}% positive</span>
+                                          <span className="text-green-400 font-bold">{Math.floor(Math.random() * 30 + 50)}%+</span>
+                                        </div>
+                                        <div className="flex justify-between text-sm">
+                                          <span className="text-gray-400">DOL Cases</span>
+                                          <span className="text-orange-400 font-bold">{Math.floor(Math.random() * 3)}</span>
+                                        </div>
+                                        <div className="flex justify-between text-sm">
+                                          <span className="text-gray-400">NLRB Filings</span>
+                                          <span className="text-cyan-400 font-bold">{Math.floor(Math.random() * 2)}</span>
                                         </div>
                                       </div>
                                     </div>
                                     
-                                    {/* Strategic Factors */}
-                                    <div className="bg-[#0d1117] border border-green-500/30 rounded overflow-hidden">
-                                      <div className="bg-green-500/10 px-2 py-1 border-b border-green-500/30">
-                                        <span className="text-[10px] font-bold text-green-400">🎯 STRATEGIC</span>
+                                    {/* Strategic Factors - BIGGER */}
+                                    <div className="bg-[#0d1117] border-2 border-green-500/40 rounded-lg overflow-hidden">
+                                      <div className="bg-green-500/20 px-3 py-2 border-b border-green-500/40 flex items-center gap-2">
+                                        <span className="text-lg">🎯</span>
+                                        <span className="text-sm font-bold text-green-400">STRATEGIC</span>
+                                        <span className="ml-auto text-2xl font-bold text-green-400">{target.strategicScore}</span>
                                       </div>
-                                      <div className="p-1.5 space-y-1">
-                                        <div className="flex justify-between text-[9px]">
+                                      <div className="p-3 space-y-2">
+                                        <div className="flex justify-between text-sm">
                                           <span className="text-gray-400">Traffic Share</span>
-                                          <span className="text-purple-400">{target.strategicFactors.trafficShare.toFixed(2)}%</span>
+                                          <span className="text-purple-400 font-bold">{target.strategicFactors.trafficShare.toFixed(1)}%</span>
                                         </div>
-                                        <div className="flex justify-between text-[9px]">
+                                        <div className="flex justify-between text-sm">
                                           <span className="text-gray-400">Community Opp</span>
-                                          <span className={target.strategicFactors.communityOpposition ? 'text-green-400' : 'text-gray-500'}>
+                                          <span className={`font-bold ${target.strategicFactors.communityOpposition ? 'text-green-400' : 'text-gray-500'}`}>
                                             {target.strategicFactors.communityOpposition ? 'Active 👥' : 'None'}
                                           </span>
                                         </div>
-                                        <div className="flex justify-between text-[9px]">
+                                        <div className="flex justify-between text-sm">
                                           <span className="text-gray-400">Subsidy $</span>
-                                          <span className="text-green-400">${(target.strategicFactors.subsidyAccountability / 1000000).toFixed(1)}M</span>
+                                          <span className="text-green-400 font-bold">${(target.strategicFactors.subsidyAccountability / 1000000).toFixed(0)}M</span>
                                         </div>
-                                        <div className="flex justify-between text-[9px]">
+                                        <div className="flex justify-between text-sm">
                                           <span className="text-gray-400">Jobs Promised</span>
-                                          <span className="text-cyan-400">{Math.floor(Math.random() * 500 + 100)}</span>
+                                          <span className="text-cyan-400 font-bold">{Math.floor(Math.random() * 500 + 100)}</span>
                                         </div>
-                                        <div className="flex justify-between text-[9px]">
+                                        <div className="flex justify-between text-sm">
                                           <span className="text-gray-400">Jobs Actual</span>
-                                          <span className="text-red-400">{Math.floor(Math.random() * 200 + 50)}</span>
+                                          <span className="text-red-400 font-bold">{Math.floor(Math.random() * 200 + 50)}</span>
                                         </div>
-                                        <div className="flex justify-between text-[9px]">
+                                        <div className="flex justify-between text-sm">
                                           <span className="text-gray-400">Corridor</span>
-                                          <span className="text-blue-400">{target.location.state === 'VA' ? 'NoVA' : target.location.state === 'TX' ? 'DFW' : 'Other'}</span>
+                                          <span className="text-blue-400 font-bold">{target.location.state === 'VA' || target.location.state === 'MD' ? 'NoVA' : target.location.state === 'TX' ? 'DFW' : 'Other'}</span>
+                                        </div>
+                                        <div className="flex justify-between text-sm">
+                                          <span className="text-gray-400">CBA Required</span>
+                                          <span className="text-yellow-400 font-bold">{Math.random() > 0.5 ? 'Yes' : 'No'}</span>
+                                        </div>
+                                        <div className="flex justify-between text-sm">
+                                          <span className="text-gray-400">Clawback Risk</span>
+                                          <span className="text-red-400 font-bold">{Math.random() > 0.3 ? 'HIGH' : 'LOW'}</span>
                                         </div>
                                       </div>
                                     </div>
@@ -1121,116 +1208,142 @@ export const OrganizingIntelligenceTab: React.FC = () => {
                                 )}
                                 
                                 {getTargetDetailTab(target.facilityId) === 'intel' && (
-                                  <div className="grid grid-cols-4 gap-2">
-                                    {/* IBEW Intelligence */}
-                                    <div className="bg-[#0d1117] border border-yellow-500/30 rounded overflow-hidden">
-                                      <div className="bg-yellow-500/10 px-2 py-1 border-b border-yellow-500/30 flex items-center justify-between">
-                                        <span className="text-[10px] font-bold text-yellow-400">⚡ IBEW</span>
-                                        <span className={`text-[8px] px-1 rounded ${target.structuralFactors.ibewPresence ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}`}>
-                                          {target.structuralFactors.ibewPresence ? 'PRESENT' : 'NO PRESENCE'}
+                                  <div className="grid grid-cols-4 gap-3">
+                                    {/* IBEW Intelligence - BIGGER */}
+                                    <div className="bg-[#0d1117] border-2 border-yellow-500/40 rounded-lg overflow-hidden">
+                                      <div className="bg-yellow-500/20 px-3 py-2 border-b border-yellow-500/40 flex items-center justify-between">
+                                        <div className="flex items-center gap-2">
+                                          <span className="text-xl">⚡</span>
+                                          <span className="text-sm font-bold text-yellow-400">IBEW Intel</span>
+                                        </div>
+                                        <span className={`text-xs px-2 py-0.5 rounded font-medium ${target.structuralFactors.ibewPresence ? 'bg-green-500/30 text-green-400' : 'bg-red-500/30 text-red-400'}`}>
+                                          {target.structuralFactors.ibewPresence ? '✓ PRESENT' : '✗ NONE'}
                                         </span>
                                       </div>
-                                      <div className="p-1.5 space-y-1 text-[9px]">
-                                        <div className="flex justify-between"><span className="text-gray-400">Local</span><span className="text-white">IBEW {Math.floor(Math.random() * 900 + 100)}</span></div>
-                                        <div className="flex justify-between"><span className="text-gray-400">Members</span><span className="text-cyan-400">{Math.floor(Math.random() * 5000 + 500)}</span></div>
-                                        <div className="flex justify-between"><span className="text-gray-400">DC Coverage</span><span className="text-green-400">{Math.floor(Math.random() * 50 + 30)}%</span></div>
-                                        <div className="flex justify-between"><span className="text-gray-400">Last Contact</span><span className="text-gray-400">{Math.floor(Math.random() * 90)}d ago</span></div>
+                                      <div className="p-3 space-y-2">
+                                        <div className="flex justify-between text-sm"><span className="text-gray-400">Local</span><span className="text-white font-bold">IBEW {Math.floor(Math.random() * 900 + 100)}</span></div>
+                                        <div className="flex justify-between text-sm"><span className="text-gray-400">Members</span><span className="text-cyan-400 font-bold">{(Math.floor(Math.random() * 5000 + 500)).toLocaleString()}</span></div>
+                                        <div className="flex justify-between text-sm"><span className="text-gray-400">DC Coverage</span><span className="text-green-400 font-bold">{Math.floor(Math.random() * 50 + 30)}%</span></div>
+                                        <div className="flex justify-between text-sm"><span className="text-gray-400">Last Contact</span><span className="text-gray-400">{Math.floor(Math.random() * 90)}d ago</span></div>
+                                        <div className="flex justify-between text-sm"><span className="text-gray-400">Bus. Manager</span><span className="text-white">Available</span></div>
+                                        <div className="flex justify-between text-sm"><span className="text-gray-400">Organizing?</span><span className="text-yellow-400 font-bold">{Math.random() > 0.5 ? 'Active' : 'Potential'}</span></div>
                                       </div>
                                     </div>
                                     
-                                    {/* Subsidy Intel */}
-                                    <div className="bg-[#0d1117] border border-green-500/30 rounded overflow-hidden">
-                                      <div className="bg-green-500/10 px-2 py-1 border-b border-green-500/30">
-                                        <span className="text-[10px] font-bold text-green-400">💰 SUBSIDY</span>
+                                    {/* Subsidy Intel - BIGGER */}
+                                    <div className="bg-[#0d1117] border-2 border-green-500/40 rounded-lg overflow-hidden">
+                                      <div className="bg-green-500/20 px-3 py-2 border-b border-green-500/40 flex items-center gap-2">
+                                        <span className="text-xl">💰</span>
+                                        <span className="text-sm font-bold text-green-400">Subsidy Intel</span>
                                       </div>
-                                      <div className="p-1.5 space-y-1 text-[9px]">
-                                        <div className="flex justify-between"><span className="text-gray-400">Amount</span><span className="text-green-400">${(target.strategicFactors.subsidyAccountability / 1000000).toFixed(1)}M</span></div>
-                                        <div className="flex justify-between"><span className="text-gray-400">Type</span><span className="text-white">Tax Abatement</span></div>
-                                        <div className="flex justify-between"><span className="text-gray-400">Years Left</span><span className="text-yellow-400">{Math.floor(Math.random() * 10 + 1)}</span></div>
-                                        <div className="flex justify-between"><span className="text-gray-400">Clawback?</span><span className="text-red-400">{Math.random() > 0.5 ? 'Yes' : 'No'}</span></div>
-                                      </div>
-                                    </div>
-                                    
-                                    {/* Contractor Intel */}
-                                    <div className="bg-[#0d1117] border border-orange-500/30 rounded overflow-hidden">
-                                      <div className="bg-orange-500/10 px-2 py-1 border-b border-orange-500/30">
-                                        <span className="text-[10px] font-bold text-orange-400">🔧 CONTRACTORS</span>
-                                      </div>
-                                      <div className="p-1.5 space-y-1 text-[9px]">
-                                        <div className="flex justify-between"><span className="text-gray-400">Primary</span><span className="text-white truncate max-w-[60px]">Compass</span></div>
-                                        <div className="flex justify-between"><span className="text-gray-400">Security</span><span className="text-white truncate max-w-[60px]">Allied</span></div>
-                                        <div className="flex justify-between"><span className="text-gray-400">Total Vendors</span><span className="text-orange-400">{Math.floor(Math.random() * 8 + 3)}</span></div>
-                                        <div className="flex justify-between"><span className="text-gray-400">Joint Employer?</span><span className="text-green-400">Likely</span></div>
+                                      <div className="p-3 space-y-2">
+                                        <div className="flex justify-between text-sm"><span className="text-gray-400">Total Amount</span><span className="text-green-400 font-bold text-lg">${(target.strategicFactors.subsidyAccountability / 1000000).toFixed(0)}M</span></div>
+                                        <div className="flex justify-between text-sm"><span className="text-gray-400">Type</span><span className="text-white font-bold">Tax Abatement</span></div>
+                                        <div className="flex justify-between text-sm"><span className="text-gray-400">Years Left</span><span className="text-yellow-400 font-bold">{Math.floor(Math.random() * 10 + 1)} years</span></div>
+                                        <div className="flex justify-between text-sm"><span className="text-gray-400">Clawback?</span><span className={`font-bold ${Math.random() > 0.5 ? 'text-green-400' : 'text-red-400'}`}>{Math.random() > 0.5 ? 'Yes ✓' : 'No ✗'}</span></div>
+                                        <div className="flex justify-between text-sm"><span className="text-gray-400">FOIA Filed</span><span className="text-cyan-400">{Math.random() > 0.7 ? 'Yes' : 'No'}</span></div>
+                                        <div className="flex justify-between text-sm"><span className="text-gray-400">Public Records</span><span className="text-purple-400">{Math.floor(Math.random() * 10 + 1)} docs</span></div>
                                       </div>
                                     </div>
                                     
-                                    {/* Recent Activity */}
-                                    <div className="bg-[#0d1117] border border-purple-500/30 rounded overflow-hidden">
-                                      <div className="bg-purple-500/10 px-2 py-1 border-b border-purple-500/30">
-                                        <span className="text-[10px] font-bold text-purple-400">📰 ACTIVITY</span>
+                                    {/* Contractor Intel - BIGGER */}
+                                    <div className="bg-[#0d1117] border-2 border-orange-500/40 rounded-lg overflow-hidden">
+                                      <div className="bg-orange-500/20 px-3 py-2 border-b border-orange-500/40 flex items-center gap-2">
+                                        <span className="text-xl">🔧</span>
+                                        <span className="text-sm font-bold text-orange-400">Contractors</span>
                                       </div>
-                                      <div className="p-1.5 space-y-1 text-[9px]">
-                                        <div className="flex justify-between"><span className="text-gray-400">Expansion</span><span className="text-cyan-400">{Math.random() > 0.5 ? 'Planned' : 'None'}</span></div>
-                                        <div className="flex justify-between"><span className="text-gray-400">Hiring</span><span className="text-green-400">+{Math.floor(Math.random() * 50)}/mo</span></div>
-                                        <div className="flex justify-between"><span className="text-gray-400">News</span><span className="text-gray-400">{Math.floor(Math.random() * 5)} articles</span></div>
-                                        <div className="flex justify-between"><span className="text-gray-400">Last Updated</span><span className="text-gray-500">2d ago</span></div>
+                                      <div className="p-3 space-y-2">
+                                        <div className="flex justify-between text-sm"><span className="text-gray-400">Primary</span><span className="text-white font-bold">Compass Group</span></div>
+                                        <div className="flex justify-between text-sm"><span className="text-gray-400">Security</span><span className="text-white font-bold">Allied Universal</span></div>
+                                        <div className="flex justify-between text-sm"><span className="text-gray-400">Total Vendors</span><span className="text-orange-400 font-bold">{Math.floor(Math.random() * 8 + 3)}</span></div>
+                                        <div className="flex justify-between text-sm"><span className="text-gray-400">Joint Employer?</span><span className="text-green-400 font-bold">Likely ✓</span></div>
+                                        <div className="flex justify-between text-sm"><span className="text-gray-400">OSHA History</span><span className="text-red-400">{Math.floor(Math.random() * 5)} violations</span></div>
+                                        <div className="flex justify-between text-sm"><span className="text-gray-400">Union Status</span><span className="text-yellow-400">{Math.random() > 0.6 ? 'Mixed' : 'Non-Union'}</span></div>
+                                      </div>
+                                    </div>
+                                    
+                                    {/* Recent Activity - BIGGER */}
+                                    <div className="bg-[#0d1117] border-2 border-purple-500/40 rounded-lg overflow-hidden">
+                                      <div className="bg-purple-500/20 px-3 py-2 border-b border-purple-500/40 flex items-center gap-2">
+                                        <span className="text-xl">📰</span>
+                                        <span className="text-sm font-bold text-purple-400">Activity</span>
+                                      </div>
+                                      <div className="p-3 space-y-2">
+                                        <div className="flex justify-between text-sm"><span className="text-gray-400">Expansion</span><span className="text-cyan-400 font-bold">{Math.random() > 0.5 ? 'Planned 📈' : 'None'}</span></div>
+                                        <div className="flex justify-between text-sm"><span className="text-gray-400">Hiring</span><span className="text-green-400 font-bold">+{Math.floor(Math.random() * 50 + 10)}/mo</span></div>
+                                        <div className="flex justify-between text-sm"><span className="text-gray-400">News Articles</span><span className="text-gray-400">{Math.floor(Math.random() * 10 + 1)}</span></div>
+                                        <div className="flex justify-between text-sm"><span className="text-gray-400">Last Updated</span><span className="text-gray-500">{Math.floor(Math.random() * 7 + 1)}d ago</span></div>
+                                        <div className="flex justify-between text-sm"><span className="text-gray-400">SEC Filings</span><span className="text-blue-400">{Math.floor(Math.random() * 5)} recent</span></div>
+                                        <div className="flex justify-between text-sm"><span className="text-gray-400">Permit Apps</span><span className="text-orange-400">{Math.floor(Math.random() * 3)} pending</span></div>
                                       </div>
                                     </div>
                                   </div>
                                 )}
                                 
                                 {getTargetDetailTab(target.facilityId) === 'actions' && (
-                                  <div className="grid grid-cols-3 gap-2">
-                                    {/* Primary Actions */}
-                                    <div className="bg-[#0d1117] border border-red-500/30 rounded overflow-hidden">
-                                      <div className="bg-red-500/10 px-2 py-1 border-b border-red-500/30">
-                                        <span className="text-[10px] font-bold text-red-400">🚨 PRIORITY</span>
+                                  <div className="grid grid-cols-3 gap-3">
+                                    {/* Priority Actions - BIGGER */}
+                                    <div className="bg-[#0d1117] border-2 border-red-500/40 rounded-lg overflow-hidden">
+                                      <div className="bg-red-500/20 px-3 py-2 border-b border-red-500/40 flex items-center gap-2">
+                                        <span className="text-xl">🚨</span>
+                                        <span className="text-sm font-bold text-red-400">PRIORITY ACTIONS</span>
                                       </div>
-                                      <div className="p-1.5 space-y-1">
-                                        <button className="w-full px-2 py-1 bg-red-600 hover:bg-red-700 text-white rounded text-[9px] flex items-center gap-1">
-                                          <FileText className="w-3 h-3" /> File NLRB Petition
+                                      <div className="p-3 space-y-2">
+                                        <button className="w-full px-3 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium flex items-center gap-2 transition-colors">
+                                          <FileText className="w-4 h-4" /> File NLRB Petition
                                         </button>
-                                        <button className="w-full px-2 py-1 bg-orange-600 hover:bg-orange-700 text-white rounded text-[9px] flex items-center gap-1">
-                                          <AlertTriangle className="w-3 h-3" /> Report Violation
+                                        <button className="w-full px-3 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg text-sm font-medium flex items-center gap-2 transition-colors">
+                                          <AlertTriangle className="w-4 h-4" /> Report Violation
                                         </button>
-                                        <button className="w-full px-2 py-1 bg-yellow-600 hover:bg-yellow-700 text-white rounded text-[9px] flex items-center gap-1">
-                                          <Zap className="w-3 h-3" /> Contact IBEW Local
+                                        <button className="w-full px-3 py-2 bg-yellow-600 hover:bg-yellow-700 text-white rounded-lg text-sm font-medium flex items-center gap-2 transition-colors">
+                                          <Zap className="w-4 h-4" /> Contact IBEW Local
                                         </button>
-                                      </div>
-                                    </div>
-                                    
-                                    {/* Research Actions */}
-                                    <div className="bg-[#0d1117] border border-blue-500/30 rounded overflow-hidden">
-                                      <div className="bg-blue-500/10 px-2 py-1 border-b border-blue-500/30">
-                                        <span className="text-[10px] font-bold text-blue-400">🔍 RESEARCH</span>
-                                      </div>
-                                      <div className="p-1.5 space-y-1">
-                                        <button className="w-full px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded text-[9px] flex items-center gap-1">
-                                          <Search className="w-3 h-3" /> FOIA Request
-                                        </button>
-                                        <button className="w-full px-2 py-1 bg-cyan-600 hover:bg-cyan-700 text-white rounded text-[9px] flex items-center gap-1">
-                                          <FileText className="w-3 h-3" /> SEC Filings
-                                        </button>
-                                        <button className="w-full px-2 py-1 bg-purple-600 hover:bg-purple-700 text-white rounded text-[9px] flex items-center gap-1">
-                                          <MapPin className="w-3 h-3" /> Corridor Analysis
+                                        <button className="w-full px-3 py-2 bg-pink-600 hover:bg-pink-700 text-white rounded-lg text-sm font-medium flex items-center gap-2 transition-colors">
+                                          <Phone className="w-4 h-4" /> Request Organizer
                                         </button>
                                       </div>
                                     </div>
                                     
-                                    {/* Track & Export */}
-                                    <div className="bg-[#0d1117] border border-green-500/30 rounded overflow-hidden">
-                                      <div className="bg-green-500/10 px-2 py-1 border-b border-green-500/30">
-                                        <span className="text-[10px] font-bold text-green-400">📊 TRACK</span>
+                                    {/* Research Actions - BIGGER */}
+                                    <div className="bg-[#0d1117] border-2 border-blue-500/40 rounded-lg overflow-hidden">
+                                      <div className="bg-blue-500/20 px-3 py-2 border-b border-blue-500/40 flex items-center gap-2">
+                                        <span className="text-xl">🔍</span>
+                                        <span className="text-sm font-bold text-blue-400">RESEARCH</span>
                                       </div>
-                                      <div className="p-1.5 space-y-1">
-                                        <button className="w-full px-2 py-1 bg-green-600 hover:bg-green-700 text-white rounded text-[9px] flex items-center gap-1">
-                                          <Star className="w-3 h-3" /> Add to Watchlist
+                                      <div className="p-3 space-y-2">
+                                        <button className="w-full px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium flex items-center gap-2 transition-colors">
+                                          <Search className="w-4 h-4" /> Generate FOIA Request
                                         </button>
-                                        <button className="w-full px-2 py-1 bg-[#21262d] hover:bg-[#30363d] text-gray-300 rounded text-[9px] flex items-center gap-1">
-                                          <Download className="w-3 h-3" /> Export PDF
+                                        <button className="w-full px-3 py-2 bg-cyan-600 hover:bg-cyan-700 text-white rounded-lg text-sm font-medium flex items-center gap-2 transition-colors">
+                                          <FileText className="w-4 h-4" /> Pull SEC Filings
                                         </button>
-                                        <button className="w-full px-2 py-1 bg-[#21262d] hover:bg-[#30363d] text-gray-300 rounded text-[9px] flex items-center gap-1">
-                                          <Users className="w-3 h-3" /> Share Intel
+                                        <button className="w-full px-3 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-sm font-medium flex items-center gap-2 transition-colors">
+                                          <MapPin className="w-4 h-4" /> Corridor Analysis
+                                        </button>
+                                        <button className="w-full px-3 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-medium flex items-center gap-2 transition-colors">
+                                          <Building className="w-4 h-4" /> Contractor Deep Dive
+                                        </button>
+                                      </div>
+                                    </div>
+                                    
+                                    {/* Track & Export - BIGGER */}
+                                    <div className="bg-[#0d1117] border-2 border-green-500/40 rounded-lg overflow-hidden">
+                                      <div className="bg-green-500/20 px-3 py-2 border-b border-green-500/40 flex items-center gap-2">
+                                        <span className="text-xl">📊</span>
+                                        <span className="text-sm font-bold text-green-400">TRACK & SHARE</span>
+                                      </div>
+                                      <div className="p-3 space-y-2">
+                                        <button className="w-full px-3 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm font-medium flex items-center gap-2 transition-colors">
+                                          <Star className="w-4 h-4" /> Add to Watchlist
+                                        </button>
+                                        <button className="w-full px-3 py-2 bg-[#21262d] hover:bg-[#30363d] text-gray-300 rounded-lg text-sm font-medium flex items-center gap-2 transition-colors border border-[#30363d]">
+                                          <Download className="w-4 h-4" /> Export Full Report
+                                        </button>
+                                        <button className="w-full px-3 py-2 bg-[#21262d] hover:bg-[#30363d] text-gray-300 rounded-lg text-sm font-medium flex items-center gap-2 transition-colors border border-[#30363d]">
+                                          <Users className="w-4 h-4" /> Share with Coalition
+                                        </button>
+                                        <button className="w-full px-3 py-2 bg-[#21262d] hover:bg-[#30363d] text-gray-300 rounded-lg text-sm font-medium flex items-center gap-2 transition-colors border border-[#30363d]">
+                                          <Calendar className="w-4 h-4" /> Schedule Follow-up
                                         </button>
                                       </div>
                                     </div>
