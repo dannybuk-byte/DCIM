@@ -45,6 +45,7 @@ import { useConnectionStatus } from '../utils/connectionResilience';
 import { IntegrityBadge, IntegrityModal } from './shared/DataIntegrityPanel';
 import { CommandPalette, createDefaultCommands, CommandItem } from './shared/CommandPalette';
 import { SectionBoundary, QuickBoundary } from './shared/SmartErrorBoundary';
+import { DiagnosticTrigger } from './shared/DiagnosticPanel';
 
 // Simple connection status dot for footer
 const ConnectionStatusDot = () => {
@@ -1642,6 +1643,9 @@ export const DensityOptimizedLayout: React.FC = () => {
           
           {/* 🛡️ ANTIFRAGILE: Action history button */}
           <ActionHistoryButton className="bg-white shadow-sm border border-slate-200 rounded-lg" />
+          
+          {/* 🛡️ ANTIFRAGILE: Diagnostic panel (Ctrl+Shift+D) */}
+          <DiagnosticTrigger className="bg-white shadow-sm border border-slate-200 rounded-lg" />
           
           <span className="border-l border-slate-300 h-4" />
           
