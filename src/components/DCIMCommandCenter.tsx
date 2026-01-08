@@ -69,6 +69,7 @@ import { SanctionsMonitorTab } from './tabs/SanctionsMonitorTab'; // NEW: OFAC S
 import { SurveillanceInfrastructureTab } from './tabs/SurveillanceInfrastructureTab'; // NEW: ICE/DHS surveillance tracker
 import { SanctuaryCityTab } from './tabs/SanctuaryCityTab'; // NEW: Sanctuary City Infrastructure Accountability
 import { SmartSearchNav, NavProvider, QuickAccessNav } from './AntifragileNavigation'; // NEW: Antifragile Navigation System
+import { MobileBottomNav, MobileDrawer, MobileHeader } from './mobile'; // Mobile navigation components
 import EvidencePanel from './EvidencePanel'; // FRE 902(13)-(14) Evidence Integrity
 import { NestedFAQ } from './NestedFAQ'; // Comprehensive help documentation
 import { WelcomeOnboarding } from './onboarding/WelcomeOnboarding'; // First-time user onboarding
@@ -521,6 +522,16 @@ export default function DCIMCommandCenter({ onActionRequested: _onActionRequeste
   const [isPending, startTabTransition] = useTransition();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false); // Navigation sidebar state
   const [showFAQ, setShowFAQ] = useState(false); // Help & Documentation modal
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false); // Mobile drawer state
+  
+  // Handle mobile tab changes - close drawer and switch tab
+  const handleMobileTabChange = useCallback((tabId: string) => {
+    if (tabId === 'menu') {
+      setMobileMenuOpen(true);
+    } else {
+      setActiveTab(tabId as CommandCenterTab);
+    }
+  }, []);
   const { enabled: provenanceMode, setEnabled: setProvenanceMode} = useProvenanceMode();
   const [isFullscreenTab, setIsFullscreenTab] = useState(false);
   const [connectographyOpen, setConnectographyOpen] = useState(false);
@@ -1378,6 +1389,28 @@ export default function DCIMCommandCenter({ onActionRequested: _onActionRequeste
 
   return (
     <>
+      {/* MOBILE NAVIGATION - Shows on screens <= 768px */}
+      <MobileHeader
+        title="DCIM Dashboard"
+        subtitle={`${stats?.totalFacilities?.toLocaleString() || 0} Facilities`}
+        onMenuClick={() => setMobileMenuOpen(true)}
+        onSearchClick={() => setShowSmartSearch(true)}
+      />
+      
+      <MobileDrawer
+        isOpen={mobileMenuOpen}
+        onClose={() => setMobileMenuOpen(false)}
+        activeTab={activeTab}
+        onTabChange={(tab) => {
+          handleTabChange(tab as CommandCenterTab);
+          setMobileMenuOpen(false);
+        }}
+      />
+      
+      <MobileBottomNav
+        activeTab={activeTab}
+        onTabChange={handleMobileTabChange}
+      />
 
       {/* MISSION CONTROL LAYOUT - NEW */}
       {useMissionControl ? (
@@ -1401,22 +1434,24 @@ export default function DCIMCommandCenter({ onActionRequested: _onActionRequeste
       ) : (
         /* ORIGINAL TAB-BASED LAYOUT - Now with Antifragile Navigation */
     <NavProvider tabs={NAV_TABS} activeTab={activeTab} onTabChange={(tab) => handleTabChange(tab as CommandCenterTab)}>
-    <div className="h-screen bg-gray-950 text-white flex" style={{ overflow: 'hidden', position: 'relative', height: '100vh' }}>
+    <div className="min-h-screen md:h-screen bg-gray-950 text-white flex flex-col md:flex-row pb-16 md:pb-0" style={{ overflow: 'hidden', position: 'relative' }}>
       {/* Smart Search Modal (⌘K) */}
       <SmartSearchNav isOpen={showSmartSearch} onClose={() => setShowSmartSearch(false)} />
       
-      {/* Navigation Sidebar */}
-      <NavigationSidebar
-        activeTab={activeTab}
-        onTabChange={(tab) => handleTabChange(tab)}
-        isCollapsed={sidebarCollapsed}
-        onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
-        alertCounts={{
-          problems: stats?.nonCompliant ?? 0,
-          earlyWarning: stats?.atRisk ?? 0,
-          intelligence: 0, // TODO: Calculate actual count
-        }}
-      />
+      {/* Navigation Sidebar - Hidden on mobile */}
+      <div className="hidden md:block desktop-sidebar">
+        <NavigationSidebar
+          activeTab={activeTab}
+          onTabChange={(tab) => handleTabChange(tab)}
+          isCollapsed={sidebarCollapsed}
+          onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
+          alertCounts={{
+            problems: stats?.nonCompliant ?? 0,
+            earlyWarning: stats?.atRisk ?? 0,
+            intelligence: 0, // TODO: Calculate actual count
+          }}
+        />
+      </div>
 
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col" style={{ overflow: 'hidden' }}>
@@ -1436,8 +1471,8 @@ export default function DCIMCommandCenter({ onActionRequested: _onActionRequeste
         </a>
       </div>
 
-      {/* Mission Banner */}
-      <div className="bg-gradient-to-r from-red-900 via-orange-900 to-amber-900 px-4 py-1.5">
+      {/* Mission Banner - Hidden on mobile (shown in mobile header) */}
+      <div className="hidden md:block bg-gradient-to-r from-red-900 via-orange-900 to-amber-900 px-4 py-1.5">
         <div className="flex items-center justify-between text-sm">
           <div className="flex items-center gap-3">
             <span className="text-white font-bold">⚡ Big Tech Accountability</span>
@@ -1450,8 +1485,8 @@ export default function DCIMCommandCenter({ onActionRequested: _onActionRequeste
         </div>
       </div>
       
-      {/* Top Bar - Ultra-compact Header with Live Metrics */}
-      <header className="bg-gray-900 border-b border-gray-800 z-50 relative" style={{ position: 'relative', zIndex: 50 }}>
+      {/* Top Bar - Ultra-compact Header with Live Metrics (hidden on mobile) */}
+      <header className="hidden md:block bg-gray-900 border-b border-gray-800 z-50 relative desktop-header" style={{ position: 'relative', zIndex: 50 }}>
         {/* Breadcrumbs */}
         <div className="px-1.5 py-0.5 border-b border-gray-800/50 bg-gray-900/50">
           <Breadcrumbs currentTab={activeTab} onNavigate={(tab) => handleTabChange(tab)} />
