@@ -48,6 +48,8 @@ import { SectionBoundary, QuickBoundary } from './shared/SmartErrorBoundary';
 import { DiagnosticTrigger } from './shared/DiagnosticPanel';
 import { FeedbackButton } from './shared/FeedbackReporter';
 import { StaleDataIndicator, useDataFreshness } from './shared/StaleDataIndicator';
+import { UndoRedoToolbar, FloatingUndoButton } from './shared/UndoRedoControls';
+import { recordViewChange, recordSettingsChange } from '../utils/undoRedo';
 
 // Simple connection status dot for footer
 const ConnectionStatusDot = () => {
@@ -1391,6 +1393,8 @@ export const DensityOptimizedLayout: React.FC = () => {
     const oldView = activeView;
     setActiveView(newView);
     logNavigation(oldView, newView);
+    // 🛡️ ANTIFRAGILE: Record for undo
+    recordViewChange(oldView, newView);
   }, [activeView]);
 
   // 🛡️ ANTIFRAGILE: Handle density change with logging
@@ -1398,6 +1402,8 @@ export const DensityOptimizedLayout: React.FC = () => {
     const oldMode = densityMode;
     setDensityMode(newMode);
     logSettingsChange('densityMode', oldMode, newMode);
+    // 🛡️ ANTIFRAGILE: Record for undo
+    recordSettingsChange('densityMode', oldMode, newMode);
   }, [densityMode]);
 
   // Track viewport size
@@ -1690,9 +1696,15 @@ export const DensityOptimizedLayout: React.FC = () => {
           {/* 🛡️ ANTIFRAGILE: Action history button */}
           <ActionHistoryButton className="bg-white shadow-sm border border-slate-200 rounded-lg" />
           
-          {/* 🛡️ ANTIFRAGILE: Diagnostic panel (Ctrl+Shift+D) */}
+{/* 🛡️ ANTIFRAGILE: Diagnostic panel (Ctrl+Shift+D) */}
           <DiagnosticTrigger className="bg-white shadow-sm border border-slate-200 rounded-lg" />
-          
+
+          {/* 🛡️ ANTIFRAGILE: Undo/Redo controls */}
+          <UndoRedoToolbar 
+            showHistory={true}
+            className="bg-white shadow-sm border border-slate-200 rounded-lg px-1"
+          />
+
           <span className="border-l border-slate-300 h-4" />
           
           <span>Density:</span>
