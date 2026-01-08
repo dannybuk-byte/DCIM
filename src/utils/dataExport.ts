@@ -12,6 +12,7 @@
 
 import { db } from '../db/database';
 import { Facility } from '../types';
+import { logExport, logError } from './actionHistory';
 
 export interface ExportOptions {
   format: 'json' | 'csv' | 'xlsx';
@@ -51,6 +52,9 @@ export async function exportToJSON(
     const filename = `dcim-facilities-${new Date().toISOString().split('T')[0]}.json`;
     
     downloadBlob(blob, filename);
+    
+    // 🛡️ ANTIFRAGILE: Log successful export
+    logExport('JSON', facilities.length, blob.size, true);
 
     return {
       success: true,
@@ -59,12 +63,14 @@ export async function exportToJSON(
       fileSize: blob.size,
     };
   } catch (error) {
+    const errorMsg = error instanceof Error ? error.message : 'Export failed';
+    logError(`JSON export failed: ${errorMsg}`);
     return {
       success: false,
       filename: '',
       recordCount: 0,
       fileSize: 0,
-      error: error instanceof Error ? error.message : 'Export failed',
+      error: errorMsg,
     };
   }
 }
@@ -105,6 +111,9 @@ export async function exportToCSV(
     const filename = `dcim-facilities-${new Date().toISOString().split('T')[0]}.csv`;
     
     downloadBlob(blob, filename);
+    
+    // 🛡️ ANTIFRAGILE: Log successful export
+    logExport('CSV', facilities.length, blob.size, true);
 
     return {
       success: true,
@@ -113,12 +122,14 @@ export async function exportToCSV(
       fileSize: blob.size,
     };
   } catch (error) {
+    const errorMsg = error instanceof Error ? error.message : 'Export failed';
+    logError(`CSV export failed: ${errorMsg}`);
     return {
       success: false,
       filename: '',
       recordCount: 0,
       fileSize: 0,
-      error: error instanceof Error ? error.message : 'Export failed',
+      error: errorMsg,
     };
   }
 }

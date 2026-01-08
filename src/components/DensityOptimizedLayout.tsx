@@ -38,6 +38,8 @@ import { saveActiveTab, getLastActiveTab, savePreferences, getSavedPreferences, 
 import { startAutoBackup, stopAutoBackup, checkForRecovery, clearBackup, AutoBackupState } from '../utils/autoBackup';
 import { RecoveryBanner } from './shared/RecoveryBanner';
 import { KeyboardShortcutsHelp } from './shared/KeyboardShortcutsHelp';
+import { ActionHistoryButton } from './shared/ActionHistoryPanel';
+import { logNavigation, logSettingsChange, logSystem, logRecovery } from '../utils/actionHistory';
 
 // ============================================================================
 // DENSITY CONTEXT
@@ -1312,6 +1314,7 @@ export const DensityOptimizedLayout: React.FC = () => {
   // 🛡️ ANTIFRAGILE: Record visit for returning user detection
   useEffect(() => {
     recordVisit();
+    logSystem('App started', { view: activeView, density: densityMode });
   }, []);
 
   // 🛡️ ANTIFRAGILE: Persist activeView changes
@@ -1347,9 +1350,23 @@ export const DensityOptimizedLayout: React.FC = () => {
   const handleRecovery = useCallback((recoveredState: AutoBackupState['state']) => {
     if (recoveredState.activeTab) {
       setActiveView(recoveredState.activeTab as ActiveView);
+      logRecovery('Session state restored', true);
     }
-    console.log('[Recovery] State restored:', recoveredState);
   }, []);
+
+  // 🛡️ ANTIFRAGILE: Handle navigation with logging
+  const handleNavigate = useCallback((newView: ActiveView) => {
+    const oldView = activeView;
+    setActiveView(newView);
+    logNavigation(oldView, newView);
+  }, [activeView]);
+
+  // 🛡️ ANTIFRAGILE: Handle density change with logging
+  const handleDensityChange = useCallback((newMode: DensityMode) => {
+    const oldMode = densityMode;
+    setDensityMode(newMode);
+    logSettingsChange('densityMode', oldMode, newMode);
+  }, [densityMode]);
 
   // Track viewport size
   useEffect(() => {
@@ -1409,9 +1426,9 @@ export const DensityOptimizedLayout: React.FC = () => {
         return;
       }
       
-      if (e.altKey && e.key === '1') setDensityMode('compact');
-      if (e.altKey && e.key === '2') setDensityMode('comfortable');
-      if (e.altKey && e.key === '3') setDensityMode('spacious');
+      if (e.altKey && e.key === '1') handleDensityChange('compact');
+      if (e.altKey && e.key === '2') handleDensityChange('comfortable');
+      if (e.altKey && e.key === '3') handleDensityChange('spacious');
       if (e.key === '[') setSidebarCollapsed(true);
       if (e.key === ']') setSidebarCollapsed(false);
       
@@ -1423,10 +1440,10 @@ export const DensityOptimizedLayout: React.FC = () => {
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
-  }, []);
+  }, [handleDensityChange]);
 
   return (
-    <DensityContext.Provider value={{ config, setMode: setDensityMode }}>
+    <DensityContext.Provider value={{ config, setMode: handleDensityChange }}>
       <div className="min-h-screen bg-slate-100">
         {/* 🛡️ ANTIFRAGILE: Recovery banner for crash recovery */}
         <RecoveryBanner 
@@ -1443,7 +1460,7 @@ export const DensityOptimizedLayout: React.FC = () => {
         {/* Sidebar */}
         <CompactSidebar
           activeView={activeView}
-          onNavigate={setActiveView}
+          onNavigate={handleNavigate}
           collapsed={sidebarCollapsed}
           onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
         />
@@ -1540,9 +1557,15 @@ export const DensityOptimizedLayout: React.FC = () => {
         </main>
 
         {/* Keyboard Hints */}
+        {/* Footer with shortcuts and action history */}
         <div 
-          className="fixed bottom-2 right-2 flex items-center gap-2 text-[10px] text-slate-500"
+          className="fixed bottom-2 right-2 flex items-center gap-3 text-[10px] text-slate-500"
         >
+          {/* 🛡️ ANTIFRAGILE: Action history button */}
+          <ActionHistoryButton className="bg-white shadow-sm border border-slate-200 rounded-lg" />
+          
+          <span className="border-l border-slate-300 h-4" />
+          
           <span>Density:</span>
           <kbd className="px-1 bg-slate-200 rounded">Alt+1</kbd>
           <kbd className="px-1 bg-slate-200 rounded">Alt+2</kbd>
@@ -1551,6 +1574,9 @@ export const DensityOptimizedLayout: React.FC = () => {
           <span>Sidebar:</span>
           <kbd className="px-1 bg-slate-200 rounded">[</kbd>
           <kbd className="px-1 bg-slate-200 rounded">]</kbd>
+          <span className="mx-2">|</span>
+          <span>Help:</span>
+          <kbd className="px-1 bg-slate-200 rounded">?</kbd>
         </div>
       </div>
     </DensityContext.Provider>
