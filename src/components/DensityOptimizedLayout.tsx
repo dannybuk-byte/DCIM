@@ -42,6 +42,7 @@ import { ActionHistoryButton } from './shared/ActionHistoryPanel';
 import { logNavigation, logSettingsChange, logSystem, logRecovery } from '../utils/actionHistory';
 import { OfflineBanner, ReconnectionToast } from './shared/ConnectionStatusIndicator';
 import { useConnectionStatus } from '../utils/connectionResilience';
+import { IntegrityBadge, IntegrityModal } from './shared/DataIntegrityPanel';
 
 // Simple connection status dot for footer
 const ConnectionStatusDot = () => {
@@ -1330,6 +1331,7 @@ export const DensityOptimizedLayout: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [viewportHeight, setViewportHeight] = useState(window.innerHeight);
   const [showKeyboardHelp, setShowKeyboardHelp] = useState(false);
+  const [showIntegrityModal, setShowIntegrityModal] = useState(false);
 
   const config = DENSITY_CONFIGS[densityMode];
 
@@ -1485,6 +1487,12 @@ export const DensityOptimizedLayout: React.FC = () => {
         {/* 🛡️ ANTIFRAGILE: Toast when reconnected */}
         <ReconnectionToast />
         
+        {/* 🛡️ ANTIFRAGILE: Data integrity modal */}
+        <IntegrityModal 
+          isOpen={showIntegrityModal} 
+          onClose={() => setShowIntegrityModal(false)} 
+        />
+        
         {/* Sidebar */}
         <CompactSidebar
           activeView={activeView}
@@ -1589,6 +1597,12 @@ export const DensityOptimizedLayout: React.FC = () => {
         <div 
           className="fixed bottom-2 right-2 flex items-center gap-3 text-[10px] text-slate-500"
         >
+          {/* 🛡️ ANTIFRAGILE: Data integrity badge */}
+          <IntegrityBadge 
+            onClick={() => setShowIntegrityModal(true)}
+            className="shadow-sm border border-slate-200"
+          />
+          
           {/* 🛡️ ANTIFRAGILE: Connection status indicator */}
           <ConnectionStatusDot />
           
