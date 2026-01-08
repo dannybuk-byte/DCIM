@@ -37,6 +37,7 @@ import { SystemHealthDashboard } from './shared/SystemHealthDashboard';
 import { saveActiveTab, getLastActiveTab, savePreferences, getSavedPreferences, recordVisit } from '../utils/sessionPersistence';
 import { startAutoBackup, stopAutoBackup, checkForRecovery, clearBackup, AutoBackupState } from '../utils/autoBackup';
 import { RecoveryBanner } from './shared/RecoveryBanner';
+import { KeyboardShortcutsHelp } from './shared/KeyboardShortcutsHelp';
 
 // ============================================================================
 // DENSITY CONTEXT
@@ -1304,6 +1305,7 @@ export const DensityOptimizedLayout: React.FC = () => {
   const [facilities, setFacilities] = useState<Facility[]>([]);
   const [loading, setLoading] = useState(true);
   const [viewportHeight, setViewportHeight] = useState(window.innerHeight);
+  const [showKeyboardHelp, setShowKeyboardHelp] = useState(false);
 
   const config = DENSITY_CONFIGS[densityMode];
 
@@ -1399,14 +1401,25 @@ export const DensityOptimizedLayout: React.FC = () => {
       .slice(0, 20);
   }, [facilities]);
 
-  // Keyboard shortcuts for density
+  // Keyboard shortcuts for density and help
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
+      // Don't trigger if typing in input
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
+        return;
+      }
+      
       if (e.altKey && e.key === '1') setDensityMode('compact');
       if (e.altKey && e.key === '2') setDensityMode('comfortable');
       if (e.altKey && e.key === '3') setDensityMode('spacious');
       if (e.key === '[') setSidebarCollapsed(true);
       if (e.key === ']') setSidebarCollapsed(false);
+      
+      // '?' opens keyboard shortcuts help
+      if (e.key === '?' && !e.metaKey && !e.ctrlKey) {
+        e.preventDefault();
+        setShowKeyboardHelp(prev => !prev);
+      }
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
@@ -1419,6 +1432,12 @@ export const DensityOptimizedLayout: React.FC = () => {
         <RecoveryBanner 
           onRecover={handleRecovery} 
           onDismiss={() => clearBackup()}
+        />
+        
+        {/* 🛡️ ANTIFRAGILE: Keyboard shortcuts help (press ?) */}
+        <KeyboardShortcutsHelp 
+          isOpen={showKeyboardHelp}
+          onClose={() => setShowKeyboardHelp(false)}
         />
         
         {/* Sidebar */}
