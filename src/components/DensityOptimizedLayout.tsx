@@ -52,6 +52,7 @@ import { UndoRedoToolbar, FloatingUndoButton } from './shared/UndoRedoControls';
 import { recordViewChange, recordSettingsChange } from '../utils/undoRedo';
 import { PerformanceBadge, PerformancePanel } from './shared/PerformanceIndicator';
 import { performanceMonitor } from '../utils/performanceMonitor';
+import { AntifragilityDashboard } from './AntifragilityDashboard';
 
 // Simple connection status dot for footer
 const ConnectionStatusDot = () => {
@@ -1345,6 +1346,7 @@ export const DensityOptimizedLayout: React.FC = () => {
   const [showCommandPalette, setShowCommandPalette] = useState(false);
   const [showActionHistoryModal, setShowActionHistoryModal] = useState(false);
   const [showPerformancePanel, setShowPerformancePanel] = useState(false);
+  const [showAntifragilityDashboard, setShowAntifragilityDashboard] = useState(false);
 
   const config = DENSITY_CONFIGS[densityMode];
 
@@ -1560,6 +1562,24 @@ export const DensityOptimizedLayout: React.FC = () => {
           onClose={() => setShowPerformancePanel(false)}
         />
 
+        {/* 🛡️ ANTIFRAGILE: Full Antifragility Dashboard modal */}
+        {showAntifragilityDashboard && (
+          <div className="fixed inset-0 z-[100] overflow-auto bg-black/50 backdrop-blur-sm">
+            <div className="min-h-screen py-8 px-4">
+              <div className="max-w-7xl mx-auto bg-white rounded-2xl shadow-2xl overflow-hidden relative">
+                <button
+                  onClick={() => setShowAntifragilityDashboard(false)}
+                  className="absolute top-4 right-4 z-10 p-2 bg-white/80 hover:bg-white rounded-full shadow-lg transition-colors"
+                  title="Close Antifragility Dashboard"
+                >
+                  <X size={20} />
+                </button>
+                <AntifragilityDashboard />
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* 🛡️ ANTIFRAGILE: Command palette (Cmd+K) */}
         <CommandPalette
           isOpen={showCommandPalette}
@@ -1722,6 +1742,15 @@ export const DensityOptimizedLayout: React.FC = () => {
             onClick={() => setShowPerformancePanel(true)}
             className="shadow-sm border border-slate-200"
           />
+
+          {/* 🛡️ ANTIFRAGILE: Full Antifragility Dashboard trigger */}
+          <button
+            onClick={() => setShowAntifragilityDashboard(true)}
+            className="p-2 bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 text-white rounded-lg shadow-sm transition-colors"
+            title="Antifragility Dashboard - Chaos Engineering, Self-Healing, Predictive Failure"
+          >
+            <Shield size={14} />
+          </button>
 
           <span className="border-l border-slate-300 h-4" />
           
