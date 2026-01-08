@@ -53,6 +53,7 @@ import { recordViewChange, recordSettingsChange } from '../utils/undoRedo';
 import { PerformanceBadge, PerformancePanel } from './shared/PerformanceIndicator';
 import { performanceMonitor } from '../utils/performanceMonitor';
 import { AntifragilityDashboard } from './AntifragilityDashboard';
+import { ResourceBadge, ResourceGuardianPanel } from './shared/ResourceGuardianPanel';
 
 // Simple connection status dot for footer
 const ConnectionStatusDot = () => {
@@ -1347,6 +1348,7 @@ export const DensityOptimizedLayout: React.FC = () => {
   const [showActionHistoryModal, setShowActionHistoryModal] = useState(false);
   const [showPerformancePanel, setShowPerformancePanel] = useState(false);
   const [showAntifragilityDashboard, setShowAntifragilityDashboard] = useState(false);
+  const [showResourceGuardian, setShowResourceGuardian] = useState(false);
 
   const config = DENSITY_CONFIGS[densityMode];
 
@@ -1562,6 +1564,12 @@ export const DensityOptimizedLayout: React.FC = () => {
           onClose={() => setShowPerformancePanel(false)}
         />
 
+        {/* 🛡️ ANTIFRAGILE: Resource Guardian Panel */}
+        <ResourceGuardianPanel
+          isOpen={showResourceGuardian}
+          onClose={() => setShowResourceGuardian(false)}
+        />
+
         {/* 🛡️ ANTIFRAGILE: Full Antifragility Dashboard modal */}
         {showAntifragilityDashboard && (
           <div className="fixed inset-0 z-[100] overflow-auto bg-black/50 backdrop-blur-sm">
@@ -1751,6 +1759,12 @@ export const DensityOptimizedLayout: React.FC = () => {
           >
             <Shield size={14} />
           </button>
+
+          {/* 🛡️ ANTIFRAGILE: Resource Guardian - Storage, Memory, Long Tasks */}
+          <ResourceBadge 
+            onClick={() => setShowResourceGuardian(true)}
+            className="shadow-sm border border-slate-200"
+          />
 
           <span className="border-l border-slate-300 h-4" />
           
