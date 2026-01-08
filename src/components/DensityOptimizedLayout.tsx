@@ -44,6 +44,7 @@ import { OfflineBanner, ReconnectionToast } from './shared/ConnectionStatusIndic
 import { useConnectionStatus } from '../utils/connectionResilience';
 import { IntegrityBadge, IntegrityModal } from './shared/DataIntegrityPanel';
 import { CommandPalette, createDefaultCommands, CommandItem } from './shared/CommandPalette';
+import { SectionBoundary, QuickBoundary } from './shared/SmartErrorBoundary';
 
 // Simple connection status dot for footer
 const ConnectionStatusDot = () => {
@@ -1521,12 +1522,14 @@ export const DensityOptimizedLayout: React.FC = () => {
         />
         
         {/* Sidebar */}
-        <CompactSidebar
-          activeView={activeView}
-          onNavigate={handleNavigate}
-          collapsed={sidebarCollapsed}
-          onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
-        />
+        <QuickBoundary name="Sidebar">
+          <CompactSidebar
+            activeView={activeView}
+            onNavigate={handleNavigate}
+            collapsed={sidebarCollapsed}
+            onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
+          />
+        </QuickBoundary>
 
         {/* Top Stat Bar */}
         <div 
@@ -1588,26 +1591,30 @@ export const DensityOptimizedLayout: React.FC = () => {
               <Loader2 className="animate-spin text-blue-500" size={32} />
             </div>
           ) : activeView === 'overview' ? (
-            <SpaceFillingOverviewGrid 
-              stats={stats}
-              topViolators={topViolators}
-              operatorCounts={operatorCounts}
-              viewportHeight={viewportHeight}
-              facilities={facilities}
-            />
+            <SectionBoundary name="Overview Dashboard">
+              <SpaceFillingOverviewGrid 
+                stats={stats}
+                topViolators={topViolators}
+                operatorCounts={operatorCounts}
+                viewportHeight={viewportHeight}
+                facilities={facilities}
+              />
+            </SectionBoundary>
           ) : activeView === 'facilities' ? (
-            <MissionFacilitiesView facilities={facilities} stats={stats} />
+            <SectionBoundary name="Facilities View">
+              <MissionFacilitiesView facilities={facilities} stats={stats} />
+            </SectionBoundary>
           ) : activeView === 'intelligence' ? (
             <div className="h-full overflow-auto">
-              <ErrorBoundary tabName="Organizing Intelligence">
+              <SectionBoundary name="Organizing Intelligence">
                 <OrganizingIntelligenceTab />
-              </ErrorBoundary>
+              </SectionBoundary>
             </div>
           ) : activeView === 'tools' ? (
             <div className="h-full overflow-auto">
-              <ErrorBoundary tabName="Coalition Tools">
+              <SectionBoundary name="Coalition Tools">
                 <CoalitionToolsTab />
-              </ErrorBoundary>
+              </SectionBoundary>
             </div>
           ) : (
             <div 
