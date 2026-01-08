@@ -46,6 +46,7 @@ import { IntegrityBadge, IntegrityModal } from './shared/DataIntegrityPanel';
 import { CommandPalette, createDefaultCommands, CommandItem } from './shared/CommandPalette';
 import { SectionBoundary, QuickBoundary } from './shared/SmartErrorBoundary';
 import { DiagnosticTrigger } from './shared/DiagnosticPanel';
+import { FeedbackButton } from './shared/FeedbackReporter';
 
 // Simple connection status dot for footer
 const ConnectionStatusDot = () => {
@@ -1508,6 +1509,9 @@ export const DensityOptimizedLayout: React.FC = () => {
         
         {/* 🛡️ ANTIFRAGILE: Toast when reconnected */}
         <ReconnectionToast />
+        
+        {/* 🛡️ ANTIFRAGILE: Floating feedback button */}
+        <FeedbackButton position="bottom-right" />
         
         {/* 🛡️ ANTIFRAGILE: Data integrity modal */}
         <IntegrityModal 
