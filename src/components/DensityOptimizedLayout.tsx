@@ -50,6 +50,8 @@ import { FeedbackButton } from './shared/FeedbackReporter';
 import { StaleDataIndicator, useDataFreshness } from './shared/StaleDataIndicator';
 import { UndoRedoToolbar, FloatingUndoButton } from './shared/UndoRedoControls';
 import { recordViewChange, recordSettingsChange } from '../utils/undoRedo';
+import { PerformanceBadge, PerformancePanel } from './shared/PerformanceIndicator';
+import { performanceMonitor } from '../utils/performanceMonitor';
 
 // Simple connection status dot for footer
 const ConnectionStatusDot = () => {
@@ -1342,6 +1344,7 @@ export const DensityOptimizedLayout: React.FC = () => {
   const [showIntegrityModal, setShowIntegrityModal] = useState(false);
   const [showCommandPalette, setShowCommandPalette] = useState(false);
   const [showActionHistoryModal, setShowActionHistoryModal] = useState(false);
+  const [showPerformancePanel, setShowPerformancePanel] = useState(false);
 
   const config = DENSITY_CONFIGS[densityMode];
 
@@ -1418,9 +1421,12 @@ export const DensityOptimizedLayout: React.FC = () => {
     const loadData = async () => {
       try {
         setLoading(true);
-        await seedRealDatabase();
-        const data = await db.facilities.toArray();
-        setFacilities(data.map(mapFacility));
+        // 🛡️ ANTIFRAGILE: Track performance
+        await performanceMonitor.measureAsync('database_read', 'Load facilities', async () => {
+          await seedRealDatabase();
+          const data = await db.facilities.toArray();
+          setFacilities(data.map(mapFacility));
+        });
         setLastDataUpdate(Date.now()); // 🛡️ ANTIFRAGILE: Track data freshness
       } catch (error) {
         console.error('Failed to load facilities:', error);
@@ -1542,12 +1548,18 @@ export const DensityOptimizedLayout: React.FC = () => {
         {/* 🛡️ ANTIFRAGILE: Floating feedback button */}
         <FeedbackButton position="bottom-right" />
         
-        {/* 🛡️ ANTIFRAGILE: Data integrity modal */}
-        <IntegrityModal 
-          isOpen={showIntegrityModal} 
-          onClose={() => setShowIntegrityModal(false)} 
+{/* 🛡️ ANTIFRAGILE: Data integrity modal */}
+        <IntegrityModal
+          isOpen={showIntegrityModal}
+          onClose={() => setShowIntegrityModal(false)}
         />
-        
+
+        {/* 🛡️ ANTIFRAGILE: Performance monitor panel */}
+        <PerformancePanel
+          isOpen={showPerformancePanel}
+          onClose={() => setShowPerformancePanel(false)}
+        />
+
         {/* 🛡️ ANTIFRAGILE: Command palette (Cmd+K) */}
         <CommandPalette
           isOpen={showCommandPalette}
@@ -1703,6 +1715,12 @@ export const DensityOptimizedLayout: React.FC = () => {
           <UndoRedoToolbar 
             showHistory={true}
             className="bg-white shadow-sm border border-slate-200 rounded-lg px-1"
+          />
+
+          {/* 🛡️ ANTIFRAGILE: Performance monitor */}
+          <PerformanceBadge 
+            onClick={() => setShowPerformancePanel(true)}
+            className="shadow-sm border border-slate-200"
           />
 
           <span className="border-l border-slate-300 h-4" />
