@@ -151,8 +151,8 @@ export const OrganizerCommandCenter: React.FC = () => {
     children: React.ReactNode;
     actions?: React.ReactNode;
   }> = ({ title, icon: Icon, color, count, height = 'h-48', children, actions }) => (
-    <div className="bg-[#161b22] rounded border border-[#30363d] flex flex-col">
-      <div className="flex items-center justify-between px-2 py-1 border-b border-[#30363d] bg-[#0d1117]">
+    <div className={`bg-[#161b22] rounded border border-[#30363d] flex flex-col min-h-0 overflow-hidden ${height.includes('flex-1') ? 'flex-1' : ''} ${height.includes('shrink-0') ? 'shrink-0' : ''}`}>
+      <div className="flex items-center justify-between px-2 py-1 border-b border-[#30363d] bg-[#0d1117] shrink-0">
         <div className="flex items-center gap-1.5">
           <Icon className={`w-3.5 h-3.5 ${color}`} />
           <span className="text-xs font-medium text-white">{title}</span>
@@ -162,7 +162,7 @@ export const OrganizerCommandCenter: React.FC = () => {
         </div>
         {actions}
       </div>
-      <div className={`${height} overflow-y-auto overflow-x-hidden`}>
+      <div className={`${height.replace('flex-1', '').replace('shrink-0', '').trim() || 'h-48'} overflow-y-auto overflow-x-hidden min-h-0 flex-1`}>
         {children}
       </div>
     </div>
@@ -171,11 +171,11 @@ export const OrganizerCommandCenter: React.FC = () => {
   // === Render Functions ===
 
   const renderOverview = () => (
-    <div className="grid grid-cols-12 gap-2 h-full">
+    <div className="grid grid-cols-12 gap-2 h-full overflow-hidden">
       {/* Left Column - Stats + Quick Actions */}
-      <div className="col-span-3 flex flex-col gap-2">
+      <div className="col-span-3 flex flex-col gap-2 min-h-0 overflow-hidden">
         {/* Key Metrics - Compact Grid */}
-        <div className="grid grid-cols-2 gap-1">
+        <div className="grid grid-cols-2 gap-1 shrink-0">
           <MiniMetric label="FOIA Active" value={foiaRequests.filter(r => !['completed', 'denied'].includes(r.status)).length} color="purple" />
           <MiniMetric label="Incidents" value={incidents.length} color="red" />
           <MiniMetric label="CBAs" value={cbas.length} color="green" />
@@ -205,8 +205,8 @@ export const OrganizerCommandCenter: React.FC = () => {
           </div>
         </ScrollCard>
 
-        {/* Organizing Targets - Scrollable */}
-        <ScrollCard title="Top Targets" icon={Target} color="text-blue-400" height="flex-1">
+        {/* Organizing Targets - Scrollable - takes remaining space */}
+        <ScrollCard title="Top Targets" icon={Target} color="text-blue-400" height="min-h-0 flex-1">
           <div className="p-1 space-y-1">
             {contractors
               .filter(c => c.organizingPriority === 'high')
@@ -231,9 +231,9 @@ export const OrganizerCommandCenter: React.FC = () => {
       </div>
 
       {/* Center Column - Main Content */}
-      <div className="col-span-6 flex flex-col gap-2">
-        {/* Corridors Grid */}
-        <ScrollCard title="Data Center Corridors" icon={Map} color="text-cyan-400" height="h-40" count={DATA_CENTER_CORRIDORS.length}>
+      <div className="col-span-6 flex flex-col gap-2 min-h-0 overflow-hidden">
+        {/* Corridors Grid - fixed height */}
+        <ScrollCard title="Data Center Corridors" icon={Map} color="text-cyan-400" height="h-36 shrink-0" count={DATA_CENTER_CORRIDORS.length}>
           <div className="grid grid-cols-2 gap-1 p-1">
             {DATA_CENTER_CORRIDORS.map(corridor => (
               <div key={corridor.id} className="p-1.5 bg-[#0d1117] rounded border border-[#21262d]">
@@ -258,10 +258,10 @@ export const OrganizerCommandCenter: React.FC = () => {
           </div>
         </ScrollCard>
 
-        {/* Bills + CBAs Side by Side */}
-        <div className="grid grid-cols-2 gap-2 flex-1">
+        {/* Bills + CBAs Side by Side - takes remaining space */}
+        <div className="grid grid-cols-2 gap-2 min-h-0 flex-1">
           {/* Legislative Alerts */}
-          <ScrollCard title="Active Bills" icon={Gavel} color="text-yellow-400" height="h-full" count={bills.length}>
+          <ScrollCard title="Active Bills" icon={Gavel} color="text-yellow-400" height="h-full min-h-0" count={bills.length}>
             <div className="p-1 space-y-1">
               {bills.map(bill => (
                 <div key={bill.id} className="p-1.5 bg-[#0d1117] rounded text-xs">
@@ -281,7 +281,7 @@ export const OrganizerCommandCenter: React.FC = () => {
           </ScrollCard>
 
           {/* CBA Monitor */}
-          <ScrollCard title="CBA Compliance" icon={Scale} color="text-green-400" height="h-full" count={cbas.length}>
+          <ScrollCard title="CBA Compliance" icon={Scale} color="text-green-400" height="h-full min-h-0" count={cbas.length}>
             <div className="p-1 space-y-1">
               {cbas.map(cba => (
                 <div key={cba.id} className="p-1.5 bg-[#0d1117] rounded text-xs">
@@ -301,9 +301,9 @@ export const OrganizerCommandCenter: React.FC = () => {
       </div>
 
       {/* Right Column - Alerts & Partners */}
-      <div className="col-span-3 flex flex-col gap-2">
-        {/* Priority Alerts */}
-        <ScrollCard title="Priority Alerts" icon={Bell} color="text-red-400" height="h-40">
+      <div className="col-span-3 flex flex-col gap-2 min-h-0 overflow-hidden">
+        {/* Priority Alerts - fixed height */}
+        <ScrollCard title="Priority Alerts" icon={Bell} color="text-red-400" height="h-32 shrink-0">
           <div className="p-1 space-y-1">
             {corridorStats && corridorStats.corridors
               .filter(c => c.organizingPriority === 'high')
@@ -322,8 +322,8 @@ export const OrganizerCommandCenter: React.FC = () => {
           </div>
         </ScrollCard>
 
-        {/* IBEW Locals */}
-        <ScrollCard title="IBEW Locals" icon={Zap} color="text-yellow-400" height="h-36" count={IBEW_LOCALS.filter(l => l.dataCenterExperience).length}>
+        {/* IBEW Locals - fixed height */}
+        <ScrollCard title="IBEW Locals" icon={Zap} color="text-yellow-400" height="h-28 shrink-0" count={IBEW_LOCALS.filter(l => l.dataCenterExperience).length}>
           <div className="p-1 space-y-1">
             {IBEW_LOCALS.filter(l => l.dataCenterExperience).slice(0, 8).map(local => (
               <div key={local.localNumber} className="flex items-center justify-between px-1.5 py-1 bg-[#0d1117] rounded text-xs">
@@ -337,8 +337,8 @@ export const OrganizerCommandCenter: React.FC = () => {
           </div>
         </ScrollCard>
 
-        {/* Coalition Partners */}
-        <ScrollCard title="Coalition Partners" icon={Handshake} color="text-pink-400" height="flex-1" count={partners.length}>
+        {/* Coalition Partners - takes remaining space */}
+        <ScrollCard title="Coalition Partners" icon={Handshake} color="text-pink-400" height="min-h-0 flex-1" count={partners.length}>
           <div className="p-1 space-y-1">
             {partners.map(partner => (
               <div key={partner.id} className="p-1.5 bg-[#0d1117] rounded text-xs">

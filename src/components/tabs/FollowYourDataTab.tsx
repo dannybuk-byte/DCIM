@@ -20,7 +20,7 @@ import {
   History, HelpCircle, Keyboard, TrendingUp, TrendingDown,
   Target, Activity, BarChart3, PieChart, Clock, Filter,
   Copy, Check, X, Plus, Minus, RotateCcw, ChevronUp, ChevronDown,
-  Home, Compass, Navigation, Menu, Layers, Circle, ArrowUp, ChevronLeft
+  Home, Compass, Navigation, Menu, Layers, Circle, ArrowUp, ChevronLeft, Map, Radio
 } from 'lucide-react';
 import { Facility } from '../../types';
 import { CAPTaxonomyWheel } from './followYourData/CAPTaxonomyWheel';
@@ -32,6 +32,13 @@ import { UnionLocalDiscovery } from './followYourData/UnionLocalDiscovery';
 import { UnionOrganizingIntelligence } from './followYourData/UnionOrganizingIntelligence';
 import { NLPLocationSearch } from './followYourData/NLPLocationSearch';
 import { ProximityLocator } from './followYourData/ProximityLocator';
+// Enhanced Geospatial Visualizations
+import { 
+  GeospatialMap, 
+  TracerouteVisualization, 
+  IntelligenceStream,
+  FacilityDeepDive
+} from './followYourData/EnhancedGeospatialVisualizations';
 
 interface FollowYourDataTabProps {
   facilities: Facility[];
@@ -118,6 +125,12 @@ export const FollowYourDataTab: React.FC<FollowYourDataTabProps> = ({ facilities
   const [activeSection, setActiveSection] = useState<string>('discovery');
   const [showScrollTop, setShowScrollTop] = useState(false);
   
+  // ENHANCED GEOSPATIAL STATE
+  const [showGeospatialMap, setShowGeospatialMap] = useState(false);
+  const [showTraceroute, setShowTraceroute] = useState(false);
+  const [showIntelStream, setShowIntelStream] = useState(false);
+  const [selectedFacilityForDeepDive, setSelectedFacilityForDeepDive] = useState<Facility | null>(null);
+  
   // Refs for sections and scrolling
   const resultsRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -126,6 +139,9 @@ export const FollowYourDataTab: React.FC<FollowYourDataTabProps> = ({ facilities
   // Navigation sections configuration
   const NAV_SECTIONS = useMemo(() => [
     { id: 'discovery', label: 'Discovery', icon: <Compass className="w-4 h-4" />, color: '#3fb950' },
+    { id: 'geospatial', label: '🗺️ Geospatial Map', icon: <Map className="w-4 h-4" />, color: '#58a6ff' },
+    { id: 'traceroute', label: '📡 Network Trace', icon: <Network className="w-4 h-4" />, color: '#a371f7' },
+    { id: 'intel-stream', label: '📻 Intel Stream', icon: <Radio className="w-4 h-4" />, color: '#f59e0b' },
     { id: 'proximity', label: 'Proximity GPS', icon: <Navigation className="w-4 h-4" />, color: '#22c55e' },
     { id: 'facilities', label: 'Facilities', icon: <Building className="w-4 h-4" />, color: '#58a6ff' },
     { id: 'network', label: 'Network Path', icon: <Network className="w-4 h-4" />, color: '#a371f7' },
@@ -1342,6 +1358,139 @@ export const FollowYourDataTab: React.FC<FollowYourDataTabProps> = ({ facilities
             </div>
           </div>
 
+          {/* ========== ENHANCED GEOSPATIAL VISUALIZATIONS ========== */}
+          
+          {/* GEOSPATIAL MAP - Option A */}
+          <section
+            ref={(el) => { sectionRefs.current['geospatial'] = el; }}
+            id="section-geospatial"
+            className="mt-6 scroll-mt-6"
+          >
+            <div className="bg-[#161b22] border border-[#30363d] rounded-2xl overflow-hidden">
+              <div className="flex items-center justify-between px-6 py-4 bg-[#21262d] border-b border-[#30363d]">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#58a6ff] to-[#a371f7] flex items-center justify-center">
+                    <Map className="w-4 h-4 text-white" />
+                  </div>
+                  <div>
+                    <span className="font-semibold">🗺️ Real-Time Geospatial Map</span>
+                    <p className="text-xs text-[#8b949e]">Interactive 3D facility visualization with heatmaps</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setShowGeospatialMap(!showGeospatialMap)}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                    showGeospatialMap ? 'bg-[#58a6ff] text-white' : 'bg-[#21262d] text-[#8b949e] hover:text-white'
+                  }`}
+                >
+                  {showGeospatialMap ? 'Hide Map' : 'Show Map'}
+                </button>
+              </div>
+              {showGeospatialMap && (
+                <div className="p-4">
+                  <GeospatialMap 
+                    facilities={facilities.filter(f => f.latitude && f.longitude).map(f => ({
+                      id: String(f.id),
+                      name: f.name,
+                      operator: f.operator,
+                      latitude: f.latitude!,
+                      longitude: f.longitude!,
+                      city: f.city,
+                      state: f.state,
+                      type: f.facilityType || 'Unknown',
+                      complianceStatus: (f.complianceStatus?.toLowerCase().replace(' ', '-') || 'unknown') as 'compliant' | 'non-compliant' | 'at-risk' | 'unknown',
+                      subsidyGap: f.subsidyGap || 0,
+                      jobsPromised: f.jobsPromised || 0,
+                      jobsCreated: f.jobsCreated || 0,
+                      powerCapacityMW: f.powerCapacityMW || 0,
+                      unionStatus: (f.unionStatus?.toLowerCase() || 'unknown') as 'union' | 'non-union' | 'mixed' | 'unknown',
+                      lastUpdated: f.lastUpdated || new Date().toISOString(),
+                    }))}
+                    userLocation={userLocation.lat && userLocation.lng ? { lat: userLocation.lat, lng: userLocation.lng } : undefined}
+                    onFacilitySelect={(facility) => {
+                      const found = facilities.find(f => String(f.id) === facility.id);
+                      if (found) setSelectedFacilityForDeepDive(found);
+                    }}
+                  />
+                </div>
+              )}
+            </div>
+          </section>
+
+          {/* LIVE NETWORK TRACEROUTE - Option B */}
+          <section
+            ref={(el) => { sectionRefs.current['traceroute'] = el; }}
+            id="section-traceroute"
+            className="mt-6 scroll-mt-6"
+          >
+            <div className="bg-[#161b22] border border-[#30363d] rounded-2xl overflow-hidden">
+              <div className="flex items-center justify-between px-6 py-4 bg-[#21262d] border-b border-[#30363d]">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#3fb950] to-[#22c55e] flex items-center justify-center">
+                    <Network className="w-4 h-4 text-white" />
+                  </div>
+                  <div>
+                    <span className="font-semibold">📡 Live Network Traceroute</span>
+                    <p className="text-xs text-[#8b949e]">Visualize your data's journey through infrastructure</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setShowTraceroute(!showTraceroute)}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                    showTraceroute ? 'bg-[#3fb950] text-white' : 'bg-[#21262d] text-[#8b949e] hover:text-white'
+                  }`}
+                >
+                  {showTraceroute ? 'Hide Traceroute' : 'Run Traceroute'}
+                </button>
+              </div>
+              {showTraceroute && (
+                <div className="p-4">
+                  <TracerouteVisualization 
+                    userLocation={userLocation.lat && userLocation.lng ? { lat: userLocation.lat, lng: userLocation.lng } : undefined}
+                    isActive={showTraceroute}
+                  />
+                </div>
+              )}
+            </div>
+          </section>
+
+          {/* REAL-TIME INTELLIGENCE STREAM - Option E */}
+          <section
+            ref={(el) => { sectionRefs.current['intel-stream'] = el; }}
+            id="section-intel-stream"
+            className="mt-6 scroll-mt-6"
+          >
+            <div className="bg-[#161b22] border border-[#30363d] rounded-2xl overflow-hidden">
+              <div className="flex items-center justify-between px-6 py-4 bg-[#21262d] border-b border-[#30363d]">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#f59e0b] to-[#ef4444] flex items-center justify-center relative">
+                    <Radio className="w-4 h-4 text-white" />
+                    {showIntelStream && (
+                      <span className="absolute -top-1 -right-1 w-2 h-2 bg-[#22c55e] rounded-full animate-pulse" />
+                    )}
+                  </div>
+                  <div>
+                    <span className="font-semibold">📻 Real-Time Intelligence Stream</span>
+                    <p className="text-xs text-[#8b949e]">Live alerts on subsidies, labor, compliance, and more</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setShowIntelStream(!showIntelStream)}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                    showIntelStream ? 'bg-[#f59e0b] text-white' : 'bg-[#21262d] text-[#8b949e] hover:text-white'
+                  }`}
+                >
+                  {showIntelStream ? 'Stop Stream' : 'Start Stream'}
+                </button>
+              </div>
+              {showIntelStream && (
+                <div className="p-4">
+                  <IntelligenceStream />
+                </div>
+              )}
+            </div>
+          </section>
+
           {/* PROXIMITY LOCATOR - GPS-based nearby facilities */}
           <div 
             ref={(el) => { sectionRefs.current['proximity'] = el; }}
@@ -1811,6 +1960,42 @@ export const FollowYourDataTab: React.FC<FollowYourDataTabProps> = ({ facilities
         <div className="fixed bottom-6 right-6 px-4 py-2 bg-[#3fb950] text-black rounded-lg shadow-xl flex items-center gap-2 animate-fadeIn z-50">
           <Check className="w-4 h-4" />
           Copied to clipboard!
+        </div>
+      )}
+      
+      {/* Facility Deep Dive Modal - Option C */}
+      {selectedFacilityForDeepDive && (
+        <div 
+          className="fixed inset-0 bg-black/70 flex items-center justify-center z-[100] p-4"
+          onClick={() => setSelectedFacilityForDeepDive(null)}
+        >
+          <div 
+            className="max-w-3xl w-full max-h-[90vh] overflow-auto animate-[fadeInUp_0.3s_ease-out]"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <FacilityDeepDive 
+              facility={{
+                id: String(selectedFacilityForDeepDive.id),
+                name: selectedFacilityForDeepDive.name,
+                operator: selectedFacilityForDeepDive.operator,
+                latitude: selectedFacilityForDeepDive.latitude || 0,
+                longitude: selectedFacilityForDeepDive.longitude || 0,
+                city: selectedFacilityForDeepDive.city,
+                state: selectedFacilityForDeepDive.state,
+                type: selectedFacilityForDeepDive.facilityType || 'Unknown',
+                complianceStatus: (selectedFacilityForDeepDive.complianceStatus?.toLowerCase().replace(' ', '-') || 'unknown') as 'compliant' | 'non-compliant' | 'at-risk' | 'unknown',
+                subsidyGap: selectedFacilityForDeepDive.subsidyGap || 0,
+                jobsPromised: selectedFacilityForDeepDive.jobsPromised || 0,
+                jobsCreated: selectedFacilityForDeepDive.jobsCreated || 0,
+                powerCapacityMW: selectedFacilityForDeepDive.powerCapacityMW || 0,
+                unionStatus: (selectedFacilityForDeepDive.unionStatus?.toLowerCase() || 'unknown') as 'union' | 'non-union' | 'mixed' | 'unknown',
+                lastUpdated: selectedFacilityForDeepDive.lastUpdated || new Date().toISOString(),
+                riskScore: selectedFacilityForDeepDive.riskScore,
+                organizingPriority: selectedFacilityForDeepDive.organizingPriority as 'high' | 'medium' | 'low' | undefined,
+              }}
+              onClose={() => setSelectedFacilityForDeepDive(null)}
+            />
+          </div>
         </div>
       )}
     </div>

@@ -14,3 +14,12 @@ export { UnionOrganizingIntelligence } from './UnionOrganizingIntelligence';
 export { NLPLocationSearch } from './NLPLocationSearch';
 export { ProximityLocator } from './ProximityLocator';
 
+// Enhanced Geospatial Visualizations (NEW)
+export { 
+  GeospatialMap,
+  TracerouteVisualization,
+  FacilityDeepDive,
+  IntelligenceStream,
+  EnhancedFollowYourDataPanel
+} from './EnhancedGeospatialVisualizations';
+
