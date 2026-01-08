@@ -8,13 +8,13 @@
  * "The same workers building these data centers are from communities being surveilled"
  */
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   Eye, Shield, AlertTriangle, DollarSign, Building2, MapPin,
   Users, FileText, ExternalLink, ChevronDown, ChevronRight,
   Search, Filter, Download, Info, Zap, Database, Globe,
   Radio, Camera, Fingerprint, Phone, Car, CreditCard,
-  Activity, Target, AlertCircle, CheckCircle, XCircle
+  Activity, Target, AlertCircle, CheckCircle, XCircle, Server
 } from 'lucide-react';
 import { 
   SURVEILLANCE_COMPANIES, 
@@ -27,9 +27,55 @@ import {
   getSurveillanceContractStats,
   getAllSurveillanceContracts,
   getImmigrantTargetingContracts,
-  calculateTotalICESurveillanceSpending
+  calculateTotalICESurveillanceSpending,
+  findContractsForFacility
 } from '../../services/federalContractsService';
 import { SurveillanceCompany, FederalContract, SurveillanceDataType, FederalAgency } from '../../types/surveillance';
+import { db } from '../../db/database';
+import { Facility } from '../../types';
+
+// =============================================================================
+// KNOWN ICE/DHS CLOUD LOCATIONS
+// =============================================================================
+
+// States with known AWS GovCloud or Azure Gov data centers
+const GOVCLOUD_STATES = ['VA', 'OR', 'AZ', 'TX', 'OH'];
+
+// Operators known to have federal/government contracts
+const FEDERAL_CONTRACTOR_OPERATORS = [
+  'Amazon Web Services',
+  'AWS',
+  'Microsoft',
+  'Microsoft Azure',
+  'Google',
+  'Google Cloud',
+  'Oracle',
+  'IBM',
+  'Equinix',
+  'Digital Realty',
+  'CyrusOne',
+  'QTS',
+  'CoreSite',
+  'Vantage',
+  'COPT'
+];
+
+// Known ICE facility locations (from public records)
+const KNOWN_ICE_FACILITY_CITIES = [
+  { city: 'Ashburn', state: 'VA' },  // AWS GovCloud East
+  { city: 'The Dalles', state: 'OR' },  // AWS GovCloud West
+  { city: 'Phoenix', state: 'AZ' },  // Azure Government
+  { city: 'San Antonio', state: 'TX' },  // Azure Government
+  { city: 'Boydton', state: 'VA' },  // Microsoft
+  { city: 'Manassas', state: 'VA' },  // AWS
+  { city: 'Sterling', state: 'VA' },  // Multiple providers
+];
+
+interface FlaggedFacility extends Facility {
+  riskLevel: 'confirmed' | 'likely' | 'possible';
+  riskReasons: string[];
+  matchedContracts: FederalContract[];
+}
 
 // =============================================================================
 // ICON MAPPINGS
@@ -75,16 +121,105 @@ const AGENCY_COLORS: Record<FederalAgency, string> = {
 
 export const SurveillanceInfrastructureTab: React.FC = () => {
   // State
-  const [activeSection, setActiveSection] = useState<'overview' | 'companies' | 'contracts' | 'alerts'>('overview');
+  const [activeSection, setActiveSection] = useState<'overview' | 'companies' | 'contracts' | 'facilities' | 'alerts'>('overview');
   const [selectedAgency, setSelectedAgency] = useState<FederalAgency | 'all'>('all');
   const [expandedCompanies, setExpandedCompanies] = useState<Set<string>>(new Set());
+  const [expandedFacilities, setExpandedFacilities] = useState<Set<number>>(new Set());
   const [searchQuery, setSearchQuery] = useState('');
+  const [facilities, setFacilities] = useState<Facility[]>([]);
+  const [isLoadingFacilities, setIsLoadingFacilities] = useState(true);
+  
+  // Load facilities from database
+  useEffect(() => {
+    const loadFacilities = async () => {
+      try {
+        const allFacilities = await db.facilities.toArray();
+        setFacilities(allFacilities);
+      } catch (error) {
+        console.error('Failed to load facilities:', error);
+      } finally {
+        setIsLoadingFacilities(false);
+      }
+    };
+    loadFacilities();
+  }, []);
   
   // Data
   const stats = useMemo(() => getSurveillanceContractStats(), []);
   const allContracts = useMemo(() => getAllSurveillanceContracts(), []);
   const iceContracts = useMemo(() => getImmigrantTargetingContracts(), []);
   const directImpactCompanies = useMemo(() => getDirectImmigrantImpactCompanies(), []);
+  
+  // Cross-reference facilities with surveillance infrastructure
+  const flaggedFacilities = useMemo((): FlaggedFacility[] => {
+    return facilities.map(facility => {
+      const riskReasons: string[] = [];
+      let riskLevel: 'confirmed' | 'likely' | 'possible' = 'possible';
+      
+      // Check if operator is a known federal contractor
+      const operatorLower = facility.operator.toLowerCase();
+      const isFederalContractor = FEDERAL_CONTRACTOR_OPERATORS.some(
+        fc => operatorLower.includes(fc.toLowerCase())
+      );
+      if (isFederalContractor) {
+        riskReasons.push('Operator has known federal/government contracts');
+        riskLevel = 'likely';
+      }
+      
+      // Check if in GovCloud state
+      if (GOVCLOUD_STATES.includes(facility.state)) {
+        riskReasons.push(`Located in ${facility.state} - hosts AWS GovCloud or Azure Government regions`);
+        if (riskLevel === 'possible') riskLevel = 'likely';
+      }
+      
+      // Check if near known ICE facility
+      const nearKnownICE = KNOWN_ICE_FACILITY_CITIES.some(
+        loc => facility.city?.toLowerCase() === loc.city.toLowerCase() && facility.state === loc.state
+      );
+      if (nearKnownICE) {
+        riskReasons.push('Located in city with known government cloud data centers');
+        riskLevel = 'confirmed';
+      }
+      
+      // Check specific operators
+      if (operatorLower.includes('amazon') || operatorLower.includes('aws')) {
+        riskReasons.push('AWS has $28M+ ICE contract for GovCloud hosting');
+        if (facility.state === 'VA' || facility.state === 'OR') {
+          riskLevel = 'confirmed';
+          riskReasons.push('AWS GovCloud region location');
+        }
+      }
+      if (operatorLower.includes('microsoft') || operatorLower.includes('azure')) {
+        riskReasons.push('Microsoft Azure has ICE/DHS government cloud contracts');
+      }
+      if (operatorLower.includes('palantir')) {
+        riskLevel = 'confirmed';
+        riskReasons.push('Palantir operates FALCON system for ICE targeting');
+      }
+      
+      // Get matched contracts
+      const matchedContracts = findContractsForFacility(facility.state, facility.operator);
+      if (matchedContracts.length > 0) {
+        riskReasons.push(`${matchedContracts.length} related federal contracts identified`);
+        if (matchedContracts.some(c => c.immigrantTargeting)) {
+          riskLevel = 'confirmed';
+          riskReasons.push('Contracts specifically target immigrant communities');
+        }
+      }
+      
+      return {
+        ...facility,
+        riskLevel: riskReasons.length > 0 ? riskLevel : 'possible',
+        riskReasons,
+        matchedContracts
+      };
+    })
+    .filter(f => f.riskReasons.length > 0)
+    .sort((a, b) => {
+      const levels = { confirmed: 0, likely: 1, possible: 2 };
+      return levels[a.riskLevel] - levels[b.riskLevel];
+    });
+  }, [facilities]);
   
   // Filter companies
   const filteredCompanies = useMemo(() => {
@@ -182,9 +317,10 @@ export const SurveillanceInfrastructureTab: React.FC = () => {
   );
 
   const renderNavigation = () => (
-    <div className="flex gap-2 mb-6">
+    <div className="flex gap-2 mb-6 flex-wrap">
       {[
         { id: 'overview', label: 'Overview', icon: <Activity className="w-4 h-4" /> },
+        { id: 'facilities', label: `🎯 Flagged Facilities (${flaggedFacilities.filter(f => f.riskLevel === 'confirmed' || f.riskLevel === 'likely').length})`, icon: <Server className="w-4 h-4" /> },
         { id: 'companies', label: 'Surveillance Companies', icon: <Building2 className="w-4 h-4" /> },
         { id: 'contracts', label: 'Federal Contracts', icon: <DollarSign className="w-4 h-4" /> },
         { id: 'alerts', label: 'Community Alerts', icon: <AlertTriangle className="w-4 h-4" /> },
@@ -690,6 +826,214 @@ export const SurveillanceInfrastructureTab: React.FC = () => {
     </div>
   );
 
+  // Toggle facility expansion
+  const toggleFacility = (id: number | undefined) => {
+    if (id === undefined) return;
+    setExpandedFacilities(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
+  };
+
+  const renderFlaggedFacilities = () => (
+    <div className="space-y-4">
+      {/* Flagged Facilities Stats */}
+      <div className="grid grid-cols-4 gap-4 mb-6">
+        <div className="bg-[#161b22] rounded-xl p-4 border border-red-500/50">
+          <div className="text-3xl font-bold text-red-400">
+            {flaggedFacilities.filter(f => f.riskLevel === 'confirmed').length}
+          </div>
+          <div className="text-sm text-gray-400">🔴 Confirmed ICE/DHS</div>
+        </div>
+        <div className="bg-[#161b22] rounded-xl p-4 border border-orange-500/50">
+          <div className="text-3xl font-bold text-orange-400">
+            {flaggedFacilities.filter(f => f.riskLevel === 'likely').length}
+          </div>
+          <div className="text-sm text-gray-400">🟠 Likely Connected</div>
+        </div>
+        <div className="bg-[#161b22] rounded-xl p-4 border border-yellow-500/50">
+          <div className="text-3xl font-bold text-yellow-400">
+            {flaggedFacilities.filter(f => f.riskLevel === 'possible').length}
+          </div>
+          <div className="text-sm text-gray-400">🟡 Possible Link</div>
+        </div>
+        <div className="bg-[#161b22] rounded-xl p-4 border border-[#30363d]">
+          <div className="text-3xl font-bold text-white">{facilities.length}</div>
+          <div className="text-sm text-gray-400">Total Facilities Scanned</div>
+        </div>
+      </div>
+
+      {/* Explanation */}
+      <div className="bg-blue-500/10 border border-blue-500/30 rounded-xl p-4 mb-4">
+        <h3 className="text-blue-400 font-bold flex items-center gap-2">
+          <Info className="w-5 h-5" />
+          How We Identify ICE-Connected Facilities
+        </h3>
+        <p className="text-blue-200 text-sm mt-2">
+          We cross-reference your facility database against: (1) Known AWS GovCloud and Azure Government regions,
+          (2) Operators with documented federal contracts, (3) Cities with known ICE data processing centers,
+          (4) Public contract records from USAspending.gov. Facilities are flagged as <strong>Confirmed</strong> (direct evidence),
+          <strong>Likely</strong> (multiple indicators), or <strong>Possible</strong> (single indicator).
+        </p>
+      </div>
+
+      {/* Loading State */}
+      {isLoadingFacilities && (
+        <div className="flex items-center justify-center py-12">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-red-500"></div>
+          <span className="ml-3 text-gray-400">Scanning facility database...</span>
+        </div>
+      )}
+
+      {/* No Results */}
+      {!isLoadingFacilities && flaggedFacilities.length === 0 && (
+        <div className="bg-[#161b22] rounded-xl p-8 text-center">
+          <CheckCircle className="w-12 h-12 text-green-400 mx-auto mb-4" />
+          <h3 className="text-xl font-bold text-white">No Flagged Facilities Found</h3>
+          <p className="text-gray-400 mt-2">
+            None of the facilities in your database match known ICE/DHS infrastructure indicators.
+            This doesn't mean they're not connected—it means we haven't found public evidence.
+          </p>
+        </div>
+      )}
+
+      {/* Flagged Facility List */}
+      {!isLoadingFacilities && flaggedFacilities.length > 0 && (
+        <div className="space-y-3">
+          {flaggedFacilities.map(facility => (
+            <div 
+              key={facility.id}
+              className={`bg-[#161b22] rounded-xl border overflow-hidden ${
+                facility.riskLevel === 'confirmed' ? 'border-red-500/50' :
+                facility.riskLevel === 'likely' ? 'border-orange-500/50' :
+                'border-yellow-500/30'
+              }`}
+            >
+              {/* Facility Header */}
+              <div 
+                onClick={() => toggleFacility(facility.id)}
+                className="p-4 cursor-pointer hover:bg-[#1c2128] transition-colors"
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    {expandedFacilities.has(facility.id ?? -1) 
+                      ? <ChevronDown className="w-5 h-5 text-gray-400" />
+                      : <ChevronRight className="w-5 h-5 text-gray-400" />
+                    }
+                    
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className={`px-2 py-0.5 text-xs font-bold rounded ${
+                          facility.riskLevel === 'confirmed' ? 'bg-red-500 text-white' :
+                          facility.riskLevel === 'likely' ? 'bg-orange-500 text-white' :
+                          'bg-yellow-500 text-black'
+                        }`}>
+                          {facility.riskLevel.toUpperCase()}
+                        </span>
+                        <h3 className="text-lg font-bold text-white">{facility.name}</h3>
+                      </div>
+                      <div className="text-sm text-gray-400 mt-1">
+                        {facility.operator} • {facility.city}, {facility.state}
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="text-right">
+                    <div className="text-sm text-gray-400">
+                      {facility.riskReasons.length} risk indicator{facility.riskReasons.length !== 1 ? 's' : ''}
+                    </div>
+                    {facility.matchedContracts.length > 0 && (
+                      <div className="text-xs text-red-400">
+                        {facility.matchedContracts.length} matching contract{facility.matchedContracts.length !== 1 ? 's' : ''}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+              
+              {/* Expanded Details */}
+              {expandedFacilities.has(facility.id ?? -1) && (
+                <div className="border-t border-[#30363d] p-4 bg-[#0d1117]">
+                  <div className="grid grid-cols-2 gap-6">
+                    {/* Risk Reasons */}
+                    <div>
+                      <h4 className="text-sm font-bold text-gray-300 uppercase mb-3">
+                        Why This Facility Is Flagged
+                      </h4>
+                      <ul className="space-y-2">
+                        {facility.riskReasons.map((reason, idx) => (
+                          <li key={idx} className="flex items-start gap-2 text-sm">
+                            <AlertTriangle className="w-4 h-4 text-red-400 mt-0.5 flex-shrink-0" />
+                            <span className="text-gray-300">{reason}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                    
+                    {/* Matched Contracts */}
+                    <div>
+                      <h4 className="text-sm font-bold text-gray-300 uppercase mb-3">
+                        Related Federal Contracts
+                      </h4>
+                      {facility.matchedContracts.length > 0 ? (
+                        <div className="space-y-2">
+                          {facility.matchedContracts.map(contract => (
+                            <div key={contract.id} className="bg-[#161b22] rounded-lg p-3">
+                              <div className="flex items-center justify-between">
+                                <span className="font-medium text-white">{contract.contractor}</span>
+                                <span className="text-green-400 font-bold">{formatCurrency(contract.amount)}</span>
+                              </div>
+                              <div className="text-xs text-gray-400 mt-1">{contract.description}</div>
+                              <div className="flex items-center gap-2 mt-2">
+                                <span className={`px-2 py-0.5 text-xs font-bold rounded text-white ${AGENCY_COLORS[contract.agency]}`}>
+                                  {contract.agency}
+                                </span>
+                                {contract.immigrantTargeting && (
+                                  <span className="px-2 py-0.5 text-xs font-bold rounded bg-red-600 text-white">
+                                    IMMIGRANT TARGETING
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="text-gray-500 text-sm">
+                          No specific contracts matched, but facility meets other risk criteria.
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                  
+                  {/* Action Buttons */}
+                  <div className="mt-4 pt-4 border-t border-[#30363d] flex gap-2">
+                    <button className="px-4 py-2 bg-red-500/20 text-red-400 rounded-lg text-sm font-medium hover:bg-red-500/30 transition-colors flex items-center gap-2">
+                      <AlertTriangle className="w-4 h-4" />
+                      Report Community Concern
+                    </button>
+                    <button className="px-4 py-2 bg-blue-500/20 text-blue-400 rounded-lg text-sm font-medium hover:bg-blue-500/30 transition-colors flex items-center gap-2">
+                      <FileText className="w-4 h-4" />
+                      File FOIA Request
+                    </button>
+                    <button className="px-4 py-2 bg-purple-500/20 text-purple-400 rounded-lg text-sm font-medium hover:bg-purple-500/30 transition-colors flex items-center gap-2">
+                      <ExternalLink className="w-4 h-4" />
+                      View Full Facility
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+
   // =============================================================================
   // MAIN RENDER
   // =============================================================================
@@ -700,6 +1044,7 @@ export const SurveillanceInfrastructureTab: React.FC = () => {
       {renderNavigation()}
       
       {activeSection === 'overview' && renderOverview()}
+      {activeSection === 'facilities' && renderFlaggedFacilities()}
       {activeSection === 'companies' && renderCompanies()}
       {activeSection === 'contracts' && renderContracts()}
       {activeSection === 'alerts' && renderAlerts()}

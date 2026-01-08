@@ -169,6 +169,14 @@ const NAV_GROUPS: NavGroup[] = [
         description: 'Labor organizing command center - FOIA, incidents, contractors, CBAs, legislation, union density, coalition',
         keywords: ['organize', 'union', 'labor', 'foia', 'incident', 'contractor', 'cba', 'legislative', 'coalition', 'ibew', 'corridor', 'campaign', 'worker'],
       },
+      {
+        id: 'Surveillance Infrastructure',
+        label: '🔴 Surveillance Tracker',
+        icon: <Eye className="w-5 h-5" />,
+        color: 'red',
+        description: 'Track ICE/DHS surveillance infrastructure, contracts, and companies targeting immigrant communities',
+        keywords: ['ice', 'surveillance', 'dhs', 'cbp', 'palantir', 'clearview', 'facial recognition', 'skip tracing', 'deportation', 'immigrant', 'contract', 'federal', 'ero', 'hsi'],
+      },
     ],
   },
   {
