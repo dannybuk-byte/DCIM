@@ -30,6 +30,7 @@ import {
   HelpCircle,
   Database,
   Cpu,
+  Bot,
 } from 'lucide-react';
 import { Tooltip } from './Tooltip';
 import type { CommandCenterTab } from '../DCIMCommandCenter';
@@ -184,6 +185,14 @@ const NAV_GROUPS: NavGroup[] = [
         color: 'rose',
         description: 'NYC ICE Data Infrastructure: REIT Exposure and Mayoral Regulatory Authority - Carrier Hotels, Enforcement Pyramid, Executive Order Framework',
         keywords: ['sanctuary', 'nyc', 'mayor', 'mamdani', 'carrier hotel', 'reit', 'equinix', 'digital realty', 'franchise', 'nycida', 'enforcement', 'ice', 'data flow', 'executive order', '111 8th avenue', '60 hudson', 'charter 363', 'mayoral authority'],
+      },
+      {
+        id: 'AI Agents',
+        label: '🤖 AI Agents',
+        icon: <Bot className="w-5 h-5" />,
+        color: 'violet',
+        description: 'Multi-agent orchestrator with human-in-the-loop approvals - anomaly, compliance, subsidy, network, and ownership agents',
+        keywords: ['ai', 'agent', 'multi-agent', 'orchestrator', 'approval', 'human-in-the-loop', 'hitl', 'autonomous', 'twiml', 'evidence', 'triangulation'],
       },
     ],
   },

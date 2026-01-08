@@ -14,7 +14,7 @@ import { calculateStats } from '../utils/stats';
 import { safeDbOperation } from '../utils/dbOperations';
 import { trackError } from '../utils/errorTracking';
 import { formatCurrency } from '../utils/formatting';
-import { Search, X, Filter, FileText, Sparkles, Building2, Network, Download, Settings, BarChart3, Home, ChevronRight, Maximize2, BookOpenCheck, List, Layout, HelpCircle, DollarSign, Shield, AlertTriangle, Brain, Eye, Target, TrendingUp, Database, Globe, Activity, Cpu } from 'lucide-react';
+import { Search, X, Filter, FileText, Sparkles, Building2, Network, Download, Settings, BarChart3, Home, ChevronRight, Maximize2, BookOpenCheck, List, Layout, HelpCircle, DollarSign, Shield, AlertTriangle, Brain, Eye, Target, TrendingUp, Database, Globe, Activity, Cpu, Bot } from 'lucide-react';
 import { ViewModeToggle, ViewMode } from './shared/ViewModeToggle';
 import { LayerTogglesPanel, LayerState } from './shared/LayerTogglesPanel';
 import { ExpandableSection } from './shared/ExpandableSection';
@@ -68,6 +68,7 @@ import { FollowYourDataTab } from './tabs/FollowYourDataTab'; // NEW: Infrastruc
 import { SanctionsMonitorTab } from './tabs/SanctionsMonitorTab'; // NEW: OFAC Sanctions Network Hygiene Enforcement
 import { SurveillanceInfrastructureTab } from './tabs/SurveillanceInfrastructureTab'; // NEW: ICE/DHS surveillance tracker
 import { SanctuaryCityTab } from './tabs/SanctuaryCityTab'; // NEW: Sanctuary City Infrastructure Accountability
+import { ApprovalWorkflow } from './ApprovalWorkflow'; // NEW: Multi-Agent Human-in-the-Loop Approvals (TWIML-inspired)
 import { SmartSearchNav, NavProvider, QuickAccessNav } from './AntifragileNavigation'; // NEW: Antifragile Navigation System
 import { MobileBottomNav, MobileDrawer, MobileHeader } from './mobile'; // Mobile navigation components
 import EvidencePanel from './EvidencePanel'; // FRE 902(13)-(14) Evidence Integrity
@@ -77,6 +78,8 @@ import { MissionHeader, SubsidyGapHero } from './shared/HumanizedStats'; // Huma
 import { indexFacilities } from '../search/SearchEngine'; // FlexSearch initialization
 import { detectDashboardAction } from '../utils/dashboardActions';
 import { ErrorBoundary } from './ErrorBoundary';
+import { NetworkStatusBanner } from './shared/SystemHealthDashboard'; // Antifragile network status
+import { saveActiveTab, getLastActiveTab, savePreferences, getSavedPreferences, recordVisit } from '../utils/sessionPersistence'; // Session persistence
 import { CommandPalette } from './shared/CommandPalette';
 // SimpleBuildBadge removed to reduce clutter
 import { SettingsPanel } from './shared/SettingsPanel';
@@ -134,7 +137,8 @@ export type CommandCenterTab =
   | 'Organizer Hub' // NEW: Labor organizing command center
   | 'AI Infrastructure' // NEW: Epoch AI data center intelligence
   | 'Surveillance Infrastructure' // NEW: ICE/DHS surveillance tracker
-  | 'Sanctuary City'; // NEW: Sanctuary City Infrastructure Accountability
+  | 'Sanctuary City' // NEW: Sanctuary City Infrastructure Accountability
+  | 'AI Agents'; // NEW: Multi-Agent Orchestrator with Human-in-the-Loop Approvals
   // | 'POC';  // Disabled - requires @kuzu/kuzu-wasm
 
 interface DCIMCommandCenterProps {
@@ -518,9 +522,19 @@ export default function DCIMCommandCenter({ onActionRequested: _onActionRequeste
   const [stats, setStats] = useState<ComplianceStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [showSkeleton, setShowSkeleton] = useState(false); // Show skeleton after loading screen
-  const [activeTab, setActiveTab] = useState<CommandCenterTab>('Overview');
+  
+  // 🛡️ ANTIFRAGILE: Restore last active tab from session (graceful fallback to 'Overview')
+  const [activeTab, setActiveTab] = useState<CommandCenterTab>(() => {
+    const { tab } = getLastActiveTab();
+    return (tab as CommandCenterTab) || 'Overview';
+  });
   const [isPending, startTabTransition] = useTransition();
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false); // Navigation sidebar state
+  
+  // 🛡️ ANTIFRAGILE: Restore sidebar state from session
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
+    const prefs = getSavedPreferences();
+    return prefs?.sidebarCollapsed ?? false;
+  }); // Navigation sidebar state
   const [showFAQ, setShowFAQ] = useState(false); // Help & Documentation modal
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false); // Mobile drawer state
   
@@ -548,6 +562,9 @@ export default function DCIMCommandCenter({ onActionRequested: _onActionRequeste
   const handleTabChange = useCallback((tab: CommandCenterTab) => {
     startTabTransition(() => {
       setActiveTab(tab);
+      
+      // 🛡️ ANTIFRAGILE: Persist active tab for session recovery
+      saveActiveTab(tab);
       
       // Reset scroll position smoothly on tab change
       requestAnimationFrame(() => {
@@ -771,6 +788,19 @@ export default function DCIMCommandCenter({ onActionRequested: _onActionRequeste
     };
   }, []);
 
+  // 🛡️ ANTIFRAGILE: Record visit and log session info
+  useEffect(() => {
+    const { isReturning, lastVisit } = recordVisit();
+    if (isReturning && lastVisit) {
+      console.log(`[Session] Welcome back! Last visit: ${lastVisit.toLocaleDateString()}`);
+    }
+  }, []);
+
+  // 🛡️ ANTIFRAGILE: Persist sidebar state changes
+  useEffect(() => {
+    savePreferences({ sidebarCollapsed });
+  }, [sidebarCollapsed]);
+
 
   // Keyboard shortcuts with cleanup (Rule 4)
   useEffect(() => {
@@ -952,6 +982,7 @@ export default function DCIMCommandCenter({ onActionRequested: _onActionRequeste
     'Organizer Hub', // NEW: Labor organizing command center
     'Surveillance Infrastructure', // NEW: ICE/DHS surveillance tracker
     'Sanctuary City', // NEW: Sanctuary City Infrastructure Accountability
+    'AI Agents', // NEW: Multi-Agent Orchestrator with Human-in-the-Loop Approvals (TWIML-inspired)
     'Regulatory Toolkit', // NEW: Municipal DCIM scrapers and APIs
     'Follow Your Data', // NEW: Infrastructure Discovery with CAP, NPU, ILSR
     'Infrastructure',
@@ -989,6 +1020,7 @@ export default function DCIMCommandCenter({ onActionRequested: _onActionRequeste
     { id: 'Organizer Hub', label: '✊ Organizer Hub', shortLabel: 'Organize', icon: <Target className="w-4 h-4" />, group: 'Analysis & Intelligence', keywords: ['organize', 'union', 'labor', 'foia', 'incident', 'contractor', 'cba', 'legislative', 'coalition', 'ibew', 'corridor', 'campaign'], description: 'Labor organizing command center - FOIA, incidents, contractors, CBAs, legislation, union density, coalition coordination' },
     { id: 'Surveillance Infrastructure', label: '🔴 Surveillance Tracker', shortLabel: 'Surveillance', icon: <Eye className="w-4 h-4" />, group: 'Analysis & Intelligence', keywords: ['ice', 'surveillance', 'dhs', 'cbp', 'palantir', 'clearview', 'facial recognition', 'skip tracing', 'deportation', 'immigrant', 'contract', 'federal'], description: 'Track ICE/DHS surveillance infrastructure, contracts, and companies targeting immigrant communities' },
     { id: 'Sanctuary City', label: '🏛️ Sanctuary City', shortLabel: 'Sanctuary', icon: <Shield className="w-4 h-4" />, group: 'Analysis & Intelligence', keywords: ['sanctuary', 'nyc', 'mayor', 'mamdani', 'carrier hotel', 'reit', 'equinix', 'digital realty', 'franchise', 'nycida', 'enforcement', 'ice', 'data flow', 'executive order', 'regulatory', '111 8th avenue', '60 hudson', 'charter 363'], description: 'NYC ICE Data Infrastructure: REIT Exposure and Mayoral Regulatory Authority' },
+    { id: 'AI Agents', label: '🤖 AI Agents', shortLabel: 'Agents', icon: <Bot className="w-4 h-4" />, group: 'Analysis & Intelligence', keywords: ['ai', 'agent', 'multi-agent', 'orchestrator', 'approval', 'human-in-the-loop', 'hitl', 'autonomous', 'evidence', 'triangulation', 'twiml'], description: 'Multi-agent orchestrator with human-in-the-loop approvals for autonomous evidence gathering' },
     { id: 'Regulatory Toolkit', label: 'Regulatory APIs', shortLabel: 'Reg APIs', icon: <Database className="w-4 h-4" />, group: 'Analysis & Intelligence', keywords: ['municipal', 'regulatory', 'scraper', 'api', 'bls', 'sec', 'epa'], description: 'Municipal DCIM scrapers & APIs' },
     { id: 'Follow Your Data', label: 'Follow Your Data', shortLabel: 'Follow', icon: <Globe className="w-4 h-4" />, group: 'Analysis & Intelligence', keywords: ['follow', 'data', 'infrastructure', 'cap', 'npu', 'ilsr', 'community', 'geolocation', 'discovery'], description: 'Infrastructure discovery with CAP taxonomy, NPU framework, ILSR alternatives' },
     { id: 'Infrastructure', label: 'Infrastructure', shortLabel: 'Infra', icon: <Network className="w-4 h-4" />, group: 'Operations', keywords: ['infra', 'network', 'power', 'cooling'], description: 'Infrastructure details' },
@@ -1125,7 +1157,7 @@ export default function DCIMCommandCenter({ onActionRequested: _onActionRequeste
       ref={mainContentRef}
       key={activeTab}
       id="main-content"
-      className="flex-1 bg-gray-950 p-1.5 scroll-smooth main-scroll"
+      className="flex-1 bg-gray-950 p-1.5 scroll-smooth main-scroll min-h-0"
       role="tabpanel"
       aria-labelledby={`tab-${activeTab.toLowerCase().replace(/\s+/g, '-')}`}
       tabIndex={0}
@@ -1136,8 +1168,8 @@ export default function DCIMCommandCenter({ onActionRequested: _onActionRequeste
         overflowX: 'hidden',
         overscrollBehavior: 'contain',
         scrollPadding: '0',
-        height: '100%',
-        maxHeight: '100%',
+        height: 'calc(100vh - 140px)',
+        maxHeight: 'calc(100vh - 140px)',
         outline: 'none',
         position: 'relative'
       }}
@@ -1180,7 +1212,7 @@ export default function DCIMCommandCenter({ onActionRequested: _onActionRequeste
 
       {activeTab === 'Explorer' && (
         <ErrorBoundary>
-          <div className="h-full">
+          <div className="min-h-0 overflow-y-auto" style={{ height: 'calc(100vh - 140px)', maxHeight: 'calc(100vh - 140px)' }}>
             <FacilityExplorer facilities={filteredFacilities} />
           </div>
         </ErrorBoundary>
@@ -1276,7 +1308,7 @@ export default function DCIMCommandCenter({ onActionRequested: _onActionRequeste
       {/* NEW: Pattern Intelligence - Enhanced Surveillance & Pattern Recognition */}
       {activeTab === 'Pattern Intelligence' && (
         <ErrorBoundary>
-          <div className="p-6 overflow-y-auto h-full bg-slate-50">
+          <div className="p-6 overflow-y-auto min-h-0 bg-slate-50" style={{ height: 'calc(100vh - 140px)', maxHeight: 'calc(100vh - 140px)' }}>
             <PatternIntelligenceDashboard />
           </div>
         </ErrorBoundary>
@@ -1285,7 +1317,7 @@ export default function DCIMCommandCenter({ onActionRequested: _onActionRequeste
       {/* NEW: Deep Intelligence - Full API Data Extraction */}
       {activeTab === 'Deep Intelligence' && (
         <ErrorBoundary>
-          <div className="p-6 overflow-y-auto h-full bg-slate-50">
+          <div className="p-6 overflow-y-auto min-h-0 bg-slate-50" style={{ height: 'calc(100vh - 140px)', maxHeight: 'calc(100vh - 140px)' }}>
             <DeepIntelligence />
           </div>
         </ErrorBoundary>
@@ -1293,7 +1325,7 @@ export default function DCIMCommandCenter({ onActionRequested: _onActionRequeste
 
       {activeTab === 'Predictive Subsidy' && (
         <ErrorBoundary>
-          <div className="p-6 overflow-y-auto h-full bg-slate-50">
+          <div className="p-6 overflow-y-auto min-h-0 bg-slate-50" style={{ height: 'calc(100vh - 140px)', maxHeight: 'calc(100vh - 140px)' }}>
             <PredictiveSubsidyDashboard />
           </div>
         </ErrorBoundary>
@@ -1301,7 +1333,7 @@ export default function DCIMCommandCenter({ onActionRequested: _onActionRequeste
 
       {activeTab === 'Subsidy Accountability' && (
         <ErrorBoundary>
-          <div className="h-full overflow-hidden">
+          <div className="min-h-0 overflow-y-auto" style={{ height: 'calc(100vh - 140px)', maxHeight: 'calc(100vh - 140px)' }}>
             <SubsidyAccountabilityPanel />
           </div>
         </ErrorBoundary>
@@ -1309,7 +1341,7 @@ export default function DCIMCommandCenter({ onActionRequested: _onActionRequeste
 
       {activeTab === 'Organizer Hub' && (
         <ErrorBoundary>
-          <div className="h-full overflow-hidden">
+          <div className="min-h-0 overflow-y-auto" style={{ height: 'calc(100vh - 140px)', maxHeight: 'calc(100vh - 140px)' }}>
             <OrganizerCommandCenter />
           </div>
         </ErrorBoundary>
@@ -1317,7 +1349,7 @@ export default function DCIMCommandCenter({ onActionRequested: _onActionRequeste
 
       {activeTab === 'Surveillance Infrastructure' && (
         <ErrorBoundary>
-          <div className="h-full overflow-auto">
+          <div className="min-h-0 overflow-y-auto" style={{ height: 'calc(100vh - 140px)', maxHeight: 'calc(100vh - 140px)' }}>
             <SurveillanceInfrastructureTab />
           </div>
         </ErrorBoundary>
@@ -1325,15 +1357,24 @@ export default function DCIMCommandCenter({ onActionRequested: _onActionRequeste
 
       {activeTab === 'Sanctuary City' && (
         <ErrorBoundary>
-          <div className="h-full overflow-hidden">
+          <div className="min-h-0 overflow-y-auto" style={{ height: 'calc(100vh - 140px)', maxHeight: 'calc(100vh - 140px)' }}>
             <SanctuaryCityTab />
+          </div>
+        </ErrorBoundary>
+      )}
+
+      {/* NEW: AI Agents - Multi-Agent Orchestrator with Human-in-the-Loop (TWIML-inspired) */}
+      {activeTab === 'AI Agents' && (
+        <ErrorBoundary>
+          <div className="min-h-0 overflow-y-auto bg-gray-50" style={{ height: 'calc(100vh - 120px)', maxHeight: 'calc(100vh - 120px)' }}>
+            <ApprovalWorkflow />
           </div>
         </ErrorBoundary>
       )}
 
       {activeTab === 'Regulatory Toolkit' && (
         <ErrorBoundary>
-          <div className="p-6 overflow-y-auto h-full bg-slate-50">
+          <div className="p-6 overflow-y-auto min-h-0 bg-slate-50" style={{ height: 'calc(100vh - 140px)', maxHeight: 'calc(100vh - 140px)' }}>
             <RegulatoryToolkit />
           </div>
         </ErrorBoundary>
@@ -1389,6 +1430,9 @@ export default function DCIMCommandCenter({ onActionRequested: _onActionRequeste
 
   return (
     <>
+      {/* 🛡️ ANTIFRAGILE: Network Status Banner - shows offline/online status */}
+      <NetworkStatusBanner />
+      
       {/* MOBILE NAVIGATION - Shows on screens <= 768px */}
       <MobileHeader
         title="DCIM Dashboard"
@@ -1434,7 +1478,7 @@ export default function DCIMCommandCenter({ onActionRequested: _onActionRequeste
       ) : (
         /* ORIGINAL TAB-BASED LAYOUT - Now with Antifragile Navigation */
     <NavProvider tabs={NAV_TABS} activeTab={activeTab} onTabChange={(tab) => handleTabChange(tab as CommandCenterTab)}>
-    <div className="min-h-screen md:h-screen bg-gray-950 text-white flex flex-col md:flex-row pb-16 md:pb-0" style={{ overflow: 'hidden', position: 'relative' }}>
+    <div className="min-h-screen md:h-screen bg-gray-950 text-white flex flex-col md:flex-row pb-16 md:pb-0" style={{ overflow: 'auto', position: 'relative' }}>
       {/* Smart Search Modal (⌘K) */}
       <SmartSearchNav isOpen={showSmartSearch} onClose={() => setShowSmartSearch(false)} />
       
@@ -1454,7 +1498,7 @@ export default function DCIMCommandCenter({ onActionRequested: _onActionRequeste
       </div>
 
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col" style={{ overflow: 'hidden' }}>
+      <div className="flex-1 flex flex-col" style={{ overflow: 'auto', minHeight: 0 }}>
       {/* Skip Links for Accessibility */}
       <div className="sr-only focus-within:not-sr-only focus-within:absolute focus-within:z-[100] focus-within:top-4 focus-within:left-4">
         <a
@@ -1607,6 +1651,15 @@ export default function DCIMCommandCenter({ onActionRequested: _onActionRequeste
                 <Sparkles className="w-4 h-4" />
                 </button>
               </Tooltip>
+            <Tooltip content="AI Agents - Multi-Agent Orchestrator">
+              <button 
+                onClick={() => handleTabChange('AI Agents')} 
+                className="p-1.5 bg-violet-600 hover:bg-violet-700 rounded text-white flex items-center gap-1"
+              >
+                <Bot className="w-4 h-4" />
+                <span className="text-[9px] font-bold hidden xl:inline">AGENTS</span>
+              </button>
+            </Tooltip>
             <div className="h-4 w-px bg-gray-700" />
             <Tooltip content="Fullscreen (F)">
               <button onClick={() => setIsFullscreenTab(true)} className="p-1.5 bg-gray-800 hover:bg-gray-700 rounded border border-gray-700">

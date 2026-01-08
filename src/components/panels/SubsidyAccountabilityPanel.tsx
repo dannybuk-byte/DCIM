@@ -307,7 +307,7 @@ export const SubsidyAccountabilityPanel: React.FC = () => {
   ];
 
   return (
-    <div className="h-full flex flex-col bg-slate-950 text-white overflow-hidden">
+    <div className="h-full flex flex-col bg-slate-950 text-white overflow-auto">
       {/* Compact Header */}
       <div className="flex-shrink-0 px-3 py-2 border-b border-slate-800">
         <div className="flex items-center justify-between mb-2">

@@ -22,7 +22,7 @@ import {
   Database, Server, Shield, FileText, Calendar, Home, Compass, Briefcase,
   Users2, Radio, FileWarning, Landmark, Map, ChevronUp, PanelLeftClose,
   PanelLeft, Command, ArrowRight, Sparkles, Clock, Hash, Minus, Plus,
-  LayoutGrid, List, Grid3X3, Maximize2, Minimize2, Share2
+  LayoutGrid, List, Grid3X3, Maximize2, Minimize2, Share2, Upload
 } from 'lucide-react';
 import { db } from '../db/database';
 import { seedRealDatabase } from '../db/seedRealData';
@@ -31,6 +31,12 @@ import { ErrorBoundary } from './ErrorBoundary';
 import { OrganizingIntelligenceTab } from './tabs/OrganizingIntelligenceTab';
 import { CoalitionToolsTab } from './tabs/CoalitionToolsTab';
 import { MissionHeader, SubsidyGapHero, ComplianceBadge } from './shared/HumanizedStats';
+import { DataExportButton } from './shared/DataExportButton';
+import { DataImportButton } from './shared/DataImportButton';
+import { SystemHealthDashboard } from './shared/SystemHealthDashboard';
+import { saveActiveTab, getLastActiveTab, savePreferences, getSavedPreferences, recordVisit } from '../utils/sessionPersistence';
+import { startAutoBackup, stopAutoBackup, checkForRecovery, clearBackup, AutoBackupState } from '../utils/autoBackup';
+import { RecoveryBanner } from './shared/RecoveryBanner';
 
 // ============================================================================
 // DENSITY CONTEXT
@@ -756,20 +762,43 @@ const SpaceFillingOverviewGrid: React.FC<OverviewGridProps> = ({
   const halfViolators = Math.ceil(topViolators.length / 2);
   const totalViolators = topViolators.length;
 
-  // State breakdown for geographic section
+  // State breakdown for geographic section - COMPREHENSIVE: ALL states
   const stateBreakdown = useMemo(() => {
-    const byState: Record<string, { count: number; gap: number; nonCompliant: number }> = {};
+    const byState: Record<string, { count: number; gap: number; nonCompliant: number; atRisk: number; compliant: number }> = {};
     facilities.forEach(f => {
-      if (!byState[f.state]) byState[f.state] = { count: 0, gap: 0, nonCompliant: 0 };
+      if (!byState[f.state]) byState[f.state] = { count: 0, gap: 0, nonCompliant: 0, atRisk: 0, compliant: 0 };
       byState[f.state].count++;
       byState[f.state].gap += f.subsidyGap;
       if (f.status === 'Non-Compliant') byState[f.state].nonCompliant++;
+      else if (f.status === 'At Risk') byState[f.state].atRisk++;
+      else byState[f.state].compliant++;
     });
     return Object.entries(byState)
       .map(([state, data]) => ({ state, ...data }))
-      .sort((a, b) => b.gap - a.gap)
-      .slice(0, 12);
+      .sort((a, b) => b.gap - a.gap); // No slice - show ALL states
   }, [facilities]);
+
+  // State for expanded state view
+  const [showAllStates, setShowAllStates] = useState(false);
+  const [stateFilter, setStateFilter] = useState<'all' | 'top' | 'violations'>('all');
+  
+  // Filtered states based on current filter
+  const filteredStates = useMemo(() => {
+    let states = [...stateBreakdown];
+    if (stateFilter === 'violations') {
+      states = states.filter(s => s.nonCompliant > 0).sort((a, b) => b.nonCompliant - a.nonCompliant);
+    }
+    return showAllStates ? states : states.slice(0, 12);
+  }, [stateBreakdown, showAllStates, stateFilter]);
+
+  // State totals
+  const stateTotals = useMemo(() => ({
+    totalStates: stateBreakdown.length,
+    totalFacilities: stateBreakdown.reduce((sum, s) => sum + s.count, 0),
+    totalGap: stateBreakdown.reduce((sum, s) => sum + s.gap, 0),
+    totalViolations: stateBreakdown.reduce((sum, s) => sum + s.nonCompliant, 0),
+    statesWithViolations: stateBreakdown.filter(s => s.nonCompliant > 0).length,
+  }), [stateBreakdown]);
 
   // Recent high-risk alerts (simulated based on subsidy gap and status)
   const recentAlerts = useMemo(() => {
@@ -907,7 +936,7 @@ const SpaceFillingOverviewGrid: React.FC<OverviewGridProps> = ({
             <span className="font-semibold text-slate-700">Top Subsidy Violators</span>
             <span className="ml-auto text-slate-400 text-sm">{topViolators.length} facilities tracked</span>
           </div>
-          <div className="flex-1 overflow-hidden grid grid-cols-2 divide-x divide-slate-100">
+          <div className="flex-1 overflow-auto grid grid-cols-2 divide-x divide-slate-100">
             {/* Left column */}
             <div className="overflow-y-auto max-h-[300px]">
               {topViolators.slice(0, halfViolators).map((f, i) => (
@@ -997,35 +1026,134 @@ const SpaceFillingOverviewGrid: React.FC<OverviewGridProps> = ({
 
       {/* ========== ROW 3: GEOGRAPHIC BREAKDOWN + ALERTS ========== */}
       <div className="grid grid-cols-3 gap-3">
-        {/* State-by-State Breakdown */}
+        {/* State-by-State Breakdown - COMPREHENSIVE */}
         <div className="col-span-2 bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-          <div className="bg-gradient-to-r from-emerald-50 to-teal-50 border-b border-slate-200 px-4 py-2.5 flex items-center gap-2">
-            <MapPin size={16} className="text-emerald-600" />
-            <span className="font-semibold text-slate-700">State-by-State Accountability</span>
-            <span className="ml-auto text-slate-400 text-sm">{stateBreakdown.length} states</span>
+          <div className="bg-gradient-to-r from-emerald-50 to-teal-50 border-b border-slate-200 px-4 py-2.5">
+            <div className="flex items-center gap-2">
+              <MapPin size={16} className="text-emerald-600" />
+              <span className="font-semibold text-slate-700">State-by-State Accountability</span>
+              <span className="ml-auto text-slate-500 text-xs">
+                {stateTotals.totalStates} states • {stateTotals.totalFacilities.toLocaleString()} facilities • ${(stateTotals.totalGap / 1e9).toFixed(2)}B total gap
+              </span>
+            </div>
+            {/* Filter tabs and expand toggle */}
+            <div className="flex items-center gap-2 mt-2">
+              <div className="flex gap-1">
+                {[
+                  { key: 'all', label: 'All States' },
+                  { key: 'violations', label: `With Violations (${stateTotals.statesWithViolations})` },
+                ].map(tab => (
+                  <button
+                    key={tab.key}
+                    onClick={() => setStateFilter(tab.key as typeof stateFilter)}
+                    className={`px-2 py-1 text-xs rounded transition-colors ${
+                      stateFilter === tab.key 
+                        ? 'bg-emerald-600 text-white' 
+                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                    }`}
+                  >
+                    {tab.label}
+                  </button>
+                ))}
+              </div>
+              <button
+                onClick={() => setShowAllStates(!showAllStates)}
+                className="ml-auto px-2 py-1 text-xs bg-slate-100 hover:bg-slate-200 rounded text-slate-600 transition-colors flex items-center gap-1"
+              >
+                {showAllStates ? (
+                  <>
+                    <ChevronUp size={12} />
+                    Show Top 12
+                  </>
+                ) : (
+                  <>
+                    <ChevronDown size={12} />
+                    Show All {stateTotals.totalStates}
+                  </>
+                )}
+              </button>
+            </div>
           </div>
-          <div className="p-3 overflow-y-auto max-h-[250px]">
+          
+          {/* Summary stats bar */}
+          <div className="px-4 py-2 bg-slate-50 border-b border-slate-200 grid grid-cols-4 gap-2 text-center">
+            <div>
+              <div className="text-lg font-bold text-slate-800">{stateTotals.totalStates}</div>
+              <div className="text-[10px] text-slate-500 uppercase">States/Regions</div>
+            </div>
+            <div>
+              <div className="text-lg font-bold text-red-600">{stateTotals.totalViolations.toLocaleString()}</div>
+              <div className="text-[10px] text-slate-500 uppercase">Total Violations</div>
+            </div>
+            <div>
+              <div className="text-lg font-bold text-orange-600">${(stateTotals.totalGap / 1e9).toFixed(2)}B</div>
+              <div className="text-[10px] text-slate-500 uppercase">Total Gap</div>
+            </div>
+            <div>
+              <div className="text-lg font-bold text-emerald-600">{stateTotals.statesWithViolations}</div>
+              <div className="text-[10px] text-slate-500 uppercase">States w/ Issues</div>
+            </div>
+          </div>
+
+          <div className={`p-3 overflow-y-auto ${showAllStates ? 'max-h-[400px]' : 'max-h-[250px]'}`}>
             <div className="grid grid-cols-3 gap-2">
-              {stateBreakdown.map((state, i) => (
+              {filteredStates.map((state, i) => (
                 <div 
                   key={state.state}
-                  className="bg-slate-50 rounded-lg p-2 hover:bg-emerald-50 transition-colors cursor-pointer border border-slate-100"
+                  className={`rounded-lg p-2 transition-colors cursor-pointer border ${
+                    state.nonCompliant > 100 ? 'bg-red-50 border-red-200 hover:bg-red-100' :
+                    state.nonCompliant > 50 ? 'bg-orange-50 border-orange-200 hover:bg-orange-100' :
+                    state.nonCompliant > 20 ? 'bg-yellow-50 border-yellow-200 hover:bg-yellow-100' :
+                    state.nonCompliant > 0 ? 'bg-slate-50 border-slate-200 hover:bg-slate-100' :
+                    'bg-green-50 border-green-200 hover:bg-green-100'
+                  }`}
                 >
                   <div className="flex items-center justify-between mb-1">
-                    <span className="font-bold text-slate-800 text-sm">{state.state}</span>
-                    <span className={`text-xs px-1.5 py-0.5 rounded ${
+                    <div className="flex items-center gap-1">
+                      <span className="text-xs text-slate-400 font-mono w-4">{i + 1}</span>
+                      <span className="font-bold text-slate-800 text-sm">{state.state}</span>
+                    </div>
+                    <span className={`text-xs px-1.5 py-0.5 rounded font-medium ${
+                      state.nonCompliant > 100 ? 'bg-red-500 text-white' :
                       state.nonCompliant > 50 ? 'bg-red-100 text-red-700' :
                       state.nonCompliant > 20 ? 'bg-yellow-100 text-yellow-700' :
+                      state.nonCompliant > 0 ? 'bg-slate-200 text-slate-700' :
                       'bg-green-100 text-green-700'
                     }`}>
                       {state.nonCompliant} violations
                     </span>
                   </div>
-                  <div className="text-xs text-slate-500">{state.count} facilities</div>
-                  <div className="text-sm font-semibold text-red-600">${(state.gap / 1e6).toFixed(1)}M gap</div>
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-slate-500">{state.count} facilities</span>
+                    <span className="text-slate-400">
+                      {state.compliant} ✓ · {state.atRisk} ⚠
+                    </span>
+                  </div>
+                  <div className="text-sm font-semibold text-red-600 mt-1">${(state.gap / 1e6).toFixed(1)}M gap</div>
+                  {/* Progress bar showing violation rate */}
+                  <div className="mt-1 h-1 bg-slate-200 rounded-full overflow-hidden">
+                    <div 
+                      className={`h-full rounded-full ${
+                        state.nonCompliant / state.count > 0.5 ? 'bg-red-500' :
+                        state.nonCompliant / state.count > 0.25 ? 'bg-orange-500' :
+                        state.nonCompliant / state.count > 0.1 ? 'bg-yellow-500' :
+                        'bg-green-500'
+                      }`}
+                      style={{ width: `${Math.min(100, (state.nonCompliant / state.count) * 100)}%` }}
+                    />
+                  </div>
                 </div>
               ))}
             </div>
+            {!showAllStates && stateBreakdown.length > 12 && (
+              <button
+                onClick={() => setShowAllStates(true)}
+                className="w-full mt-3 py-2 text-sm text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 rounded-lg transition-colors flex items-center justify-center gap-1"
+              >
+                <ChevronDown size={14} />
+                Show {stateBreakdown.length - 12} more states
+              </button>
+            )}
           </div>
         </div>
 
@@ -1110,13 +1238,18 @@ const SpaceFillingOverviewGrid: React.FC<OverviewGridProps> = ({
                 <div className="text-xs text-slate-500">Request subsidy records</div>
               </div>
             </button>
-            <button className="flex items-center gap-2 p-3 rounded-lg bg-green-50 hover:bg-green-100 transition-colors text-left">
-              <Download size={18} className="text-green-600" />
-              <div>
-                <div className="text-sm font-medium text-slate-800">Export Report</div>
-                <div className="text-xs text-slate-500">PDF/CSV download</div>
+            {/* 🛡️ ANTIFRAGILE: Data Export & Import */}
+            <DataExportButton facilities={facilities} />
+            <div className="flex items-center gap-2 p-3 rounded-lg bg-indigo-50 hover:bg-indigo-100 transition-colors">
+              <Upload size={18} className="text-indigo-600" />
+              <div className="flex-1">
+                <DataImportButton 
+                  onImportComplete={() => window.location.reload()} 
+                  className="!bg-transparent !p-0 !text-slate-800 text-sm font-medium"
+                />
+                <div className="text-xs text-slate-500">Restore from backup</div>
               </div>
-            </button>
+            </div>
             <button className="flex items-center gap-2 p-3 rounded-lg bg-purple-50 hover:bg-purple-100 transition-colors text-left">
               <Share2 size={18} className="text-purple-600" />
               <div>
@@ -1135,7 +1268,10 @@ const SpaceFillingOverviewGrid: React.FC<OverviewGridProps> = ({
         </div>
       </div>
 
-      {/* ========== ROW 5: MISSION FOOTER ========== */}
+      {/* ========== ROW 5: SYSTEM HEALTH (Antifragile) ========== */}
+      <SystemHealthDashboard variant="compact" className="mb-3" />
+
+      {/* ========== ROW 6: MISSION FOOTER ========== */}
       <div className="bg-gradient-to-r from-slate-800 to-slate-900 rounded-xl p-4 text-center">
         <p className="text-slate-400 text-sm">
           <span className="text-cyan-400 font-semibold">Built for workers</span> • 
@@ -1152,14 +1288,66 @@ const SpaceFillingOverviewGrid: React.FC<OverviewGridProps> = ({
 // MAIN LAYOUT COMPONENT
 // ============================================================================
 export const DensityOptimizedLayout: React.FC = () => {
-  const [densityMode, setDensityMode] = useState<DensityMode>('comfortable');
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [activeView, setActiveView] = useState<ActiveView>('overview');
+  // 🛡️ ANTIFRAGILE: Restore preferences from session
+  const [densityMode, setDensityMode] = useState<DensityMode>(() => {
+    const prefs = getSavedPreferences();
+    return (prefs?.densityMode as DensityMode) || 'comfortable';
+  });
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
+    const prefs = getSavedPreferences();
+    return prefs?.sidebarCollapsed ?? false;
+  });
+  const [activeView, setActiveView] = useState<ActiveView>(() => {
+    const { tab } = getLastActiveTab();
+    return (tab as ActiveView) || 'overview';
+  });
   const [facilities, setFacilities] = useState<Facility[]>([]);
   const [loading, setLoading] = useState(true);
   const [viewportHeight, setViewportHeight] = useState(window.innerHeight);
 
   const config = DENSITY_CONFIGS[densityMode];
+
+  // 🛡️ ANTIFRAGILE: Record visit for returning user detection
+  useEffect(() => {
+    recordVisit();
+  }, []);
+
+  // 🛡️ ANTIFRAGILE: Persist activeView changes
+  useEffect(() => {
+    saveActiveTab(activeView);
+  }, [activeView]);
+
+  // 🛡️ ANTIFRAGILE: Persist preferences changes
+  useEffect(() => {
+    savePreferences({ densityMode, sidebarCollapsed });
+  }, [densityMode, sidebarCollapsed]);
+
+  // 🛡️ ANTIFRAGILE: Auto-backup service for crash recovery
+  useEffect(() => {
+    startAutoBackup(() => ({
+      state: {
+        activeTab: activeView,
+        filters: {},
+        searchQuery: '',
+      },
+      metadata: {
+        facilityCount: facilities.length,
+        lastAction: 'auto-backup',
+      },
+    }));
+
+    return () => {
+      stopAutoBackup();
+    };
+  }, [activeView, facilities.length]);
+
+  // 🛡️ ANTIFRAGILE: Handle recovery from crash
+  const handleRecovery = useCallback((recoveredState: AutoBackupState['state']) => {
+    if (recoveredState.activeTab) {
+      setActiveView(recoveredState.activeTab as ActiveView);
+    }
+    console.log('[Recovery] State restored:', recoveredState);
+  }, []);
 
   // Track viewport size
   useEffect(() => {
@@ -1227,6 +1415,12 @@ export const DensityOptimizedLayout: React.FC = () => {
   return (
     <DensityContext.Provider value={{ config, setMode: setDensityMode }}>
       <div className="min-h-screen bg-slate-100">
+        {/* 🛡️ ANTIFRAGILE: Recovery banner for crash recovery */}
+        <RecoveryBanner 
+          onRecover={handleRecovery} 
+          onDismiss={() => clearBackup()}
+        />
+        
         {/* Sidebar */}
         <CompactSidebar
           activeView={activeView}

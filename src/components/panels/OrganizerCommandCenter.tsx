@@ -171,9 +171,9 @@ export const OrganizerCommandCenter: React.FC = () => {
   // === Render Functions ===
 
   const renderOverview = () => (
-    <div className="grid grid-cols-12 gap-2 h-full overflow-hidden">
+    <div className="grid grid-cols-12 gap-2 h-full overflow-auto">
       {/* Left Column - Stats + Quick Actions */}
-      <div className="col-span-3 flex flex-col gap-2 min-h-0 overflow-hidden">
+      <div className="col-span-3 flex flex-col gap-2 min-h-0 overflow-auto">
         {/* Key Metrics - Compact Grid */}
         <div className="grid grid-cols-2 gap-1 shrink-0">
           <MiniMetric label="FOIA Active" value={foiaRequests.filter(r => !['completed', 'denied'].includes(r.status)).length} color="purple" />
@@ -231,7 +231,7 @@ export const OrganizerCommandCenter: React.FC = () => {
       </div>
 
       {/* Center Column - Main Content */}
-      <div className="col-span-6 flex flex-col gap-2 min-h-0 overflow-hidden">
+      <div className="col-span-6 flex flex-col gap-2 min-h-0 overflow-auto">
         {/* Corridors Grid - fixed height */}
         <ScrollCard title="Data Center Corridors" icon={Map} color="text-cyan-400" height="h-36 shrink-0" count={DATA_CENTER_CORRIDORS.length}>
           <div className="grid grid-cols-2 gap-1 p-1">
@@ -301,7 +301,7 @@ export const OrganizerCommandCenter: React.FC = () => {
       </div>
 
       {/* Right Column - Alerts & Partners */}
-      <div className="col-span-3 flex flex-col gap-2 min-h-0 overflow-hidden">
+      <div className="col-span-3 flex flex-col gap-2 min-h-0 overflow-auto">
         {/* Priority Alerts - fixed height */}
         <ScrollCard title="Priority Alerts" icon={Bell} color="text-red-400" height="h-32 shrink-0">
           <div className="p-1 space-y-1">
@@ -807,7 +807,7 @@ export const OrganizerCommandCenter: React.FC = () => {
   }
 
   return (
-    <div className="h-full bg-[#0d1117] flex flex-col overflow-hidden">
+    <div className="h-full bg-[#0d1117] flex flex-col overflow-auto">
       {/* Compact Header */}
       <div className="bg-[#161b22] border-b border-[#30363d] px-3 py-1.5 flex items-center justify-between shrink-0">
         <div className="flex items-center gap-2">
@@ -843,7 +843,7 @@ export const OrganizerCommandCenter: React.FC = () => {
       </div>
 
       {/* Content - Takes remaining space */}
-      <div className="flex-1 p-2 overflow-hidden">
+      <div className="flex-1 p-2 overflow-auto min-h-0">
         {renderContent()}
       </div>
     </div>

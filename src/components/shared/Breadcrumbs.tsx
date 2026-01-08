@@ -46,6 +46,9 @@ const TAB_HIERARCHY: Record<CommandCenterTab, { category: string; label: string 
   'Sanctions Monitor': { category: 'Monitoring', label: 'Sanctions Monitor' },
   'Subsidy Accountability': { category: 'Compliance', label: 'Subsidy Accountability' },
   'Organizer Hub': { category: 'Organizing', label: 'Organizer Command Center' },
+  'Surveillance Infrastructure': { category: 'Analysis', label: 'Surveillance Infrastructure Tracker' },
+  'Sanctuary City': { category: 'Analysis', label: 'Sanctuary City Infrastructure' },
+  'AI Agents': { category: 'AI', label: 'Multi-Agent Orchestrator' },
   // 'POC' is disabled - requires @kuzu/kuzu-wasm
 };
 

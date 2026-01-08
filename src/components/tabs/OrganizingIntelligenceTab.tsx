@@ -60,6 +60,7 @@ import { NLPAction } from '../../hooks/useSectionNLP';
 import { SectionContext } from '../../ai/sectionPrompts';
 import { HelpIcon } from '../shared/InlineHelpButton';
 import { EpochAIIntelligenceTab } from './EpochAIIntelligenceTab';
+import { AIAgentHub } from '../AIAgentHub'; // NEW: Comprehensive AI Agent Dashboard
 import {
   OrganizingTarget,
   IBEWFootprint,
@@ -626,7 +627,7 @@ const DENSITY_CONFIG = {
 };
 
 export const OrganizingIntelligenceTab: React.FC = () => {
-  const [activeSection, setActiveSection] = useState<'targets' | 'contractors' | 'ibew' | 'corridors' | 'ai-infra'>('targets');
+  const [activeSection, setActiveSection] = useState<'targets' | 'contractors' | 'ibew' | 'corridors' | 'ai-infra' | 'ai-agents'>('targets');
   const [searchQuery, setSearchQuery] = useState('');
   const [priorityFilter, setPriorityFilter] = useState<string>('all');
   const [selectedTarget, setSelectedTarget] = useState<OrganizingTarget | null>(null);
@@ -902,6 +903,7 @@ export const OrganizingIntelligenceTab: React.FC = () => {
           { id: 'ibew', label: 'IBEW', icon: Zap },
           { id: 'corridors', label: 'Corridors', icon: MapPin },
           { id: 'ai-infra', label: 'AI Infra', icon: Cpu, highlight: true },
+          { id: 'ai-agents', label: '🤖 AI Agents', icon: Bot, highlight: true },
         ].map(({ id, label, icon: Icon, highlight }) => (
           <button
             key={id}
@@ -996,7 +998,7 @@ export const OrganizingIntelligenceTab: React.FC = () => {
         <span className="text-[10px] text-gray-500 whitespace-nowrap">{filteredTargets.length} targets</span>
       </div>
       
-      <div className="flex gap-1 flex-1 overflow-hidden">
+      <div className="flex gap-1 flex-1 overflow-auto min-h-0">
         {/* LEFT SIDEBAR - Quick Filters (Collapsible) - Narrow */}
         {leftSidebarOpen && (
           <div className="w-36 flex-shrink-0 flex flex-col bg-[#0d1117] border border-[#30363d] rounded overflow-hidden">
@@ -2823,6 +2825,7 @@ export const OrganizingIntelligenceTab: React.FC = () => {
               { id: 'ibew', label: 'IBEW', icon: Zap },
               { id: 'corridors', label: 'Corridors', icon: MapPin },
               { id: 'ai-infra', label: '🛰️ AI Infrastructure', icon: Cpu, highlight: true },
+              { id: 'ai-agents', label: '🤖 AI Agents', icon: Bot, highlight: true },
             ].map(({ id, label, icon: Icon, highlight }) => (
               <button
                 key={id}
@@ -2840,6 +2843,43 @@ export const OrganizingIntelligenceTab: React.FC = () => {
           </div>
         </div>
         <EpochAIIntelligenceTab />
+      </div>
+    );
+  }
+
+  // AI Agents has its own full layout - Comprehensive AI Agent Hub
+  if (activeSection === 'ai-agents') {
+    return (
+      <div className="h-full flex flex-col overflow-hidden">
+        {/* Minimal nav bar for returning to other sections */}
+        <div className="border-b border-[#30363d] bg-[#161b22] px-4 shrink-0">
+          <div className="flex items-center gap-2 py-2">
+            {[
+              { id: 'targets', label: 'Target Prioritization', icon: Target },
+              { id: 'contractors', label: 'Contractors', icon: Users },
+              { id: 'ibew', label: 'IBEW', icon: Zap },
+              { id: 'corridors', label: 'Corridors', icon: MapPin },
+              { id: 'ai-infra', label: '🛰️ AI Infrastructure', icon: Cpu, highlight: true },
+              { id: 'ai-agents', label: '🤖 AI Agents', icon: Bot, highlight: true },
+            ].map(({ id, label, icon: Icon, highlight }) => (
+              <button
+                key={id}
+                onClick={() => setActiveSection(id as typeof activeSection)}
+                className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded transition-colors ${
+                  activeSection === id
+                    ? highlight ? 'bg-violet-600/30 text-violet-300 border border-violet-500/50' : 'bg-[#21262d] text-white'
+                    : highlight ? 'text-violet-400 hover:text-violet-300 hover:bg-violet-600/20' : 'text-gray-500 hover:text-gray-300 hover:bg-[#21262d]/50'
+                }`}
+              >
+                <Icon className="w-3 h-3" />
+                {label}
+              </button>
+            ))}
+          </div>
+        </div>
+        <div className="flex-1 overflow-y-auto min-h-0">
+          <AIAgentHub />
+        </div>
       </div>
     );
   }
