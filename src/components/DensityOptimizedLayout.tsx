@@ -47,6 +47,7 @@ import { CommandPalette, createDefaultCommands, CommandItem } from './shared/Com
 import { SectionBoundary, QuickBoundary } from './shared/SmartErrorBoundary';
 import { DiagnosticTrigger } from './shared/DiagnosticPanel';
 import { FeedbackButton } from './shared/FeedbackReporter';
+import { StaleDataIndicator, useDataFreshness } from './shared/StaleDataIndicator';
 
 // Simple connection status dot for footer
 const ConnectionStatusDot = () => {
@@ -1333,6 +1334,7 @@ export const DensityOptimizedLayout: React.FC = () => {
   });
   const [facilities, setFacilities] = useState<Facility[]>([]);
   const [loading, setLoading] = useState(true);
+  const [lastDataUpdate, setLastDataUpdate] = useState<number>(Date.now());
   const [viewportHeight, setViewportHeight] = useState(window.innerHeight);
   const [showKeyboardHelp, setShowKeyboardHelp] = useState(false);
   const [showIntegrityModal, setShowIntegrityModal] = useState(false);
@@ -1413,6 +1415,7 @@ export const DensityOptimizedLayout: React.FC = () => {
         await seedRealDatabase();
         const data = await db.facilities.toArray();
         setFacilities(data.map(mapFacility));
+        setLastDataUpdate(Date.now()); // 🛡️ ANTIFRAGILE: Track data freshness
       } catch (error) {
         console.error('Failed to load facilities:', error);
       } finally {
@@ -1421,6 +1424,26 @@ export const DensityOptimizedLayout: React.FC = () => {
     };
     loadData();
   }, []);
+
+  // 🛡️ ANTIFRAGILE: Refresh data function
+  const refreshData = useCallback(async () => {
+    try {
+      setLoading(true);
+      const data = await db.facilities.toArray();
+      setFacilities(data.map(mapFacility));
+      setLastDataUpdate(Date.now());
+      logSystem('Data refreshed manually');
+    } catch (error) {
+      console.error('Failed to refresh data:', error);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  // 🛡️ ANTIFRAGILE: Track data freshness
+  const dataFreshness = useDataFreshness(lastDataUpdate, {
+    onRefresh: refreshData,
+  });
 
   // Stats
   const stats = useMemo(() => ({
@@ -1577,8 +1600,14 @@ export const DensityOptimizedLayout: React.FC = () => {
             },
           ]} />
           
-          {/* Density Toggle */}
-          <div className="absolute right-2 top-1/2 -translate-y-1/2">
+          {/* 🛡️ ANTIFRAGILE: Data Freshness + Density Toggle */}
+          <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-3">
+            <StaleDataIndicator 
+              lastUpdated={lastDataUpdate}
+              onRefresh={refreshData}
+              isRefreshing={loading}
+              variant="badge"
+            />
             <DensityToggle />
           </div>
         </div>
@@ -1591,6 +1620,19 @@ export const DensityOptimizedLayout: React.FC = () => {
             paddingTop: config.rowHeight + 16,
           }}
         >
+          {/* 🛡️ ANTIFRAGILE: Stale data banner when data is old */}
+          {dataFreshness.isStale && !loading && (
+            <div className="mx-4 mt-2 mb-4">
+              <StaleDataIndicator 
+                lastUpdated={lastDataUpdate}
+                onRefresh={refreshData}
+                isRefreshing={loading}
+                variant="banner"
+                showAutoRefresh={true}
+              />
+            </div>
+          )}
+          
           {loading ? (
             <div className="flex items-center justify-center h-[50vh]">
               <Loader2 className="animate-spin text-blue-500" size={32} />
