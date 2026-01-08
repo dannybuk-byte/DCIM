@@ -1973,10 +1973,10 @@ export const OrganizingIntelligenceTab: React.FC = () => {
   // MAIN RENDER
   // =============================================================================
   
-  // AI Infrastructure has its own full-screen layout
+  // AI Infrastructure has its own full layout
   if (activeSection === 'ai-infra') {
     return (
-      <div className="min-h-screen bg-[#0d1117]">
+      <div className="min-h-full bg-[#0d1117]">
         {/* Minimal nav bar for returning to other sections */}
         <div className="border-b border-[#30363d] bg-[#161b22] px-4">
           <div className="flex items-center gap-2 py-2">
@@ -2008,11 +2008,11 @@ export const OrganizingIntelligenceTab: React.FC = () => {
   }
 
   return (
-    <div className="h-screen bg-[#0d1117] flex flex-col overflow-hidden">
+    <div className="min-h-full bg-[#0d1117] flex flex-col">
       {renderHeader()}
       {renderNavigation()}
       
-      <div className="flex-1 min-h-0 overflow-auto">
+      <div className="flex-1 overflow-auto">
         {activeSection === 'targets' && renderTargetSection()}
         {activeSection === 'contractors' && renderContractorSection()}
         {activeSection === 'ibew' && renderIBEWSection()}
