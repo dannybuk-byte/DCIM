@@ -43,6 +43,7 @@ import { logNavigation, logSettingsChange, logSystem, logRecovery } from '../uti
 import { OfflineBanner, ReconnectionToast } from './shared/ConnectionStatusIndicator';
 import { useConnectionStatus } from '../utils/connectionResilience';
 import { IntegrityBadge, IntegrityModal } from './shared/DataIntegrityPanel';
+import { CommandPalette, createDefaultCommands, CommandItem } from './shared/CommandPalette';
 
 // Simple connection status dot for footer
 const ConnectionStatusDot = () => {
@@ -1332,6 +1333,8 @@ export const DensityOptimizedLayout: React.FC = () => {
   const [viewportHeight, setViewportHeight] = useState(window.innerHeight);
   const [showKeyboardHelp, setShowKeyboardHelp] = useState(false);
   const [showIntegrityModal, setShowIntegrityModal] = useState(false);
+  const [showCommandPalette, setShowCommandPalette] = useState(false);
+  const [showActionHistoryModal, setShowActionHistoryModal] = useState(false);
 
   const config = DENSITY_CONFIGS[densityMode];
 
@@ -1442,13 +1445,30 @@ export const DensityOptimizedLayout: React.FC = () => {
       .slice(0, 20);
   }, [facilities]);
 
-  // Keyboard shortcuts for density and help
+  // 🛡️ ANTIFRAGILE: Create command palette commands
+  const commands: CommandItem[] = useMemo(() => createDefaultCommands({
+    onNavigate: handleNavigate,
+    onShowKeyboardHelp: () => setShowKeyboardHelp(true),
+    onShowActionHistory: () => setShowActionHistoryModal(true),
+    onShowIntegrity: () => setShowIntegrityModal(true),
+    onToggleDensity: (mode) => handleDensityChange(mode as DensityMode),
+    onToggleSidebar: () => setSidebarCollapsed(prev => !prev),
+  }), [handleNavigate, handleDensityChange]);
+
+  // Keyboard shortcuts for density, help, and command palette
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
-      // Don't trigger if typing in input
-      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
+      // Don't trigger if typing in input (except for Cmd+K)
+      const isTyping = e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement;
+      
+      // Cmd+K always opens command palette
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        setShowCommandPalette(prev => !prev);
         return;
       }
+      
+      if (isTyping) return;
       
       if (e.altKey && e.key === '1') handleDensityChange('compact');
       if (e.altKey && e.key === '2') handleDensityChange('comfortable');
@@ -1491,6 +1511,13 @@ export const DensityOptimizedLayout: React.FC = () => {
         <IntegrityModal 
           isOpen={showIntegrityModal} 
           onClose={() => setShowIntegrityModal(false)} 
+        />
+        
+        {/* 🛡️ ANTIFRAGILE: Command palette (Cmd+K) */}
+        <CommandPalette
+          isOpen={showCommandPalette}
+          onClose={() => setShowCommandPalette(false)}
+          commands={commands}
         />
         
         {/* Sidebar */}
@@ -1622,6 +1649,9 @@ export const DensityOptimizedLayout: React.FC = () => {
           <span className="mx-2">|</span>
           <span>Help:</span>
           <kbd className="px-1 bg-slate-200 rounded">?</kbd>
+          <span className="mx-2">|</span>
+          <span>Commands:</span>
+          <kbd className="px-1 bg-slate-200 rounded">⌘K</kbd>
         </div>
       </div>
     </DensityContext.Provider>
