@@ -144,7 +144,7 @@ const PriorityBadge: React.FC<PriorityBadgeProps> = ({ priority }) => {
   };
   
   return (
-    <span className={`px-2 py-0.5 text-xs font-semibold rounded-full border ${colors[priority]}`}>
+    <span className={`px-3 py-1 text-sm font-bold rounded-full border ${colors[priority]}`}>
       {priority.toUpperCase()}
     </span>
   );
@@ -163,7 +163,7 @@ const UnionBadge: React.FC<UnionBadgeProps> = ({ union }) => {
   };
   
   return (
-    <span className={`px-2 py-0.5 text-xs font-semibold rounded-full border ${colors[union]}`}>
+    <span className={`px-3 py-1 text-sm font-bold rounded-full border ${colors[union]}`}>
       {union}
     </span>
   );
@@ -266,7 +266,7 @@ const AnimatedGauge: React.FC<{
           />
         </div>
       </div>
-      <span className={`text-xs mt-1 transition-colors duration-300 ${isHovered ? 'text-white' : 'text-gray-400'}`}>
+      <span className={`text-sm font-medium mt-2 transition-colors duration-300 ${isHovered ? 'text-white' : 'text-gray-400'}`}>
         {label}
       </span>
     </div>
@@ -1187,41 +1187,41 @@ export const OrganizingIntelligenceTab: React.FC = () => {
                   {/* Expanded Table - NO HEIGHT LIMIT for data density */}
                   {expandedRiskGroups.has(`target-${group.key}`) && (
                     <div className="border-t border-[#30363d]">
-                      {/* Table Header - Ultra Compact */}
-                      <div className="grid grid-cols-12 gap-0.5 px-1 py-0.5 bg-[#0d1117] text-[9px] text-gray-500 font-medium sticky top-0">
+                      {/* Table Header - LARGER & MORE LEGIBLE */}
+                      <div className="grid grid-cols-12 gap-1 px-3 py-2 bg-[#0d1117] text-sm text-gray-400 font-semibold uppercase tracking-wide sticky top-0 border-b border-[#30363d]">
                         <div className="col-span-4">Facility / Operator</div>
                         <div className="col-span-2">Location</div>
-                        <div className="col-span-1 text-center">Wkrs</div>
+                        <div className="col-span-1 text-center">Workers</div>
                         <div className="col-span-1 text-center">Union</div>
                         <div className="col-span-2 text-center">Score</div>
                         <div className="col-span-2 text-center">Status</div>
                       </div>
                       
-                      {/* Table Rows - Show all items, ultra compact */}
+                      {/* Table Rows - LARGER & MORE LEGIBLE */}
                       {group.targets.map(target => (
                         <div key={target.facilityId} className="border-t border-[#21262d]/50">
-                          {/* Main Row - Ultra Compact */}
+                          {/* Main Row - Better readability */}
                           <div 
                             onClick={() => toggleTargetRow(target.facilityId)}
-                            className={`grid grid-cols-12 gap-0.5 px-1 py-0.5 text-[10px] cursor-pointer hover:bg-[#161b22] transition-colors ${
+                            className={`grid grid-cols-12 gap-1 px-3 py-2 text-sm cursor-pointer hover:bg-[#161b22] transition-colors ${
                               expandedTargetRows.has(target.facilityId) ? 'bg-[#161b22]' : ''
                             }`}
                           >
-                            <div className="col-span-4 flex items-center gap-1 min-w-0">
+                            <div className="col-span-4 flex items-center gap-2 min-w-0">
                               {expandedTargetRows.has(target.facilityId) 
-                                ? <ChevronDown className="w-2.5 h-2.5 text-gray-500 flex-shrink-0" />
-                                : <ChevronRight className="w-2.5 h-2.5 text-gray-500 flex-shrink-0" />}
+                                ? <ChevronDown className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                                : <ChevronRight className="w-4 h-4 text-gray-400 flex-shrink-0" />}
                               <div className="truncate">
-                                <span className="text-white" title={target.facilityName}>{target.facilityName}</span>
-                                <span className="text-gray-500 ml-1">({target.operator})</span>
+                                <span className="text-white font-medium" title={target.facilityName}>{target.facilityName}</span>
+                                <span className="text-gray-400 ml-2">({target.operator})</span>
                               </div>
                             </div>
-                            <div className="col-span-2 text-gray-400 truncate">{target.location.city}, {target.location.state}</div>
-                            <div className="col-span-1 text-center text-blue-400 font-bold">
+                            <div className="col-span-2 text-gray-300 truncate">{target.location.city}, {target.location.state}</div>
+                            <div className="col-span-1 text-center text-cyan-400 font-bold text-base">
                               {target.structuralFactors.workerConcentration}
                             </div>
                             <div className="col-span-1 text-center">
-                              <span className={`px-1 py-0 text-[9px] font-medium rounded ${
+                              <span className={`px-2 py-1 text-xs font-semibold rounded ${
                                 target.suggestedUnion === 'IBEW' ? 'bg-yellow-500/20 text-yellow-400' :
                                 target.suggestedUnion === 'CODE-CWA' ? 'bg-blue-500/20 text-blue-400' :
                                 target.suggestedUnion === 'BOTH' ? 'bg-purple-500/20 text-purple-400' :
@@ -1230,10 +1230,10 @@ export const OrganizingIntelligenceTab: React.FC = () => {
                                 {target.suggestedUnion}
                               </span>
                             </div>
-                            <div className="col-span-2 flex items-center gap-0.5">
-                              <div className="flex-1 h-1 bg-[#21262d] rounded-full overflow-hidden">
+                            <div className="col-span-2 flex items-center gap-2">
+                              <div className="flex-1 h-2 bg-[#21262d] rounded-full overflow-hidden">
                                 <div 
-                                  className={`h-full rounded-full ${
+                                  className={`h-full rounded-full transition-all duration-500 ${
                                     target.overallScore >= 80 ? 'bg-red-500' :
                                     target.overallScore >= 60 ? 'bg-orange-500' :
                                     target.overallScore >= 40 ? 'bg-yellow-500' : 'bg-green-500'
@@ -1241,7 +1241,7 @@ export const OrganizingIntelligenceTab: React.FC = () => {
                                   style={{ width: `${target.overallScore}%` }}
                                 />
                               </div>
-                              <span className={`font-bold min-w-[18px] text-right ${
+                              <span className={`font-bold text-base min-w-[24px] text-right ${
                                 target.overallScore >= 80 ? 'text-red-400' :
                                 target.overallScore >= 60 ? 'text-orange-400' :
                                 target.overallScore >= 40 ? 'text-yellow-400' : 'text-gray-400'
@@ -1250,7 +1250,7 @@ export const OrganizingIntelligenceTab: React.FC = () => {
                               </span>
                             </div>
                             <div className="col-span-2 text-center">
-                              <span className={`px-1 py-0 text-[9px] rounded ${
+                              <span className={`px-2 py-1 text-xs font-semibold rounded ${
                                 target.complianceStatus === 'Non-Compliant' ? 'bg-red-500/20 text-red-400' :
                                 target.complianceStatus === 'At Risk' ? 'bg-yellow-500/20 text-yellow-400' :
                                 'bg-green-500/20 text-green-400'
@@ -1263,26 +1263,26 @@ export const OrganizingIntelligenceTab: React.FC = () => {
                           {/* EXPANDED ROW - Maximum Granular Deep Data Infographic - BIGGER & DENSER */}
                           {expandedTargetRows.has(target.facilityId) && (
                             <div className="bg-gradient-to-b from-[#0d1117] to-[#161b22] border-t-2 border-[#30363d]">
-                              {/* Header Bar with Key Stats - Bigger */}
-                              <div className="px-3 py-2 bg-[#161b22] border-b border-[#30363d] flex items-center justify-between">
+                              {/* Header Bar with Key Stats - LARGER */}
+                              <div className="px-4 py-3 bg-[#161b22] border-b border-[#30363d] flex items-center justify-between">
                                 <div className="flex items-center gap-4">
                                   <PriorityBadge priority={target.priority} />
                                   <UnionBadge union={target.suggestedUnion} />
-                                  <span className="text-xs text-gray-400 font-mono">ID: {target.facilityId}</span>
-                                  <span className="text-xs text-gray-500">|</span>
-                                  <span className="text-xs text-white font-medium">{target.operator}</span>
-                                  <span className="text-xs text-gray-500">|</span>
-                                  <span className="text-xs text-cyan-400">{target.location.city}, {target.location.state}</span>
+                                  <span className="text-sm text-gray-300 font-mono">ID: {target.facilityId}</span>
+                                  <span className="text-gray-500">|</span>
+                                  <span className="text-base text-white font-semibold">{target.operator}</span>
+                                  <span className="text-gray-500">|</span>
+                                  <span className="text-base text-cyan-400 font-medium">{target.location.city}, {target.location.state}</span>
                                 </div>
-                                <div className="flex items-center gap-1">
+                                <div className="flex items-center gap-2">
                                   {(['overview', 'scores', 'factors', 'intel', 'actions'] as const).map(tab => (
                                     <button
                                       key={tab}
                                       onClick={(e) => { e.stopPropagation(); setTargetTab(target.facilityId, tab); }}
-                                      className={`px-3 py-1 text-xs font-medium rounded transition-colors ${
+                                      className={`px-4 py-2 text-sm font-semibold rounded transition-colors ${
                                         getTargetDetailTab(target.facilityId) === tab 
                                           ? 'bg-red-600 text-white' 
-                                          : 'text-gray-400 hover:text-white hover:bg-[#21262d]'
+                                          : 'text-gray-300 hover:text-white hover:bg-[#21262d]'
                                       }`}
                                     >
                                       {tab.charAt(0).toUpperCase() + tab.slice(1)}
@@ -1292,21 +1292,21 @@ export const OrganizingIntelligenceTab: React.FC = () => {
                               </div>
                               
                               {/* Tab Content - INTERACTIVE & ANIMATED */}
-                              <div className="p-3">
+                              <div className="p-4">
                                 {getTargetDetailTab(target.facilityId) === 'overview' && (
-                                  <StaggeredContainer className="space-y-3" staggerDelay={80}>
+                                  <StaggeredContainer className="space-y-4" staggerDelay={80}>
                                     {/* Animated Score Gauges with Radar Chart */}
                                     <div className="flex items-center justify-between">
-                                      {/* Circular Animated Gauges */}
-                                      <div className="flex items-center gap-4">
-                                        <AnimatedGauge score={target.structuralScore} label="STRUCTURAL" color="#3b82f6" glowColor="#3b82f6" size={90} />
-                                        <AnimatedGauge score={target.vulnerabilityScore} label="VULNERABILITY" color="#f59e0b" glowColor="#f59e0b" size={90} />
-                                        <AnimatedGauge score={target.strategicScore} label="STRATEGIC" color="#22c55e" glowColor="#22c55e" size={90} />
-                                        <AnimatedGauge score={target.overallScore} label="OVERALL" color="#ef4444" glowColor="#ef4444" size={100} />
+                                      {/* Circular Animated Gauges - LARGER */}
+                                      <div className="flex items-center gap-6">
+                                        <AnimatedGauge score={target.structuralScore} label="STRUCTURAL" color="#3b82f6" glowColor="#3b82f6" size={130} />
+                                        <AnimatedGauge score={target.vulnerabilityScore} label="VULNERABILITY" color="#f59e0b" glowColor="#f59e0b" size={130} />
+                                        <AnimatedGauge score={target.strategicScore} label="STRATEGIC" color="#22c55e" glowColor="#22c55e" size={130} />
+                                        <AnimatedGauge score={target.overallScore} label="OVERALL" color="#ef4444" glowColor="#ef4444" size={140} />
                                       </div>
                                       
-                                      {/* Radar Chart */}
-                                      <div className="bg-[#0d1117] rounded-lg p-2 border border-[#30363d]">
+                                      {/* Radar Chart - LARGER */}
+                                      <div className="bg-[#0d1117] rounded-lg p-3 border border-[#30363d]">
                                         <RadarChart 
                                           scores={{
                                             structural: target.structuralScore,
@@ -1314,179 +1314,186 @@ export const OrganizingIntelligenceTab: React.FC = () => {
                                             strategic: target.strategicScore,
                                             overall: target.overallScore
                                           }}
-                                          size={140}
+                                          size={180}
                                         />
                                       </div>
                                     </div>
                                     
-                                    {/* Key Metrics with Animated Counters & Sparklines */}
-                                    <div className="grid grid-cols-8 gap-2">
-                                      <InteractiveCard className="bg-[#0d1117] p-2 border border-[#30363d]" glowColor="#06b6d4">
+                                    {/* Key Metrics with Animated Counters & Sparklines - LARGER FONTS */}
+                                    <div className="grid grid-cols-4 gap-3">
+                                      <InteractiveCard className="bg-[#0d1117] p-4 border border-[#30363d] rounded-lg" glowColor="#06b6d4">
                                         <div className="flex items-center justify-between">
                                           <div>
-                                            <div className="text-[10px] text-gray-500 uppercase flex items-center gap-1">
-                                              Workers <PulsingDot color="#06b6d4" size={6} />
+                                            <div className="text-sm text-gray-400 uppercase tracking-wide flex items-center gap-2 mb-1">
+                                              Workers <PulsingDot color="#06b6d4" size={8} />
                                             </div>
-                                            <AnimatedCounter value={target.structuralFactors.workerConcentration} className="text-xl font-bold text-cyan-400" />
+                                            <AnimatedCounter value={target.structuralFactors.workerConcentration} className="text-4xl font-bold text-cyan-400" />
                                           </div>
                                           <MiniSparkline data={[120, 135, 128, 145, 150, 142, target.structuralFactors.workerConcentration]} color="#06b6d4" />
                                         </div>
                                       </InteractiveCard>
                                       
-                                      <InteractiveCard className="bg-[#0d1117] p-2 border border-[#30363d]" glowColor="#ffffff">
-                                        <div className="text-[10px] text-gray-500 uppercase">Direct %</div>
-                                        <div className="flex items-center gap-1">
-                                          <AnimatedCounter value={Math.round(target.structuralFactors.directEmploymentRatio)} suffix="%" className="text-xl font-bold text-white" />
+                                      <InteractiveCard className="bg-[#0d1117] p-4 border border-[#30363d] rounded-lg" glowColor="#ffffff">
+                                        <div className="text-sm text-gray-400 uppercase tracking-wide mb-1">Direct Employment</div>
+                                        <div className="flex items-center gap-2">
+                                          <AnimatedCounter value={Math.round(target.structuralFactors.directEmploymentRatio)} suffix="%" className="text-4xl font-bold text-white" />
                                         </div>
                                         <HeatIndicator value={target.structuralFactors.directEmploymentRatio} max={100} />
                                       </InteractiveCard>
                                       
-                                      <InteractiveCard className="bg-[#0d1117] p-2 border border-[#30363d]" glowColor={target.vulnerabilityFactors.glassdoorRating < 3 ? '#ef4444' : '#f59e0b'}>
-                                        <div className="text-[10px] text-gray-500 uppercase">Glassdoor</div>
-                                        <div className={`text-xl font-bold ${target.vulnerabilityFactors.glassdoorRating < 3 ? 'text-red-400' : 'text-yellow-400'}`}>
+                                      <InteractiveCard className="bg-[#0d1117] p-4 border border-[#30363d] rounded-lg" glowColor={target.vulnerabilityFactors.glassdoorRating < 3 ? '#ef4444' : '#f59e0b'}>
+                                        <div className="text-sm text-gray-400 uppercase tracking-wide mb-1">Glassdoor Rating</div>
+                                        <div className={`text-4xl font-bold ${target.vulnerabilityFactors.glassdoorRating < 3 ? 'text-red-400' : 'text-yellow-400'}`}>
                                           {target.vulnerabilityFactors.glassdoorRating.toFixed(1)}★
                                         </div>
-                                        <div className="flex gap-0.5 mt-1">
+                                        <div className="flex gap-1 mt-2">
                                           {[1,2,3,4,5].map(i => (
-                                            <span key={i} className={`text-xs ${i <= target.vulnerabilityFactors.glassdoorRating ? 'text-yellow-400' : 'text-gray-600'}`}>★</span>
+                                            <span key={i} className={`text-lg ${i <= target.vulnerabilityFactors.glassdoorRating ? 'text-yellow-400' : 'text-gray-600'}`}>★</span>
                                           ))}
                                         </div>
                                       </InteractiveCard>
                                       
-                                      <InteractiveCard className="bg-[#0d1117] p-2 border border-[#30363d]" glowColor={target.vulnerabilityFactors.turnoverRate > 20 ? '#ef4444' : '#22c55e'}>
-                                        <div className="text-[10px] text-gray-500 uppercase">Turnover</div>
-                                        <AnimatedCounter value={Math.round(target.vulnerabilityFactors.turnoverRate)} suffix="%" className={`text-xl font-bold ${target.vulnerabilityFactors.turnoverRate > 20 ? 'text-red-400' : 'text-green-400'}`} />
+                                      <InteractiveCard className="bg-[#0d1117] p-4 border border-[#30363d] rounded-lg" glowColor={target.vulnerabilityFactors.turnoverRate > 20 ? '#ef4444' : '#22c55e'}>
+                                        <div className="text-sm text-gray-400 uppercase tracking-wide mb-1">Turnover Rate</div>
+                                        <AnimatedCounter value={Math.round(target.vulnerabilityFactors.turnoverRate)} suffix="%" className={`text-4xl font-bold ${target.vulnerabilityFactors.turnoverRate > 20 ? 'text-red-400' : 'text-green-400'}`} />
                                         <MiniSparkline data={[18, 22, 19, 25, 23, 20, target.vulnerabilityFactors.turnoverRate]} color={target.vulnerabilityFactors.turnoverRate > 20 ? '#ef4444' : '#22c55e'} />
                                       </InteractiveCard>
-                                      
-                                      <InteractiveCard className="bg-[#0d1117] p-2 border border-[#30363d]" glowColor="#22c55e">
-                                        <div className="text-[10px] text-gray-500 uppercase">Subsidy</div>
-                                        <AnimatedCounter value={Math.round(target.strategicFactors.subsidyAccountability / 1000000)} prefix="$" suffix="M" className="text-xl font-bold text-green-400" />
-                                        <div className="text-[9px] text-green-400/60 mt-1">💰 Leverage</div>
+                                    </div>
+                                    
+                                    {/* Second row of metrics */}
+                                    <div className="grid grid-cols-4 gap-3">
+                                      <InteractiveCard className="bg-[#0d1117] p-4 border border-[#30363d] rounded-lg" glowColor="#22c55e">
+                                        <div className="text-sm text-gray-400 uppercase tracking-wide mb-1">Subsidy Amount</div>
+                                        <AnimatedCounter value={Math.round(target.strategicFactors.subsidyAccountability / 1000000)} prefix="$" suffix="M" className="text-4xl font-bold text-green-400" />
+                                        <div className="text-base text-green-400/70 mt-2">💰 High Leverage</div>
                                       </InteractiveCard>
                                       
-                                      <InteractiveCard className="bg-[#0d1117] p-2 border border-[#30363d]" glowColor="#a855f7">
-                                        <div className="text-[10px] text-gray-500 uppercase">Traffic</div>
-                                        <div className="text-xl font-bold text-purple-400">{target.strategicFactors.trafficShare.toFixed(1)}%</div>
+                                      <InteractiveCard className="bg-[#0d1117] p-4 border border-[#30363d] rounded-lg" glowColor="#a855f7">
+                                        <div className="text-sm text-gray-400 uppercase tracking-wide mb-1">Traffic Share</div>
+                                        <div className="text-4xl font-bold text-purple-400">{target.strategicFactors.trafficShare.toFixed(1)}%</div>
                                         <MiniSparkline data={[0.5, 0.8, 0.6, 0.9, 0.7, target.strategicFactors.trafficShare]} color="#a855f7" />
                                       </InteractiveCard>
                                       
-                                      <InteractiveCard className="bg-[#0d1117] p-2 border border-[#30363d]" glowColor={target.vulnerabilityFactors.recentIncidents > 0 ? '#ef4444' : '#22c55e'}>
-                                        <div className="text-[10px] text-gray-500 uppercase flex items-center gap-1">
-                                          Incidents {target.vulnerabilityFactors.recentIncidents > 0 && <PulsingDot color="#ef4444" size={6} />}
+                                      <InteractiveCard className="bg-[#0d1117] p-4 border border-[#30363d] rounded-lg" glowColor={target.vulnerabilityFactors.recentIncidents > 0 ? '#ef4444' : '#22c55e'}>
+                                        <div className="text-sm text-gray-400 uppercase tracking-wide flex items-center gap-2 mb-1">
+                                          Safety Incidents {target.vulnerabilityFactors.recentIncidents > 0 && <PulsingDot color="#ef4444" size={8} />}
                                         </div>
-                                        <AnimatedCounter value={target.vulnerabilityFactors.recentIncidents} className={`text-xl font-bold ${target.vulnerabilityFactors.recentIncidents > 0 ? 'text-red-400' : 'text-green-400'}`} />
+                                        <AnimatedCounter value={target.vulnerabilityFactors.recentIncidents} className={`text-4xl font-bold ${target.vulnerabilityFactors.recentIncidents > 0 ? 'text-red-400' : 'text-green-400'}`} />
                                       </InteractiveCard>
                                       
-                                      <InteractiveCard className="bg-[#0d1117] p-2 border border-[#30363d]" glowColor="#f97316">
-                                        <div className="text-[10px] text-gray-500 uppercase">OSHA</div>
-                                        <AnimatedCounter value={Math.floor(Math.random() * 5)} className="text-xl font-bold text-orange-400" />
-                                        <div className="text-[9px] text-orange-400/60 mt-1">⚠️ Violations</div>
+                                      <InteractiveCard className="bg-[#0d1117] p-4 border border-[#30363d] rounded-lg" glowColor="#f97316">
+                                        <div className="text-sm text-gray-400 uppercase tracking-wide mb-1">OSHA Violations</div>
+                                        <AnimatedCounter value={Math.floor(Math.random() * 5)} className="text-4xl font-bold text-orange-400" />
+                                        <div className="text-base text-orange-400/70 mt-2">⚠️ Review Required</div>
                                       </InteractiveCard>
                                     </div>
                                     
-                                    {/* Interactive Status Indicators */}
-                                    <div className="grid grid-cols-6 gap-2">
+                                    {/* Interactive Status Indicators - LARGER */}
+                                    <div className="grid grid-cols-3 gap-3">
                                       <InteractiveCard 
-                                        className={`text-center p-2 text-sm font-medium ${target.structuralFactors.ibewPresence ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/40' : 'bg-[#21262d] text-gray-500 border border-[#30363d]'}`}
+                                        className={`text-center p-4 text-lg font-semibold rounded-lg ${target.structuralFactors.ibewPresence ? 'bg-yellow-500/20 text-yellow-400 border-2 border-yellow-500/50' : 'bg-[#21262d] text-gray-400 border border-[#30363d]'}`}
                                         glowColor="#eab308"
                                       >
-                                        <div className="flex items-center justify-center gap-1">
-                                          ⚡ {target.structuralFactors.ibewPresence ? 'IBEW Present' : 'No IBEW'}
-                                          {target.structuralFactors.ibewPresence && <PulsingDot color="#eab308" size={6} />}
+                                        <div className="flex items-center justify-center gap-2">
+                                          <span className="text-2xl">⚡</span>
+                                          <span>{target.structuralFactors.ibewPresence ? 'IBEW Present' : 'No IBEW'}</span>
+                                          {target.structuralFactors.ibewPresence && <PulsingDot color="#eab308" size={10} />}
                                         </div>
                                       </InteractiveCard>
                                       
                                       <InteractiveCard 
-                                        className={`text-center p-2 text-sm font-medium ${target.structuralFactors.colocationModel ? 'bg-blue-500/20 text-blue-400 border border-blue-500/40' : 'bg-[#21262d] text-gray-500 border border-[#30363d]'}`}
+                                        className={`text-center p-4 text-lg font-semibold rounded-lg ${target.structuralFactors.colocationModel ? 'bg-blue-500/20 text-blue-400 border-2 border-blue-500/50' : 'bg-[#21262d] text-gray-400 border border-[#30363d]'}`}
                                         glowColor="#3b82f6"
                                       >
-                                        🏢 {target.structuralFactors.colocationModel ? 'Colocation' : 'Dedicated'}
+                                        <span className="text-2xl">🏢</span> {target.structuralFactors.colocationModel ? 'Colocation Model' : 'Dedicated Facility'}
                                       </InteractiveCard>
                                       
                                       <InteractiveCard 
-                                        className={`text-center p-2 text-sm font-medium ${target.strategicFactors.communityOpposition ? 'bg-green-500/20 text-green-400 border border-green-500/40' : 'bg-[#21262d] text-gray-500 border border-[#30363d]'}`}
+                                        className={`text-center p-4 text-lg font-semibold rounded-lg ${target.strategicFactors.communityOpposition ? 'bg-green-500/20 text-green-400 border-2 border-green-500/50' : 'bg-[#21262d] text-gray-400 border border-[#30363d]'}`}
                                         glowColor="#22c55e"
                                       >
-                                        <div className="flex items-center justify-center gap-1">
-                                          👥 {target.strategicFactors.communityOpposition ? 'Opposition Active' : 'No Opposition'}
-                                          {target.strategicFactors.communityOpposition && <PulsingDot color="#22c55e" size={6} />}
+                                        <div className="flex items-center justify-center gap-2">
+                                          <span className="text-2xl">👥</span>
+                                          <span>{target.strategicFactors.communityOpposition ? 'Community Opposition' : 'No Opposition'}</span>
+                                          {target.strategicFactors.communityOpposition && <PulsingDot color="#22c55e" size={10} />}
                                         </div>
-                                      </InteractiveCard>
-                                      
-                                      <InteractiveCard 
-                                        className={`text-center p-2 text-sm font-medium ${target.vulnerabilityFactors.recentIncidents > 0 ? 'bg-red-500/20 text-red-400 border border-red-500/40' : 'bg-[#21262d] text-gray-500 border border-[#30363d]'}`}
-                                        glowColor="#ef4444"
-                                      >
-                                        ⚠️ {target.vulnerabilityFactors.recentIncidents > 0 ? `${target.vulnerabilityFactors.recentIncidents} Incidents` : 'No Incidents'}
-                                      </InteractiveCard>
-                                      
-                                      <InteractiveCard 
-                                        className={`text-center p-2 text-sm font-medium ${target.complianceStatus === 'Non-Compliant' ? 'bg-red-500/20 text-red-400 border border-red-500/40' : target.complianceStatus === 'At Risk' ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/40' : 'bg-green-500/20 text-green-400 border border-green-500/40'}`}
-                                        glowColor={target.complianceStatus === 'Non-Compliant' ? '#ef4444' : target.complianceStatus === 'At Risk' ? '#eab308' : '#22c55e'}
-                                      >
-                                        📋 {target.complianceStatus}
-                                      </InteractiveCard>
-                                      
-                                      <InteractiveCard 
-                                        className="text-center p-2 text-sm font-medium bg-purple-500/20 text-purple-400 border border-purple-500/40"
-                                        glowColor="#a855f7"
-                                      >
-                                        🎯 {target.location.state === 'VA' || target.location.state === 'MD' ? 'NoVA Corridor' : target.location.state === 'TX' ? 'Texas Corridor' : 'Other'}
                                       </InteractiveCard>
                                     </div>
                                     
-                                    {/* Intel Cards with Animations */}
-                                    <div className="grid grid-cols-4 gap-2">
-                                      <InteractiveCard className="bg-[#0d1117] p-2 border border-red-500/30" glowColor="#ef4444">
-                                        <div className="flex items-center justify-between mb-1">
-                                          <span className="text-[10px] text-gray-500 uppercase">Jobs Gap</span>
-                                          <span className="text-xs animate-pulse">⚠️</span>
+                                    <div className="grid grid-cols-3 gap-3">
+                                      <InteractiveCard 
+                                        className={`text-center p-4 text-lg font-semibold rounded-lg ${target.vulnerabilityFactors.recentIncidents > 0 ? 'bg-red-500/20 text-red-400 border-2 border-red-500/50' : 'bg-[#21262d] text-gray-400 border border-[#30363d]'}`}
+                                        glowColor="#ef4444"
+                                      >
+                                        <span className="text-2xl">⚠️</span> {target.vulnerabilityFactors.recentIncidents > 0 ? `${target.vulnerabilityFactors.recentIncidents} Safety Incidents` : 'No Safety Incidents'}
+                                      </InteractiveCard>
+                                      
+                                      <InteractiveCard 
+                                        className={`text-center p-4 text-lg font-semibold rounded-lg ${target.complianceStatus === 'Non-Compliant' ? 'bg-red-500/20 text-red-400 border-2 border-red-500/50' : target.complianceStatus === 'At Risk' ? 'bg-yellow-500/20 text-yellow-400 border-2 border-yellow-500/50' : 'bg-green-500/20 text-green-400 border-2 border-green-500/50'}`}
+                                        glowColor={target.complianceStatus === 'Non-Compliant' ? '#ef4444' : target.complianceStatus === 'At Risk' ? '#eab308' : '#22c55e'}
+                                      >
+                                        <span className="text-2xl">📋</span> {target.complianceStatus}
+                                      </InteractiveCard>
+                                      
+                                      <InteractiveCard 
+                                        className="text-center p-4 text-lg font-semibold rounded-lg bg-purple-500/20 text-purple-400 border-2 border-purple-500/50"
+                                        glowColor="#a855f7"
+                                      >
+                                        <span className="text-2xl">🎯</span> {target.location.state === 'VA' || target.location.state === 'MD' ? 'NoVA Corridor' : target.location.state === 'TX' ? 'Texas Corridor' : 'Other Region'}
+                                      </InteractiveCard>
+                                    </div>
+                                    
+                                    {/* Intel Cards with Animations - LARGER */}
+                                    <div className="grid grid-cols-4 gap-3">
+                                      <InteractiveCard className="bg-[#0d1117] p-4 border-2 border-red-500/40 rounded-lg" glowColor="#ef4444">
+                                        <div className="flex items-center justify-between mb-2">
+                                          <span className="text-sm text-gray-400 uppercase tracking-wide">Jobs Gap</span>
+                                          <span className="text-xl animate-pulse">⚠️</span>
                                         </div>
-                                        <div className="flex items-center gap-2">
-                                          <AnimatedCounter value={-(Math.floor(Math.random() * 200 + 50))} className="text-lg font-bold text-red-400" />
-                                          <TrendingUp className="w-4 h-4 text-red-400 rotate-180" />
+                                        <div className="flex items-center gap-3">
+                                          <AnimatedCounter value={-(Math.floor(Math.random() * 200 + 50))} className="text-3xl font-bold text-red-400" />
+                                          <TrendingUp className="w-6 h-6 text-red-400 rotate-180" />
                                         </div>
-                                        <div className="text-[10px] text-gray-500">Promised vs Actual</div>
+                                        <div className="text-base text-gray-400 mt-2">Promised vs Actual Jobs</div>
                                         <HeatIndicator value={30} max={100} />
                                       </InteractiveCard>
                                       
-                                      <InteractiveCard className="bg-[#0d1117] p-2 border border-orange-500/30" glowColor="#f97316">
-                                        <div className="flex items-center justify-between mb-1">
-                                          <span className="text-[10px] text-gray-500 uppercase">Contractors</span>
-                                          <span className="text-xs">🔧</span>
+                                      <InteractiveCard className="bg-[#0d1117] p-4 border-2 border-orange-500/40 rounded-lg" glowColor="#f97316">
+                                        <div className="flex items-center justify-between mb-2">
+                                          <span className="text-sm text-gray-400 uppercase tracking-wide">Contractors</span>
+                                          <span className="text-xl">🔧</span>
                                         </div>
-                                        <AnimatedCounter value={Math.floor(Math.random() * 8 + 3)} className="text-lg font-bold text-orange-400" />
-                                        <div className="text-[10px] text-gray-500">Active Vendors</div>
-                                        <div className="flex gap-1 mt-1">
+                                        <AnimatedCounter value={Math.floor(Math.random() * 8 + 3)} className="text-3xl font-bold text-orange-400" />
+                                        <div className="text-base text-gray-400 mt-2">Active Vendors</div>
+                                        <div className="flex gap-2 mt-2">
                                           {Array(5).fill(0).map((_, i) => (
-                                            <div key={i} className={`w-2 h-2 rounded-full ${i < 3 ? 'bg-orange-400' : 'bg-gray-600'} ${i < 3 ? 'animate-pulse' : ''}`} style={{animationDelay: `${i * 200}ms`}} />
+                                            <div key={i} className={`w-3 h-3 rounded-full ${i < 3 ? 'bg-orange-400' : 'bg-gray-600'} ${i < 3 ? 'animate-pulse' : ''}`} style={{animationDelay: `${i * 200}ms`}} />
                                           ))}
                                         </div>
                                       </InteractiveCard>
                                       
-                                      <InteractiveCard className="bg-[#0d1117] p-2 border border-blue-500/30" glowColor="#3b82f6">
-                                        <div className="flex items-center justify-between mb-1">
-                                          <span className="text-[10px] text-gray-500 uppercase">Facility Age</span>
-                                          <span className="text-xs">📅</span>
+                                      <InteractiveCard className="bg-[#0d1117] p-4 border-2 border-blue-500/40 rounded-lg" glowColor="#3b82f6">
+                                        <div className="flex items-center justify-between mb-2">
+                                          <span className="text-sm text-gray-400 uppercase tracking-wide">Facility Age</span>
+                                          <span className="text-xl">📅</span>
                                         </div>
-                                        <div className="flex items-center gap-1">
-                                          <AnimatedCounter value={Math.floor(Math.random() * 15 + 1)} suffix=" yrs" className="text-lg font-bold text-blue-400" />
+                                        <div className="flex items-center gap-2">
+                                          <AnimatedCounter value={Math.floor(Math.random() * 15 + 1)} suffix=" yrs" className="text-3xl font-bold text-blue-400" />
                                         </div>
-                                        <div className="text-[10px] text-gray-500">Since Opening</div>
+                                        <div className="text-base text-gray-400 mt-2">Since Opening</div>
                                         <MiniSparkline data={[1, 3, 5, 8, 10, 12, 13]} color="#3b82f6" />
                                       </InteractiveCard>
                                       
-                                      <InteractiveCard className="bg-[#0d1117] p-2 border border-green-500/30" glowColor="#22c55e">
-                                        <div className="flex items-center justify-between mb-1">
-                                          <span className="text-[10px] text-gray-500 uppercase">Win Probability</span>
-                                          <span className="text-xs animate-bounce">🎯</span>
+                                      <InteractiveCard className="bg-[#0d1117] p-4 border-2 border-green-500/40 rounded-lg" glowColor="#22c55e">
+                                        <div className="flex items-center justify-between mb-2">
+                                          <span className="text-sm text-gray-400 uppercase tracking-wide">Win Probability</span>
+                                          <span className="text-xl animate-bounce">🎯</span>
                                         </div>
-                                        <div className="flex items-center gap-2">
-                                          <AnimatedCounter value={Math.floor(target.overallScore * 0.8 + 10)} suffix="%" className="text-lg font-bold text-green-400" />
-                                          <TrendingUp className="w-4 h-4 text-green-400" />
+                                        <div className="flex items-center gap-3">
+                                          <AnimatedCounter value={Math.floor(target.overallScore * 0.8 + 10)} suffix="%" className="text-3xl font-bold text-green-400" />
+                                          <TrendingUp className="w-6 h-6 text-green-400" />
                                         </div>
-                                        <div className="text-[10px] text-gray-500">Organizing Success</div>
+                                        <div className="text-base text-gray-400 mt-2">Organizing Success Rate</div>
                                         <HeatIndicator value={target.overallScore * 0.8 + 10} max={100} />
                                       </InteractiveCard>
                                     </div>
