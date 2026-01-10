@@ -17,7 +17,7 @@ export default defineConfig({
   reporter: 'html',
   
   use: {
-    baseURL: 'http://localhost:5173',
+    baseURL: process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:5173',
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
   },
@@ -29,11 +29,11 @@ export default defineConfig({
     },
   ],
 
-  // Start dev server before tests
+  // Start dev server before tests (or reuse existing)
   webServer: {
     command: 'npm run dev',
-    url: 'http://localhost:5173',
-    reuseExistingServer: !process.env.CI,
+    url: process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:5173',
+    reuseExistingServer: true, // Always reuse if running
     timeout: 120 * 1000,
   },
 });

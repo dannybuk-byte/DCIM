@@ -12,3 +12,7 @@ public/icon-512.png
 .npm-cache/
 .DS_Store
 .env.local
+
+# Playwright
+playwright-report/
+test-results/

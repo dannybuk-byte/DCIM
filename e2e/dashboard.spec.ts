@@ -39,8 +39,8 @@ test.describe('Dashboard', () => {
     // Wait for app to load
     await page.waitForSelector('text=Overview', { timeout: 30000 });
     
-    // Check that main tabs exist
-    await expect(page.getByText('Overview')).toBeVisible();
-    await expect(page.getByText('Facilities')).toBeVisible();
+    // Check that main tabs exist (use role to avoid duplicates)
+    await expect(page.getByRole('button', { name: 'Overview' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Facilities' })).toBeVisible();
   });
 });
