@@ -13,10 +13,12 @@ import {
   Briefcase, Factory, Thermometer, Wifi, Server, HardDrive, Cpu,
   Power, Gauge, BarChart3, PieChart, LineChart, Award, Flag,
   Mail, Phone, Link, ExternalLink, Copy, Check, Eye, Lock, Unlock,
-  ArrowUpRight, ArrowDownRight, Minus, Plus, FolderOpen, Folder
+  ArrowUpRight, ArrowDownRight, Minus, Plus, FolderOpen, Folder,
+  ShieldCheck
 } from 'lucide-react';
 import { Facility } from '../types';
 import { formatCurrency } from '../utils/formatting';
+import { FacilityVerificationPanel } from './FacilityVerificationPanel';
 
 // ============================================================================
 // EXPANDABLE SECTION - Reusable collapsible section with nested content
@@ -136,6 +138,7 @@ export const DetailedFacilityModal: React.FC<{
 
   const tabs = [
     { id: 'overview', label: 'Overview', icon: <Eye size={12} /> },
+    { id: 'verification', label: 'Verification', icon: <ShieldCheck size={12} /> },
     { id: 'location', label: 'Location', icon: <MapPin size={12} /> },
     { id: 'infrastructure', label: 'Infrastructure', icon: <Server size={12} /> },
     { id: 'compliance', label: 'Compliance', icon: <Shield size={12} /> },
@@ -236,6 +239,45 @@ export const DetailedFacilityModal: React.FC<{
                 <DataRow label="Last Audit" value={syntheticData.lastAuditDate} />
                 <DataRow label="Next Review" value={syntheticData.nextReviewDate} />
                 <DataRow label="Active Issues" value={facility.issues?.length || 0} />
+              </ExpandableSection>
+            </div>
+          )}
+
+          {/* VERIFICATION TAB */}
+          {activeTab === 'verification' && (
+            <div className="space-y-3">
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                <h3 className="text-sm font-semibold text-blue-800 mb-1">Multi-Source Verification</h3>
+                <p className="text-xs text-blue-600">
+                  Cross-references facility data against EPA environmental registry, 
+                  EIA energy patterns, and BGP network routing to verify authenticity.
+                </p>
+              </div>
+              
+              <FacilityVerificationPanel
+                facilityName={facility.name}
+                latitude={syntheticData.coordinates.lat}
+                longitude={syntheticData.coordinates.lng}
+                state={facility.state}
+              />
+              
+              <ExpandableSection title="What This Verifies" icon={<ShieldCheck size={12} />} defaultOpen={true}>
+                <div className="space-y-2 text-xs text-slate-600">
+                  <div className="flex items-start gap-2">
+                    <MapPin size={12} className="text-slate-400 mt-0.5" />
+                    <div>
+                      <span className="font-medium text-slate-700">EPA ECHO</span>: Checks if this facility 
+                      exists in EPA's environmental registry with proper permits (Title V air, RCRA hazmat).
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <Zap size={12} className="text-slate-400 mt-0.5" />
+                    <div>
+                      <span className="font-medium text-slate-700">EIA Energy</span>: Analyzes regional 
+                      electricity demand patterns for data center load signatures (high baseload = DC presence).
+                    </div>
+                  </div>
+                </div>
               </ExpandableSection>
             </div>
           )}
