@@ -1,8 +1,8 @@
 # DCIM Compliance App — Complete Claude Handoff
 
 **Date:** January 10, 2026  
-**Purpose:** Complete context for continuing development  
-**Copy this entire document to Claude to continue work**
+**Version:** Post-CT-Monitoring + Performance Optimization  
+**Test Status:** 55 unit tests ✅ | 32 E2E tests ✅
 
 ---
 
@@ -32,22 +32,28 @@ This is a **LABOR ORGANIZING TOOL**, not corporate DCIM. It arms unions and comm
 │                     DCIM COMPLIANCE APP                          │
 ├─────────────────────────────────────────────────────────────────┤
 │  Frontend: React + TypeScript + Vite + Tailwind                 │
-│  Storage: IndexedDB (Dexie) — offline-first                     │
+│  Storage: IndexedDB (Dexie v16) — offline-first                 │
 │  API Proxy: Cloudflare Worker (RouteViews, EIA)                 │
 └─────────────────────────────────────────────────────────────────┘
 
 ┌─────────────────────────────────────────────────────────────────┐
-│                  VERIFICATION STACK (NEW)                        │
+│                  VERIFICATION STACK                              │
 ├─────────────────────────────────────────────────────────────────┤
 │                                                                  │
 │   EPA ECHO ──────┐                                              │
-│   (browser-direct)│                                              │
+│   (browser JSONP) │                                              │
 │                   │                                              │
 │   EIA Energy ────┼──► Dempster-Shafer ──► Combined Confidence   │
 │   (via Worker)    │    Evidence Fusion                           │
 │                   │                                              │
-│   BGP/RPKI ──────┘                                              │
-│   (via Worker)                                                   │
+│   CT Monitoring ─┘                                              │
+│   (CertStream WS)                                                │
+│                                                                  │
+├─────────────────────────────────────────────────────────────────┤
+│                    PERFORMANCE LAYER                             │
+├─────────────────────────────────────────────────────────────────┤
+│   Verification Cache ──► 1hr TTL ──► Max 500 entries            │
+│   Debounced Calls (300ms) ──► Prevents API spam                 │
 │                                                                  │
 ├─────────────────────────────────────────────────────────────────┤
 │                    DEFENSIVE LAYERS                              │
@@ -80,104 +86,98 @@ This is a **LABOR ORGANIZING TOOL**, not corporate DCIM. It arms unions and comm
 
 ## 📁 Key Files Reference
 
-### Verification Services (NEW — January 10, 2026)
+### Verification Services
 
 | File | Purpose |
 |------|---------|
-| `src/services/epaVerification.ts` | EPA ECHO JSONP queries (browser-direct, no proxy) |
-| `src/services/eiaVerification.ts` | EIA API via Worker proxy (regional energy patterns) |
-| `src/services/unifiedVerification.ts` | Dempster-Shafer evidence fusion |
-| `src/services/rpkiValidation.ts` | RPKI validation with IPv4 prefix trie |
-| `src/services/bgpMonitoring.ts` | RIPE RIS Live + RouteViews corroboration |
-| `src/services/telemetryBus.ts` | Append-only event sourcing with dedup |
-| `src/services/incidentCommand.ts` | Incident CRUD + auto-linking + auto-create |
+| `src/services/epaVerification.ts` | EPA ECHO JSONP (browser-direct) |
+| `src/services/eiaVerification.ts` | EIA API via Worker proxy |
+| `src/services/ctMonitoring.ts` | CertStream WebSocket + DC detection |
+| `src/services/unifiedVerification.ts` | Dempster-Shafer fusion + caching |
+| `src/services/verificationCache.ts` | IndexedDB result caching |
+| `src/services/rpkiValidation.ts` | RPKI validation with IPv4 trie |
+| `src/services/bgpMonitoring.ts` | RIPE RIS Live + RouteViews |
+
+### Incident & Telemetry
+
+| File | Purpose |
+|------|---------|
+| `src/services/telemetryBus.ts` | Append-only event sourcing |
+| `src/services/incidentCommand.ts` | Incident CRUD + auto-linking |
 | `src/services/verificationDegradedMode.ts` | Health polling + degraded state |
-| `src/services/verificationHealth.ts` | Worker health checks |
 | `src/services/auditSnapshot.ts` | Decision trail recording |
+
+### Confidence Framework
+
+| File | Purpose |
+|------|---------|
 | `src/services/dempsterShafer.ts` | Evidence fusion math |
-| `src/services/sourceConfidence.ts` | NATO/Admiralty 6x6 confidence framework |
+| `src/services/sourceConfidence.ts` | NATO/Admiralty 6x6 framework |
 | `src/services/temporalDecay.ts` | Confidence decay over time |
 
-### Verification UI Components
+### UI Components
 
 | File | Purpose |
 |------|---------|
-| `src/components/FacilityVerificationPanel.tsx` | Unified verification display with mass function |
+| `src/components/FacilityVerificationPanel.tsx` | Unified verification display |
 | `src/components/VerificationStatusBadge.tsx` | Degraded mode indicator |
-| `src/components/VerificationTestPanel.tsx` | Chaos testing panel (dev only) |
+| `src/components/VerificationTestPanel.tsx` | Chaos testing panel |
 | `src/components/tabs/IncidentCommandTab.tsx` | Incident management UI |
-| `src/components/DetailedFacilityView.tsx` | Facility modal with Verification tab |
 
-### Rate Limiting & Safety
-
-| File | Purpose |
-|------|---------|
-| `src/utils/rateLimitedFetch.ts` | Exponential backoff + circuit breaker |
-| `src/config/apiBase.ts` | Worker URL configuration |
-
-### Database
+### Hooks
 
 | File | Purpose |
 |------|---------|
-| `src/db/database.ts` | IndexedDB schema (v15) |
-
-### Cloudflare Worker
-
-| File | Purpose |
-|------|---------|
-| `cloudflare-worker/index.js` | API proxy (RouteViews, EIA, health) |
-| `cloudflare-worker/wrangler.toml` | Worker configuration |
-| `wrangler.toml` | Static site deployment config |
+| `src/hooks/useCTMonitoring.ts` | CT connection state + alerts |
+| `src/hooks/useVerificationDegraded.ts` | Degraded mode state |
 
 ### Tests
 
-| File | Purpose |
-|------|---------|
-| `src/services/telemetryBus.test.ts` | Telemetry event tests |
-| `src/services/rpkiValidation.test.ts` | RPKI validation tests |
-| `e2e/dashboard.spec.ts` | Dashboard smoke tests |
-| `e2e/incident-command.spec.ts` | Incident system tests |
+| File | Tests |
+|------|-------|
+| `src/services/ctMonitoring.test.ts` | 12 CT monitoring tests |
+| `src/services/telemetryBus.test.ts` | 3 telemetry tests |
+| `src/services/rpkiValidation.test.ts` | 3 RPKI tests |
+| `e2e/dashboard.spec.ts` | 3 dashboard tests |
+| `e2e/verification-flow.spec.ts` | 7 verification tests |
+| `e2e/degraded-mode.spec.ts` | 5 degraded mode tests |
+| `e2e/evidence-fusion.spec.ts` | 8 evidence fusion tests |
+| `e2e/incident-automation.spec.ts` | 9 incident tests |
 
 ---
 
-## 🗄️ Database Schema (v15)
+## 🗄️ Database Schema (v16)
 
 ```typescript
 // Key tables for verification pipeline
-telemetryEvents: 'id, timestamp, source, type, severity, facilityId, correlationId, fingerprint'
-incidents: 'id, status, severity, createdAt, updatedAt, lastEventAt, *tags'
+telemetryEvents: 'id, timestamp, source, type, severity, ...'
+incidents: 'id, status, severity, createdAt, ...'
 incidentEventLinks: '++id, incidentId, eventId, timestamp'
 bgpPrefixBaselines: 'id, originAsn, prefix, lastSeen'
 rpkiCache: 'key, fetchedAt'
-auditSnapshots: 'id, timestamp, snapshotType, [linkedEntityType+linkedEntityId]'
+auditSnapshots: 'id, timestamp, snapshotType, ...'
+verificationCache: 'key, cachedAt, expiresAt'  // NEW in v16
 ```
 
 ---
 
 ## 🔧 Verification Sources
 
-| Source | Method | What It Verifies | Rate Limits |
-|--------|--------|------------------|-------------|
-| **EPA ECHO** | Browser JSONP | Facility exists in EPA registry, permits, compliance | ~5 req/min |
-| **EIA** | Worker proxy | Regional energy patterns (DC load signature) | 9000 req/hour |
-| **BGP/RPKI** | Worker proxy | Network routing authenticity | Varies |
-| **RouteViews** | Worker proxy | Multi-peer BGP corroboration | 1 req/sec |
-
-### Confidence Scoring
-
-- **70%+** = Green (high confidence)
-- **40-70%** = Yellow (moderate)
-- **<40%** = Red (low confidence)
+| Source | Method | Caching | Rate Limits |
+|--------|--------|---------|-------------|
+| **EPA ECHO** | Browser JSONP | 1hr | ~5 req/min |
+| **EIA** | Worker proxy | 1hr | 9000 req/hour |
+| **CT** | CertStream WS | N/A | Streaming |
+| **BGP/RPKI** | Worker proxy | 30s | 1 req/sec |
 
 ### Dempster-Shafer Mass Function
 
 ```typescript
 interface MassFunction {
-  belief: number;      // Evidence FOR the hypothesis
+  belief: number;      // Evidence FOR
   disbelief: number;   // Evidence AGAINST
   uncertainty: number; // Unknown
 }
-// Combined via combineDempster() → produces conflictK score
 // Pignistic probability = belief + 0.5 * uncertainty
 ```
 
@@ -186,20 +186,18 @@ interface MassFunction {
 ## 🚀 How to Run
 
 ```bash
-# Clone/navigate to project
 cd /Users/danielbuk/.cursor/worktrees/DCIM_Compliance_App/aoq
 
 # Install dependencies
 npm install --legacy-peer-deps
 
 # Start dev server
-npm run dev
-# App runs at http://localhost:5173
+npm run dev                    # http://localhost:5173
 
-# Run unit tests (43 tests)
+# Run unit tests (55 tests)
 npm run test:run
 
-# Run E2E tests (3 tests, requires dev server)
+# Run E2E tests (32 tests)
 PLAYWRIGHT_BASE_URL=http://localhost:5173 npm run test:e2e
 
 # Build for production
@@ -207,47 +205,9 @@ npm run build
 ```
 
 ### Environment Setup
-
-Create `.env.local` in project root:
+Create `.env.local`:
 ```
 VITE_API_BASE_URL=https://dcim-api-worker.dannybuk.workers.dev
-```
-
----
-
-## 🧪 Testing the Verification Stack
-
-### Manual Test
-1. Open http://localhost:5173
-2. Click any facility
-3. Go to **"Verification"** tab
-4. See combined confidence score and source breakdown
-
-### Chaos Test (Dev Mode)
-1. Go to **Incident Command** tab
-2. Find yellow **"Verification Test Panel"**
-3. Click **"Emit Verified Critical"** → should auto-create confirmed incident
-4. Click **"Emit Unverified Critical"** → should NOT auto-create
-
----
-
-## 📊 Recent Commits (January 10, 2026)
-
-```
-d54d54d7 docs: Update handoff with E2E test info
-4b901c8d fix: Update Playwright config and fix dashboard test selector
-47afc8ed test: Add Playwright E2E test framework
-9e4a2dce docs: Add comprehensive Claude handoff
-ffa0cb69 feat: Integrate unified verification with Dempster-Shafer UI
-604fd091 feat: Add unified verification with Dempster-Shafer evidence fusion
-96eea6ba feat: Wire FacilityVerificationPanel into DetailedFacilityView
-4926562d feat: Add FacilityVerificationPanel UI component
-4c1a1faf feat: Add EIA energy verification service
-7a4c7bba feat: Add EPA ECHO facility verification service
-180701cc feat: Add audit snapshots for verification decision trails
-d6945a34 feat: Add client-side rate limiting with exponential backoff
-82cd44a8 feat: Add verification test panel for chaos testing
-59159ba8 feat: Add verification pipeline with antifragile incident command
 ```
 
 ---
@@ -256,12 +216,13 @@ d6945a34 feat: Add client-side rate limiting with exponential backoff
 
 | Feature | Implementation |
 |---------|----------------|
+| **Verification Cache** | 1hr TTL, max 500 entries, auto-cleanup |
+| **Debounced Calls** | 300ms debounce prevents API spam |
 | **Suspected by default** | Incidents start as "suspected" |
-| **Verification gate** | RouteViews + RPKI required for auto-confirm |
-| **Auto-link** | New events link to existing incidents by correlationId |
+| **Verification gate** | RouteViews + RPKI for auto-confirm |
 | **Auto-create gate** | Only Verified + Critical + Not Degraded |
-| **Degraded mode** | Suppresses automation when services down (3 consecutive failures) |
-| **Rate limiting** | Exponential backoff + circuit breaker (5 failures opens circuit) |
+| **Degraded mode** | Suppresses automation when services down |
+| **Rate limiting** | Exponential backoff + circuit breaker |
 | **Audit snapshots** | Records verification state at decision time |
 
 ---
@@ -270,17 +231,60 @@ d6945a34 feat: Add client-side rate limiting with exponential backoff
 
 **URL:** `https://dcim-api-worker.dannybuk.workers.dev`
 
-### Endpoints
 - `/api/health` — Health check
 - `/api/routeviews/prefix/:prefix` — RouteViews BGP data
-- `/api/eia/*` — EIA API proxy (injects API key)
+- `/api/eia/*` — EIA API proxy
 
-### Deploy Worker
-```bash
-cd cloudflare-worker
-npx wrangler login
-npx wrangler deploy
-npx wrangler secret put EIA_API_KEY  # Get free key from eia.gov
+---
+
+## 📊 Recent Commits
+
+```
+54c41ac7 perf: Add verification caching and debouncing
+b6e84626 feat: Add Certificate Transparency (CT) monitoring
+bd010465 fix: Update E2E tests for robust UI navigation
+5a1e053d test: Add comprehensive E2E test suite
+47d6a470 docs: Add complete Claude handoff
+ffa0cb69 feat: Integrate unified verification with Dempster-Shafer UI
+604fd091 feat: Add unified verification with Dempster-Shafer evidence fusion
+4926562d feat: Add FacilityVerificationPanel UI component
+7a4c7bba feat: Add EPA ECHO facility verification service
+4c1a1faf feat: Add EIA energy verification service
+180701cc feat: Add audit snapshots for verification decision trails
+d6945a34 feat: Add client-side rate limiting with exponential backoff
+82cd44a8 feat: Add verification test panel for chaos testing
+59159ba8 feat: Add verification pipeline with antifragile incident command
+```
+
+---
+
+## 📋 Continuation Prompt
+
+```
+I'm continuing work on the DCIM Compliance App (labor organizing tool).
+
+**Current State:**
+- Multi-source verification complete (EPA, EIA, CT, BGP/RPKI)
+- Dempster-Shafer evidence fusion working
+- Verification caching (1hr TTL, 300ms debounce)
+- 55 unit tests + 32 E2E tests passing
+- All pushed to main branch
+
+**Key Files:**
+- src/services/unifiedVerification.ts (fusion + caching)
+- src/services/ctMonitoring.ts (CertStream WebSocket)
+- src/services/verificationCache.ts (IndexedDB caching)
+- src/db/database.ts (schema v16)
+
+**Worker URL:** https://dcim-api-worker.dannybuk.workers.dev
+
+**Possible next steps:**
+- A) SEC EDGAR corporate ownership verification
+- B) Add CT alert filtering UI
+- C) Performance profiling
+- D) Additional E2E test coverage
+
+Please read CLAUDE_COMPLETE_HANDOFF.md for full context.
 ```
 
 ---
@@ -293,74 +297,6 @@ npx wrangler secret put EIA_API_KEY  # Get free key from eia.gov
 - **Antifragility**: circuit breakers on all APIs, error boundaries on all tabs
 - **Graceful fallbacks**: always show something, never blank screen
 - **Offline-first**: IndexedDB for all persistent state
-
----
-
-## 📋 Continuation Prompt
-
-Copy this to start the next Claude session:
-
-```
-I'm continuing work on the DCIM Compliance App (labor organizing tool).
-
-**Current State:**
-- Antifragile multi-source verification complete (EPA, EIA, BGP/RPKI)
-- Dempster-Shafer evidence fusion working
-- 43 unit tests + 3 E2E tests passing
-- All pushed to main branch
-
-**Key Files:**
-- src/services/unifiedVerification.ts (evidence fusion)
-- src/components/FacilityVerificationPanel.tsx (UI)
-- src/services/verificationDegradedMode.ts (safety layer)
-- src/db/database.ts (schema v15)
-
-**Worker URL:** https://dcim-api-worker.dannybuk.workers.dev
-
-**Next priorities (pick one):**
-- A) Add Certificate Transparency monitoring
-- B) Add SEC EDGAR corporate ownership verification
-- C) Add more E2E tests for verification flow
-- D) Performance optimization (lazy loading)
-
-Please read CLAUDE_COMPLETE_HANDOFF.md for full architecture context.
-```
-
----
-
-## 🚧 Known Issues
-
-1. **Cloudflare Pages** may show deployment failures if `dcim-dashboard` project exists with wrong config. Safe to delete that project.
-
-2. **EPA JSONP** has ~5 req/min rate limit. Multiple rapid verifications may fail.
-
-3. **EIA verification** requires Worker proxy and `VITE_API_BASE_URL` env var.
-
----
-
-## 📞 Quick Debug Commands
-
-```javascript
-// Browser console - check verification services
-import('/src/services/unifiedVerification.ts').then(m => {
-  m.runUnifiedVerification({
-    facilityName: 'Test',
-    latitude: 39.04,
-    longitude: -77.49,
-    state: 'VA'
-  }).then(console.log);
-});
-
-// Check degraded mode status
-import('/src/services/verificationDegradedMode.ts').then(m => {
-  console.log(m.verificationDegradedMode.getState());
-});
-
-// Check telemetry events
-import('/src/db/database.ts').then(m => {
-  m.db.telemetryEvents.toArray().then(console.log);
-});
-```
 
 ---
 
