@@ -1,5 +1,6 @@
 import { db } from '../db/database';
 import type { RpkiCacheRecord, RpkiVrp } from '../db/database';
+import { fetchWithRateLimit } from '../utils/rateLimitedFetch';
 
 type IpVersion = 4 | 6;
 
@@ -181,7 +182,7 @@ export class RpkiValidatorService {
       const headers: Record<string, string> = { Accept: 'application/json' };
       if (existing?.etag) headers['If-None-Match'] = existing.etag;
 
-      const res = await fetch(this.endpoint, { headers, signal: AbortSignal.timeout(20_000) });
+      const res = await fetchWithRateLimit('rpki', this.endpoint, { headers });
       if (res.status === 304 && existing) {
         const updated: RpkiCacheRecord = { ...existing, fetchedAt: Date.now() };
         await db.rpkiCache.put(updated);

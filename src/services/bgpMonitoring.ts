@@ -13,6 +13,7 @@ import { rpkiValidator } from './rpkiValidation';
 import type { BGPPrefixBaselineRecord } from '../db/database';
 import { apiUrl } from '../config/apiBase';
 import { telemetryBus } from './telemetryBus';
+import { fetchWithRateLimit } from '../utils/rateLimitedFetch';
 
 // ============================================================================
 // TYPES
@@ -550,7 +551,7 @@ class BGPMonitoringService {
 
     try {
       const prefixEncoded = encodeURIComponent(anomaly.prefix);
-      const res = await fetch(apiUrl(`/api/routeviews/prefix/${prefixEncoded}`), { signal: AbortSignal.timeout(12_000) });
+      const res = await fetchWithRateLimit('routeviews', apiUrl(`/api/routeviews/prefix/${prefixEncoded}`));
 
       if (!res.ok) {
         anomaly.corroborationStatus = 'error';
