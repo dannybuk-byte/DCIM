@@ -11,8 +11,8 @@
  */
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { Shield, ShieldCheck, ShieldAlert, ShieldQuestion, Loader2, MapPin, Zap, AlertTriangle, CheckCircle2 } from 'lucide-react';
-import { runUnifiedVerification, summarizeVerification, interpretConflict, type UnifiedVerificationResult, type SourceVerification } from '../services/unifiedVerification';
+import { Shield, ShieldCheck, ShieldAlert, ShieldQuestion, Loader2, MapPin, Zap, AlertTriangle, CheckCircle2, FileKey } from 'lucide-react';
+import { runUnifiedVerification, interpretConflict, type UnifiedVerificationResult, type SourceVerification } from '../services/unifiedVerification';
 
 interface FacilityVerificationPanelProps {
   facilityName: string;
@@ -92,6 +92,8 @@ function SourceIcon({ source }: { source: string }) {
       return <MapPin size={14} className="text-slate-400" />;
     case 'eia':
       return <Zap size={14} className="text-slate-400" />;
+    case 'ct':
+      return <FileKey size={14} className="text-slate-400" />;
     default:
       return <Shield size={14} className="text-slate-400" />;
   }

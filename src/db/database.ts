@@ -173,11 +173,13 @@ export interface CorrelationRecord {
 // ============================================================================
 // Telemetry Bus + Incident Command System (ICS)
 // ============================================================================
-export type TelemetrySeverity = 'low' | 'medium' | 'high' | 'critical';
+export type TelemetrySeverity = 'info' | 'low' | 'medium' | 'high' | 'critical' | 'warning';
 
 export type TelemetrySource =
   | 'bgp'
   | 'ct'
+  | 'ct_monitoring'
+  | 'verification'
   | 'self_healing'
   | 'degradation'
   | 'api'

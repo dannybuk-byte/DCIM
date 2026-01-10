@@ -1,666 +1,527 @@
 /**
- * Certificate Transparency Monitoring Service
+ * Certificate Transparency (CT) Monitoring Service
  * 
- * Monitors CT logs for new certificates indicating facility deployments.
- * Uses CertStream WebSocket for real-time updates.
+ * Monitors real-time certificate issuance via CertStream WebSocket.
+ * Detects certificates that may indicate data center infrastructure.
  * 
- * @module ctMonitoring
- * @version 1.0.0
+ * Antifragile design:
+ * - Passive monitoring only (doesn't block other verification)
+ * - Graceful degradation on connection failure
+ * - Automatic reconnection with exponential backoff
+ * - Emits telemetry for audit trail
  */
 
-import { db } from '../db/database';
+import { telemetryBus } from './telemetryBus';
 
-// ============================================================================
-// TYPES
-// ============================================================================
+// ----------------------------------------------------------------------------
+// Types
+// ----------------------------------------------------------------------------
 
 export interface CTCertificate {
-  sha256: string;
-  commonName: string;
-  domains: string[];
+  /** SHA-256 fingerprint */
+  fingerprint: string;
+  /** Certificate serial number */
+  serialNumber: string;
+  /** Issuer common name */
   issuer: string;
-  loggedAt: number;
+  /** Subject common name */
+  subject: string;
+  /** Subject Alternative Names (domains) */
+  domains: string[];
+  /** Not before timestamp */
   notBefore: number;
+  /** Not after timestamp */
   notAfter: number;
-  alertType: 'facility_pattern' | 'new_subdomain' | 'wildcard' | 'renewal' | 'mass_issuance';
-  provider?: string;
-  geographicHint?: string;
-  significance: 'low' | 'medium' | 'high' | 'critical';
-  businessInference: string;
+  /** CT log source */
+  source: string;
+  /** Raw update type from CertStream */
+  updateType: 'PrecertLogEntry' | 'X509LogEntry';
 }
 
-export interface CTStats {
-  certificatesProcessed: number;
-  alertsGenerated: number;
-  watchedDomainMatches: number;
-  facilityPatternsDetected: number;
+export interface CTAlert {
+  certificate: CTCertificate;
+  /** Why this certificate was flagged */
+  reason: CTAlertReason;
+  /** Confidence score (0-1) */
+  confidence: number;
+  /** Matched patterns */
+  matchedPatterns: string[];
+  /** Timestamp of detection */
+  detectedAt: number;
 }
 
-export interface CTMonitoringState {
-  isConnected: boolean;
-  lastUpdate: number | null;
-  certificatesProcessed: number;
-  alerts: CTCertificate[];
-  watchedDomains: Set<string>;
-  stats: CTStats;
-  connectionAttempts: number;
-}
+export type CTAlertReason = 
+  | 'data_center_domain'      // Domain matches DC naming patterns
+  | 'cloud_provider'          // Known cloud provider domain
+  | 'infrastructure_keyword'  // Contains infra keywords (dc, colo, etc.)
+  | 'ip_based_san'            // Has IP-based SAN (unusual)
+  | 'high_volume_issuer';     // From high-volume enterprise issuer
 
-type AlertHandler = (cert: CTCertificate) => void;
+export type CTConnectionState = 'disconnected' | 'connecting' | 'connected' | 'error';
 
-// ============================================================================
-// CONSTANTS
-// ============================================================================
+// ----------------------------------------------------------------------------
+// Data Center Detection Patterns
+// ----------------------------------------------------------------------------
 
-/** CertStream WebSocket endpoint */
-const CERTSTREAM_WS_URL = 'wss://certstream.calidog.io/';
-
-/** Domains of major data center operators and cloud providers */
-export const WATCHED_DOMAINS: string[] = [
-  // Cloud providers
-  'amazonaws.com',
-  'aws.amazon.com',
-  'azure.com',
-  'azure-api.net',
-  'azureedge.net',
-  'google.com',
-  'googleapis.com',
-  'gcp.com',
-  'googlecloud.com',
-  'cloud.google.com',
-  'meta.com',
-  'facebook.com',
-  'fb.com',
-  'whatsapp.com',
-  'instagram.com',
-  'apple.com',
-  'icloud.com',
-  'cloudflare.com',
-  'cloudflare-dns.com',
+/** Domain patterns that suggest data center infrastructure */
+const DC_DOMAIN_PATTERNS: RegExp[] = [
+  // Data center naming patterns
+  /\b(dc|datacenter|data-center|colo|colocation)\d*\./i,
+  /\b(us-east|us-west|eu-west|ap-south|ap-northeast)\d*\./i,
+  /\b(az|availability-zone|region)\d*\./i,
   
-  // Data center operators
-  'equinix.com',
-  'digitalrealty.com',
-  'cyrusone.com',
-  'coresite.com',
-  'qts.com',
-  'vantage-dc.com',
-  'switch.com',
-  'databank.com',
-  'flexential.com',
-  'compass-dc.com',
-  'stackinfra.com',
+  // Infrastructure patterns
+  /\b(infra|infrastructure|internal|corp|private)\./i,
+  /\b(mgmt|management|admin|ops|sre)\./i,
+  /\b(k8s|kubernetes|docker|container)\./i,
   
-  // Edge/CDN
-  'akamai.com',
-  'akamaized.net',
-  'fastly.com',
-  'cdn77.org',
-  'edgecast.com'
+  // Network infrastructure
+  /\b(switch|router|firewall|lb|loadbalancer)\./i,
+  /\b(vpn|bastion|jump|gateway)\./i,
+  
+  // Monitoring/observability
+  /\b(prometheus|grafana|datadog|splunk|elastic)\./i,
+  /\b(monitor|metrics|logs|traces)\./i,
 ];
 
-/** Facility naming patterns */
-const FACILITY_PATTERNS: RegExp[] = [
-  // Geographic
-  /^(us|eu|ap|sa|af|me)-(east|west|north|south|central)-\d+/i,
-  /^(virginia|oregon|ohio|texas|california|frankfurt|ireland|singapore|tokyo|sydney)/i,
-  /^(ash|iad|dfw|sjc|lax|fra|dub|sin|nrt|syd|hkg|bom|gru)\d*/i,
-  
-  // Infrastructure
-  /^(dc|colo|pop|edge|node|cluster|zone|region)\d*/i,
-  /^(prod|staging|dev|test)-(dc|infra|cluster|region)/i,
-  
-  // Facility identifiers
-  /^facility-?\d+/i,
-  /^site-?\d+/i,
-  /^campus-?\d+/i,
-  /^building-?\d+/i,
-  /^rack-?\d+/i,
-  
-  // Data center codes
-  /^[a-z]{2,4}\d{1,3}[a-z]?$/i,
-  /^dc\d+[a-z]?/i
+/** Known cloud provider domains */
+const CLOUD_PROVIDER_PATTERNS: RegExp[] = [
+  /\.amazonaws\.com$/i,
+  /\.azure\.com$/i,
+  /\.azure\.net$/i,
+  /\.googlecloud\.com$/i,
+  /\.cloudflare\.com$/i,
+  /\.digitalocean\.com$/i,
+  /\.linode\.com$/i,
+  /\.vultr\.com$/i,
+  /\.oracle\.cloud$/i,
+  /\.ibmcloud\.com$/i,
 ];
 
-/** Geographic hints from patterns */
-const GEO_HINTS: Record<string, string> = {
-  'us-east': 'Virginia/N. Virginia',
-  'us-west': 'Oregon/N. California',
-  'eu-west': 'Ireland/UK',
-  'eu-central': 'Frankfurt/Germany',
-  'ap-northeast': 'Tokyo/Japan',
-  'ap-southeast': 'Singapore/Sydney',
-  'ap-south': 'Mumbai/India',
-  'sa-east': 'São Paulo/Brazil',
-  'ash': 'Ashburn, Virginia',
-  'iad': 'Ashburn, Virginia',
-  'dfw': 'Dallas, Texas',
-  'sjc': 'San Jose, California',
-  'lax': 'Los Angeles, California',
-  'fra': 'Frankfurt, Germany',
-  'dub': 'Dublin, Ireland',
-  'sin': 'Singapore',
-  'nrt': 'Tokyo, Japan',
-  'syd': 'Sydney, Australia',
-  'hkg': 'Hong Kong',
-  'bom': 'Mumbai, India',
-  'gru': 'São Paulo, Brazil'
-};
+/** High-volume enterprise certificate issuers */
+const ENTERPRISE_ISSUERS: string[] = [
+  'DigiCert',
+  'Sectigo',
+  'GlobalSign',
+  'Entrust',
+  'GoDaddy',
+  'Comodo',
+  'Let\'s Encrypt', // High volume but mostly small sites
+];
 
-// ============================================================================
-// CT MONITORING SERVICE (SINGLETON)
-// ============================================================================
+// ----------------------------------------------------------------------------
+// CT Monitoring Service
+// ----------------------------------------------------------------------------
 
-/**
- * Certificate Transparency Monitoring Service
- */
-class CTMonitoringService {
+export class CTMonitoringService {
   private ws: WebSocket | null = null;
-  private state: CTMonitoringState;
-  private alertHandlers: Set<AlertHandler> = new Set();
-  private seenHashes: Set<string> = new Set();
-  private reconnectTimer: ReturnType<typeof setTimeout> | null = null;
-  private pingInterval: ReturnType<typeof setInterval> | null = null;
-  private maxReconnectAttempts = 5;
+  private state: CTConnectionState = 'disconnected';
+  private reconnectAttempts = 0;
+  private maxReconnectAttempts = 10;
   private baseReconnectDelay = 1000;
+  private maxReconnectDelay = 60000;
+  private reconnectTimer: ReturnType<typeof setTimeout> | null = null;
+  
+  /** Subscribers to connection state changes */
+  private stateListeners: Set<(state: CTConnectionState) => void> = new Set();
+  
+  /** Subscribers to CT alerts */
+  private alertListeners: Set<(alert: CTAlert) => void> = new Set();
+  
+  /** Statistics for monitoring */
+  private stats = {
+    certificatesProcessed: 0,
+    alertsGenerated: 0,
+    lastCertificateAt: 0,
+    connectionStartedAt: 0,
+  };
 
-  constructor() {
-    this.state = {
-      isConnected: false,
-      lastUpdate: null,
-      certificatesProcessed: 0,
-      alerts: [],
-      watchedDomains: new Set(WATCHED_DOMAINS),
-      stats: {
-        certificatesProcessed: 0,
-        alertsGenerated: 0,
-        watchedDomainMatches: 0,
-        facilityPatternsDetected: 0
-      },
-      connectionAttempts: 0
-    };
-  }
+  // --------------------------------------------------------------------------
+  // Connection Management
+  // --------------------------------------------------------------------------
 
   /**
    * Connect to CertStream WebSocket
    */
-  async connect(): Promise<void> {
-    if (this.ws?.readyState === WebSocket.OPEN) {
-      console.log('CT: Already connected');
+  connect(): void {
+    if (this.state === 'connecting' || this.state === 'connected') {
       return;
     }
 
-    return new Promise((resolve, reject) => {
-      try {
-        this.ws = new WebSocket(CERTSTREAM_WS_URL);
+    this.setState('connecting');
+    this.stats.connectionStartedAt = Date.now();
 
-        this.ws.onopen = () => {
-          console.log('CT: Connected to CertStream');
-          this.state.isConnected = true;
-          this.state.connectionAttempts = 0;
-          
-          // Start keepalive
-          this.startPing();
-          
-          resolve();
-        };
-
-        this.ws.onmessage = (event) => {
-          this.handleMessage(event);
-        };
-
-        this.ws.onerror = (error) => {
-          console.error('CT: WebSocket error', error);
-          reject(error);
-        };
-
-        this.ws.onclose = (event) => {
-          console.log('CT: Connection closed', event.code, event.reason);
-          this.state.isConnected = false;
-          this.stopPing();
-          
-          // Attempt reconnection
-          if (this.state.connectionAttempts < this.maxReconnectAttempts) {
-            const delay = this.baseReconnectDelay * Math.pow(2, this.state.connectionAttempts);
-            console.log(`CT: Reconnecting in ${delay}ms`);
-            this.reconnectTimer = setTimeout(() => {
-              this.state.connectionAttempts++;
-              this.connect().catch(console.error);
-            }, delay);
-          }
-        };
-
-      } catch (error) {
-        reject(error);
-      }
-    });
-  }
-
-  /**
-   * Start keepalive ping
-   */
-  private startPing(): void {
-    this.stopPing();
-    this.pingInterval = setInterval(() => {
-      if (this.ws?.readyState === WebSocket.OPEN) {
-        // CertStream doesn't require pings, but we'll check connection
-        if (!this.state.lastUpdate || Date.now() - this.state.lastUpdate > 60000) {
-          console.warn('CT: No updates for 60s, connection may be stale');
-        }
-      }
-    }, 30000);
-  }
-
-  /**
-   * Stop keepalive
-   */
-  private stopPing(): void {
-    if (this.pingInterval) {
-      clearInterval(this.pingInterval);
-      this.pingInterval = null;
-    }
-  }
-
-  /**
-   * Handle incoming CertStream message
-   */
-  private handleMessage(event: MessageEvent): void {
     try {
-      const data = JSON.parse(event.data);
-      
-      if (data.message_type !== 'certificate_update') return;
-      
-      this.state.certificatesProcessed++;
-      this.state.stats.certificatesProcessed++;
-      this.state.lastUpdate = Date.now();
-      
-      const certData = data.data;
-      const leafCert = certData.leaf_cert;
-      
-      if (!leafCert) return;
-      
-      // Extract domains
-      const allNames: string[] = [
-        leafCert.subject?.CN,
-        ...(leafCert.extensions?.subjectAltName || [])
-      ].filter(Boolean);
-      
-      // Check if any domain matches watched list
-      const matchedDomain = this.findMatchedDomain(allNames);
-      if (!matchedDomain) return;
-      
-      this.state.stats.watchedDomainMatches++;
-      
-      // Check for deduplication
-      const fingerprint = leafCert.fingerprint;
-      if (this.seenHashes.has(fingerprint)) return;
-      this.seenHashes.add(fingerprint);
-      
-      // Keep seen hashes bounded
-      if (this.seenHashes.size > 100000) {
-        const arr = Array.from(this.seenHashes);
-        this.seenHashes = new Set(arr.slice(-50000));
-      }
-      
-      // Analyze certificate
-      const alert = this.analyzeCertificate(
-        fingerprint,
-        leafCert.subject?.CN || '',
-        allNames,
-        certData.chain?.[0]?.subject?.O || leafCert.issuer?.O || 'Unknown',
-        Date.now(),
-        new Date(leafCert.not_before).getTime(),
-        new Date(leafCert.not_after).getTime(),
-        matchedDomain
-      );
-      
-      if (alert) {
-        this.state.alerts.push(alert);
-        this.state.stats.alertsGenerated++;
+      // CertStream WebSocket endpoint (CORS-enabled, no auth required)
+      this.ws = new WebSocket('wss://certstream.calidog.io/');
+
+      this.ws.onopen = () => {
+        this.setState('connected');
+        this.reconnectAttempts = 0;
         
-        // Keep alerts bounded
-        if (this.state.alerts.length > 1000) {
-          this.state.alerts = this.state.alerts.slice(-1000);
-        }
-        
-        // Persist and notify
-        this.persistAlert(alert);
-        this.alertHandlers.forEach(handler => handler(alert));
-        
-        console.log(`CT ALERT [${alert.significance}]: ${alert.commonName} - ${alert.alertType}`);
-      }
-      
+        telemetryBus.emit({
+          source: 'ct_monitoring',
+          type: 'ct_connected',
+          severity: 'info',
+          title: 'CT monitoring connected',
+          summary: 'Connected to CertStream for certificate transparency monitoring',
+          payload: { timestamp: Date.now() },
+        });
+      };
+
+      this.ws.onmessage = (event) => {
+        this.handleMessage(event.data);
+      };
+
+      this.ws.onerror = (error) => {
+        console.warn('[CTMonitoring] WebSocket error:', error);
+        this.setState('error');
+      };
+
+      this.ws.onclose = (event) => {
+        console.info('[CTMonitoring] WebSocket closed:', event.code, event.reason);
+        this.setState('disconnected');
+        this.scheduleReconnect();
+      };
+
     } catch (error) {
-      // Silently ignore parse errors (high volume)
+      console.error('[CTMonitoring] Failed to create WebSocket:', error);
+      this.setState('error');
+      this.scheduleReconnect();
     }
   }
 
   /**
-   * Find if any domain matches watched list
-   */
-  private findMatchedDomain(domains: string[]): string | null {
-    for (const domain of domains) {
-      if (!domain) continue;
-      const lowerDomain = domain.toLowerCase();
-      
-      for (const watched of this.state.watchedDomains) {
-        if (lowerDomain === watched || lowerDomain.endsWith('.' + watched)) {
-          return watched;
-        }
-      }
-    }
-    return null;
-  }
-
-  /**
-   * Analyze certificate for alerts
-   */
-  private analyzeCertificate(
-    sha256: string,
-    commonName: string,
-    domains: string[],
-    issuer: string,
-    loggedAt: number,
-    notBefore: number,
-    notAfter: number,
-    matchedDomain: string
-  ): CTCertificate | null {
-    // Determine provider
-    const provider = this.identifyProvider(matchedDomain);
-    
-    // Check for facility patterns
-    const facilityMatch = this.detectFacilityPattern(commonName, domains);
-    const isWildcard = domains.some(d => d.startsWith('*.'));
-    const isMassIssuance = domains.length > 10;
-    
-    // Determine alert type and significance
-    let alertType: CTCertificate['alertType'] = 'new_subdomain';
-    let significance: CTCertificate['significance'] = 'low';
-    let businessInference = 'Standard certificate issuance';
-    let geographicHint: string | undefined;
-    
-    if (facilityMatch) {
-      alertType = 'facility_pattern';
-      significance = 'high';
-      this.state.stats.facilityPatternsDetected++;
-      
-      // Extract geographic hint
-      geographicHint = this.extractGeoHint(facilityMatch);
-      
-      businessInference = geographicHint
-        ? `New facility deployment detected in ${geographicHint} - infrastructure expansion indicator`
-        : `New facility deployment detected (${facilityMatch}) - infrastructure expansion indicator`;
-    } else if (isWildcard) {
-      alertType = 'wildcard';
-      significance = 'medium';
-      businessInference = 'Wildcard certificate may cover new infrastructure deployments';
-    } else if (isMassIssuance) {
-      alertType = 'mass_issuance';
-      significance = 'medium';
-      businessInference = `Mass certificate issuance (${domains.length} domains) - possible major deployment`;
-    }
-    
-    // Only return alerts for medium+ significance
-    if (significance === 'low' && alertType === 'new_subdomain') {
-      // Check if it's a potentially interesting subdomain
-      const hasInfraKeyword = domains.some(d => 
-        /\b(dc|colo|infra|cluster|node|edge|prod|api|internal)\b/i.test(d)
-      );
-      if (!hasInfraKeyword) return null;
-      
-      significance = 'low';
-      businessInference = 'New infrastructure-related subdomain detected';
-    }
-    
-    return {
-      sha256,
-      commonName,
-      domains: domains.slice(0, 20), // Limit stored domains
-      issuer,
-      loggedAt,
-      notBefore,
-      notAfter,
-      alertType,
-      provider,
-      geographicHint,
-      significance,
-      businessInference
-    };
-  }
-
-  /**
-   * Identify provider from domain
-   */
-  private identifyProvider(domain: string): string {
-    const providerMap: Record<string, string> = {
-      'amazonaws.com': 'Amazon (AWS)',
-      'aws.amazon.com': 'Amazon (AWS)',
-      'azure.com': 'Microsoft Azure',
-      'azure-api.net': 'Microsoft Azure',
-      'azureedge.net': 'Microsoft Azure',
-      'google.com': 'Google',
-      'googleapis.com': 'Google',
-      'gcp.com': 'Google Cloud',
-      'googlecloud.com': 'Google Cloud',
-      'meta.com': 'Meta',
-      'facebook.com': 'Meta',
-      'apple.com': 'Apple',
-      'icloud.com': 'Apple',
-      'cloudflare.com': 'Cloudflare',
-      'equinix.com': 'Equinix',
-      'digitalrealty.com': 'Digital Realty',
-      'cyrusone.com': 'CyrusOne',
-      'coresite.com': 'CoreSite',
-      'akamai.com': 'Akamai',
-      'fastly.com': 'Fastly'
-    };
-    
-    return providerMap[domain] || domain;
-  }
-
-  /**
-   * Detect facility naming pattern
-   */
-  private detectFacilityPattern(commonName: string, domains: string[]): string | null {
-    const allNames = [commonName, ...domains].filter(Boolean);
-    
-    for (const name of allNames) {
-      // Extract subdomain parts
-      const parts = name.split('.');
-      for (const part of parts) {
-        for (const pattern of FACILITY_PATTERNS) {
-          if (pattern.test(part)) {
-            return part;
-          }
-        }
-      }
-    }
-    
-    return null;
-  }
-
-  /**
-   * Extract geographic hint from facility pattern
-   */
-  private extractGeoHint(pattern: string): string | undefined {
-    const lowerPattern = pattern.toLowerCase();
-    
-    for (const [key, location] of Object.entries(GEO_HINTS)) {
-      if (lowerPattern.includes(key)) {
-        return location;
-      }
-    }
-    
-    return undefined;
-  }
-
-  /**
-   * Persist alert to IndexedDB
-   */
-  private async persistAlert(alert: CTCertificate): Promise<void> {
-    try {
-      await db.ctAlerts?.add(alert);
-    } catch (error) {
-      console.warn('CT: Could not persist alert', error);
-    }
-  }
-
-  /**
-   * Disconnect from WebSocket
+   * Disconnect from CertStream
    */
   disconnect(): void {
     if (this.reconnectTimer) {
       clearTimeout(this.reconnectTimer);
       this.reconnectTimer = null;
     }
-    this.stopPing();
-    
+
     if (this.ws) {
-      this.ws.close(1000, 'Client disconnect');
+      this.ws.close();
       this.ws = null;
     }
-    
-    this.state.isConnected = false;
-    console.log('CT: Disconnected');
+
+    this.setState('disconnected');
+    this.reconnectAttempts = 0;
   }
 
   /**
-   * Register alert handler
+   * Schedule reconnection with exponential backoff
    */
-  onAlert(handler: AlertHandler): () => void {
-    this.alertHandlers.add(handler);
-    return () => this.alertHandlers.delete(handler);
-  }
-
-  /**
-   * Add domain to watch list
-   */
-  watchDomain(domain: string): void {
-    this.state.watchedDomains.add(domain.toLowerCase());
-  }
-
-  /**
-   * Remove domain from watch list
-   */
-  unwatchDomain(domain: string): void {
-    this.state.watchedDomains.delete(domain.toLowerCase());
-  }
-
-  /**
-   * Get current state
-   */
-  getState(): CTMonitoringState {
-    return {
-      ...this.state,
-      watchedDomains: new Set(this.state.watchedDomains)
-    };
-  }
-
-  /**
-   * Get recent alerts
-   */
-  getRecentAlerts(limit: number = 50): CTCertificate[] {
-    return this.state.alerts.slice(-limit);
-  }
-
-  /**
-   * Get alerts by provider
-   */
-  getAlertsByProvider(provider: string): CTCertificate[] {
-    return this.state.alerts.filter(a => 
-      a.provider?.toLowerCase().includes(provider.toLowerCase())
-    );
-  }
-
-  /**
-   * Get facility expansion alerts only
-   */
-  getFacilityAlerts(): CTCertificate[] {
-    return this.state.alerts.filter(a => a.alertType === 'facility_pattern');
-  }
-
-  /**
-   * Reset state
-   */
-  reset(): void {
-    this.seenHashes.clear();
-    this.state.alerts = [];
-    this.state.certificatesProcessed = 0;
-    this.state.stats = {
-      certificatesProcessed: 0,
-      alertsGenerated: 0,
-      watchedDomainMatches: 0,
-      facilityPatternsDetected: 0
-    };
-  }
-}
-
-// ============================================================================
-// SINGLETON EXPORT
-// ============================================================================
-
-export const ctMonitor = new CTMonitoringService();
-
-// ============================================================================
-// REACT HOOK
-// ============================================================================
-
-import { useState, useEffect, useCallback } from 'react';
-
-/**
- * React hook for CT monitoring
- */
-export function useCTMonitoring() {
-  const [state, setState] = useState<CTMonitoringState>(ctMonitor.getState());
-  const [recentAlerts, setRecentAlerts] = useState<CTCertificate[]>([]);
-
-  useEffect(() => {
-    // Update state periodically
-    const interval = setInterval(() => {
-      setState(ctMonitor.getState());
-      setRecentAlerts(ctMonitor.getRecentAlerts(20));
-    }, 1000);
-
-    // Subscribe to alerts
-    const unsubscribe = ctMonitor.onAlert((alert) => {
-      setRecentAlerts(prev => [...prev.slice(-19), alert]);
-    });
-
-    return () => {
-      clearInterval(interval);
-      unsubscribe();
-    };
-  }, []);
-
-  const connect = useCallback(async () => {
-    try {
-      await ctMonitor.connect();
-    } catch (error) {
-      console.error('Failed to connect to CT monitor', error);
+  private scheduleReconnect(): void {
+    if (this.reconnectAttempts >= this.maxReconnectAttempts) {
+      console.error('[CTMonitoring] Max reconnect attempts reached');
+      
+      telemetryBus.emit({
+        source: 'ct_monitoring',
+        type: 'ct_connection_failed',
+        severity: 'warning',
+        title: 'CT monitoring connection failed',
+        summary: `Failed to connect after ${this.maxReconnectAttempts} attempts`,
+        payload: { attempts: this.reconnectAttempts },
+      });
+      
+      return;
     }
-  }, []);
 
-  const disconnect = useCallback(() => {
-    ctMonitor.disconnect();
-  }, []);
+    const delay = Math.min(
+      this.baseReconnectDelay * Math.pow(2, this.reconnectAttempts),
+      this.maxReconnectDelay
+    );
 
-  const watchDomain = useCallback((domain: string) => {
-    ctMonitor.watchDomain(domain);
-  }, []);
+    this.reconnectAttempts++;
+    
+    this.reconnectTimer = setTimeout(() => {
+      this.connect();
+    }, delay);
+  }
 
-  const unwatchDomain = useCallback((domain: string) => {
-    ctMonitor.unwatchDomain(domain);
-  }, []);
+  // --------------------------------------------------------------------------
+  // Message Processing
+  // --------------------------------------------------------------------------
 
-  return {
-    ...state,
-    watchedDomains: Array.from(state.watchedDomains),
-    recentAlerts,
-    facilityAlerts: ctMonitor.getFacilityAlerts(),
-    connect,
-    disconnect,
-    watchDomain,
-    unwatchDomain
-  };
+  /**
+   * Handle incoming CertStream message
+   */
+  private handleMessage(data: string): void {
+    try {
+      const message = JSON.parse(data);
+      
+      // CertStream sends heartbeat messages
+      if (message.message_type === 'heartbeat') {
+        return;
+      }
+
+      // Certificate update message
+      if (message.message_type === 'certificate_update') {
+        this.processCertificate(message.data);
+      }
+
+    } catch (error) {
+      // Ignore parse errors - CertStream sometimes sends malformed data
+    }
+  }
+
+  /**
+   * Process a certificate update from CertStream
+   */
+  private processCertificate(data: unknown): void {
+    if (!data || typeof data !== 'object') return;
+
+    const certData = data as Record<string, unknown>;
+    const leafCert = certData.leaf_cert as Record<string, unknown> | undefined;
+    
+    if (!leafCert) return;
+
+    this.stats.certificatesProcessed++;
+    this.stats.lastCertificateAt = Date.now();
+
+    // Extract certificate info
+    const certificate: CTCertificate = {
+      fingerprint: String(leafCert.fingerprint || ''),
+      serialNumber: String(leafCert.serial_number || ''),
+      issuer: this.extractIssuer(leafCert),
+      subject: this.extractSubject(leafCert),
+      domains: this.extractDomains(leafCert),
+      notBefore: this.parseTimestamp(leafCert.not_before),
+      notAfter: this.parseTimestamp(leafCert.not_after),
+      source: String((certData.source as { name?: string } | undefined)?.name || 'unknown'),
+      updateType: certData.update_type === 'PrecertLogEntry' ? 'PrecertLogEntry' : 'X509LogEntry',
+    };
+
+    // Check if certificate matches data center patterns
+    const alert = this.analyzeCertificate(certificate);
+    
+    if (alert) {
+      this.stats.alertsGenerated++;
+      this.emitAlert(alert);
+    }
+  }
+
+  /**
+   * Extract issuer name from certificate
+   */
+  private extractIssuer(cert: Record<string, unknown>): string {
+    const issuer = cert.issuer as Record<string, unknown> | undefined;
+    if (!issuer) return 'Unknown';
+    
+    return String(issuer.CN || issuer.O || 'Unknown');
+  }
+
+  /**
+   * Extract subject name from certificate
+   */
+  private extractSubject(cert: Record<string, unknown>): string {
+    const subject = cert.subject as Record<string, unknown> | undefined;
+    if (!subject) return 'Unknown';
+    
+    return String(subject.CN || subject.O || 'Unknown');
+  }
+
+  /**
+   * Extract all domains (CN + SANs) from certificate
+   */
+  private extractDomains(cert: Record<string, unknown>): string[] {
+    const domains: string[] = [];
+    
+    // Common Name
+    const subject = cert.subject as Record<string, unknown> | undefined;
+    if (subject?.CN) {
+      domains.push(String(subject.CN));
+    }
+    
+    // Subject Alternative Names
+    const extensions = cert.extensions as Record<string, unknown> | undefined;
+    const san = extensions?.subjectAltName as string | undefined;
+    
+    if (san) {
+      // Parse "DNS:example.com, DNS:www.example.com" format
+      const sanEntries = san.split(',').map(s => s.trim());
+      for (const entry of sanEntries) {
+        if (entry.startsWith('DNS:')) {
+          domains.push(entry.substring(4));
+        }
+      }
+    }
+    
+    // Also check all_domains if provided by CertStream
+    const allDomains = cert.all_domains as string[] | undefined;
+    if (Array.isArray(allDomains)) {
+      domains.push(...allDomains);
+    }
+    
+    // Deduplicate
+    return [...new Set(domains)];
+  }
+
+  /**
+   * Parse timestamp from certificate
+   */
+  private parseTimestamp(value: unknown): number {
+    if (typeof value === 'number') return value * 1000; // Unix seconds to ms
+    if (typeof value === 'string') return new Date(value).getTime();
+    return 0;
+  }
+
+  // --------------------------------------------------------------------------
+  // Certificate Analysis
+  // --------------------------------------------------------------------------
+
+  /**
+   * Analyze certificate for data center indicators
+   */
+  private analyzeCertificate(cert: CTCertificate): CTAlert | null {
+    const matchedPatterns: string[] = [];
+    let confidence = 0;
+    let reason: CTAlertReason | null = null;
+
+    // Check domains against patterns
+    for (const domain of cert.domains) {
+      // Data center domain patterns
+      for (const pattern of DC_DOMAIN_PATTERNS) {
+        if (pattern.test(domain)) {
+          matchedPatterns.push(`DC pattern: ${pattern.source}`);
+          confidence += 0.3;
+          reason = reason || 'data_center_domain';
+        }
+      }
+
+      // Cloud provider patterns
+      for (const pattern of CLOUD_PROVIDER_PATTERNS) {
+        if (pattern.test(domain)) {
+          matchedPatterns.push(`Cloud: ${domain}`);
+          confidence += 0.2;
+          reason = reason || 'cloud_provider';
+        }
+      }
+
+      // IP-based SAN (unusual, often internal infrastructure)
+      if (/^\d+\.\d+\.\d+\.\d+$/.test(domain)) {
+        matchedPatterns.push(`IP SAN: ${domain}`);
+        confidence += 0.4;
+        reason = reason || 'ip_based_san';
+      }
+    }
+
+    // Check issuer
+    for (const issuer of ENTERPRISE_ISSUERS) {
+      if (cert.issuer.includes(issuer)) {
+        matchedPatterns.push(`Issuer: ${issuer}`);
+        confidence += 0.1;
+        reason = reason || 'high_volume_issuer';
+      }
+    }
+
+    // Only alert if we have meaningful matches
+    if (confidence < 0.3 || !reason) {
+      return null;
+    }
+
+    // Cap confidence at 1.0
+    confidence = Math.min(confidence, 1.0);
+
+    return {
+      certificate: cert,
+      reason,
+      confidence,
+      matchedPatterns,
+      detectedAt: Date.now(),
+    };
+  }
+
+  // --------------------------------------------------------------------------
+  // Alert Emission
+  // --------------------------------------------------------------------------
+
+  /**
+   * Emit a CT alert to listeners and telemetry
+   */
+  private emitAlert(alert: CTAlert): void {
+    // Notify listeners
+    for (const listener of this.alertListeners) {
+      try {
+        listener(alert);
+      } catch (error) {
+        console.error('[CTMonitoring] Alert listener error:', error);
+      }
+    }
+
+    // Emit telemetry event
+    telemetryBus.emit({
+      source: 'ct_monitoring',
+      type: 'ct_alert',
+      severity: alert.confidence > 0.7 ? 'high' : alert.confidence > 0.5 ? 'medium' : 'low',
+      title: `CT Alert: ${alert.certificate.domains[0] || alert.certificate.subject}`,
+      summary: `Certificate detected matching ${alert.reason}: ${alert.matchedPatterns.join(', ')}`,
+      payload: {
+        fingerprint: alert.certificate.fingerprint,
+        domains: alert.certificate.domains,
+        issuer: alert.certificate.issuer,
+        reason: alert.reason,
+        confidence: alert.confidence,
+        matchedPatterns: alert.matchedPatterns,
+        source: alert.certificate.source,
+      },
+      correlationId: `ct:${alert.certificate.fingerprint}`,
+    });
+  }
+
+  // --------------------------------------------------------------------------
+  // State Management
+  // --------------------------------------------------------------------------
+
+  private setState(state: CTConnectionState): void {
+    this.state = state;
+    for (const listener of this.stateListeners) {
+      try {
+        listener(state);
+      } catch (error) {
+        console.error('[CTMonitoring] State listener error:', error);
+      }
+    }
+  }
+
+  // --------------------------------------------------------------------------
+  // Public API
+  // --------------------------------------------------------------------------
+
+  getState(): CTConnectionState {
+    return this.state;
+  }
+
+  getStats(): typeof this.stats {
+    return { ...this.stats };
+  }
+
+  /**
+   * Subscribe to connection state changes
+   */
+  onStateChange(listener: (state: CTConnectionState) => void): () => void {
+    this.stateListeners.add(listener);
+    return () => this.stateListeners.delete(listener);
+  }
+
+  /**
+   * Subscribe to CT alerts
+   */
+  onAlert(listener: (alert: CTAlert) => void): () => void {
+    this.alertListeners.add(listener);
+    return () => this.alertListeners.delete(listener);
+  }
 }
 
+// ----------------------------------------------------------------------------
+// Singleton Export
+// ----------------------------------------------------------------------------
+
+export const ctMonitoring = new CTMonitoringService();
+
+// Alias for compatibility with PatternIntelligenceDashboard
+export const ctMonitor = ctMonitoring;
+
+// Re-export hook for convenience
+export { useCTMonitoring } from '../hooks/useCTMonitoring';
