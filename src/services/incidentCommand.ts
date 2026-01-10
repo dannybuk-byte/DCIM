@@ -1,5 +1,6 @@
 import { db } from '../db/database';
 import type { IncidentRecord, IncidentStatus, TelemetryEventRecord, TelemetrySeverity } from '../db/database';
+import { captureIncidentCreatedSnapshot } from './auditSnapshot';
 
 function makeId(prefix = 'inc'): string {
   return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
@@ -70,6 +71,12 @@ export class IncidentCommandService {
     };
 
     await db.incidents.put(incident);
+
+    // Capture audit snapshot for decision trail (best-effort, non-blocking)
+    const wasAutoCreated = input.tags?.includes('auto') ?? false;
+    const wasAutoConfirmed = input.initialStatus === 'confirmed' && wasAutoCreated;
+    void captureIncidentCreatedSnapshot(incident.id, wasAutoCreated, wasAutoConfirmed);
+
     return incident;
   }
 

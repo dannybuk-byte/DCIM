@@ -783,6 +783,49 @@ export class ComplianceDatabase extends Dexie {
     }).upgrade(async (_tx) => {
       console.log('Database upgraded to version 14: BGP baseline + RPKI cache added.');
     });
+
+    // Version 15: Audit snapshots for verification decision trails
+    this.version(15).stores({
+      facilities: '++id, name, operator, state, country, complianceStatus, riskScore, county, city',
+      dataCenterMetrics: '++id, facilityId, timestamp, powerUsage, coolingEfficiency, serverCount',
+      complianceAlerts: '++id, facilityId, alertType, severity, createdAt, acknowledgedAt',
+      searchHistory: '++id, query, resultCount, timestamp',
+      settings: 'key',
+      savedFilters: '++id, name, filterJson, createdAt',
+      exportHistory: '++id, exportType, recordCount, createdAt',
+      newsItems: '++id, source, title, url, publishedAt, scrapedAt, relevanceScore',
+      newsReadStatus: '++id, newsItemId, readAt',
+      networkSecurity: '++id, facilityId, asn, asnName, rpkiStatus, networkRiskScore',
+      interconnections: '++id, facilityId, ixpName, connectionType, bandwidthGbps',
+      bgpAnomalies: '++id, facilityId, anomalyType, severity, detectedAt, resolvedAt',
+      dataPaths: '++id, originFacilityId, destinationFacilityId, dataType, routingPath',
+      organizingTargets: '++id, facilityId, operatorName, targetType, priority, status, assignedTo, createdAt, updatedAt, dueDate',
+      organizingNotes: '++id, targetId, authorName, content, createdAt',
+      organizingTasks: '++id, targetId, taskType, description, status, assignedTo, dueDate',
+      sanctions: '++id, facilityId, sdnMatchScore, riskLevel, checkedAt',
+      whistleblowerReports: '++id, facilityId, reportType, severity, createdAt, status',
+      nlpQueryHistory: '++id, sectionId, query, response, actionsTaken, timestamp',
+      workerReviews: '++id, facilityId, operatorName, rating, reviewText, datePosted, verificationStatus, sentiment, themes, source',
+      workerIncidents: '++id, facilityId, operatorName, incidentType, severity, description, dateOccurred, dateReported, verificationStatus, source',
+      laborIntelligence: '++id, facilityId, operatorName, intelligenceType, content, source, confidence, detectedAt',
+      correlations: '++id, facilityId, provider, timestamp, signalCount, combinedConfidence, pattern, hypothesis, businessInference, investigationPriority',
+      agentTasks: 'id, type, priority, status, assignedTo, startedAt',
+      agentApprovals: 'id, agentId, action, status, timestamp, expiresAt',
+      triangulationResults: 'id, claimSubject, verified, overallConfidence, timestamp',
+      agentMemories: '++id, agentId, agentType, memoryType, confidence, createdAt, [agentId+memoryType], *tags',
+      signalCorrelations: '++id, correlationId, pattern, confidence, detectedAt, *facilityIds',
+      mcpTools: 'id, name, provider, version, registeredAt, lastUsedAt',
+      telemetryEvents:
+        'id, timestamp, source, type, severity, facilityId, correlationId, fingerprint, [facilityId+timestamp], [source+timestamp], [correlationId+timestamp]',
+      incidents: 'id, status, severity, createdAt, updatedAt, lastEventAt, *tags',
+      incidentEventLinks: '++id, incidentId, eventId, timestamp, [incidentId+timestamp], [eventId]',
+      bgpPrefixBaselines: 'id, originAsn, prefix, lastSeen, [originAsn+lastSeen]',
+      rpkiCache: 'key, fetchedAt',
+      // NEW v15
+      auditSnapshots: 'id, timestamp, snapshotType, [linkedEntityType+linkedEntityId]'
+    }).upgrade(async (_tx) => {
+      console.log('Database upgraded to version 15: Audit snapshots added.');
+    });
   }
 }
 
