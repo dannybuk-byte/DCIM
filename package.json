@@ -13,6 +13,8 @@
     "test:ui": "vitest --ui",
     "test:run": "vitest run",
     "test:coverage": "vitest run --coverage",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
     "postinstall": "node -e \"const fs = require('fs'); const dir = 'node_modules/echarts/lib/chart/sankey'; try { fs.mkdirSync(dir, { recursive: true }); fs.writeFileSync(dir + '/install.js', '// Stub file\\nexport function install() {}\\n'); console.log('✅ Created echarts stub'); } catch(e) { console.warn('⚠️ Could not create echarts stub:', e.message); }\""
   },
   "dependencies": {
@@ -54,6 +56,7 @@
     "zod": "^4.3.4"
   },
   "devDependencies": {
+    "@playwright/test": "^1.57.0",
     "@testing-library/dom": "^10.4.1",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.1",
