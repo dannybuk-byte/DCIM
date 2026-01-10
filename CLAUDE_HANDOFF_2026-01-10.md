@@ -153,8 +153,15 @@ VITE_API_BASE_URL=https://dcim-api-worker.dannybuk.workers.dev
 ### Automated Tests
 
 ```bash
+# Unit tests (43 tests)
 npm run test:run
-# 43 tests should pass
+
+# E2E tests (requires dev server running)
+PLAYWRIGHT_BASE_URL=http://localhost:5177 npm run test:e2e
+
+# All tests summary:
+# - Unit: 43 passing
+# - E2E: 3 passing (dashboard smoke tests)
 ```
 
 ---
@@ -226,6 +233,9 @@ npx wrangler secret put EIA_API_KEY
 
 | Hash | Description |
 |------|-------------|
+| `4b901c8d` | Fix Playwright config and dashboard test selector |
+| `47afc8ed` | Add Playwright E2E test framework |
+| `9e4a2dce` | Add comprehensive Claude handoff |
 | `ffa0cb69` | Integrate unified verification with Dempster-Shafer UI |
 | `604fd091` | Add unified verification with Dempster-Shafer evidence fusion |
 | `96eea6ba` | Wire FacilityVerificationPanel into DetailedFacilityView |
