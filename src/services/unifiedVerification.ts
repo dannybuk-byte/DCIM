@@ -20,7 +20,8 @@ import { verifyFacilityLocation } from './epaVerification';
 import { verifyFacilityRegion, isEiaProxyConfigured } from './eiaVerification';
 import { combineDempster, toMassFromConfidence, pignisticProbability, type MassFunction, type CombineResult } from './dempsterShafer';
 import { telemetryBus } from './telemetryBus';
-import { ctMonitoring, type CTAlert } from './ctMonitoring';
+import { ctMonitoring } from './ctMonitoring';
+import { getCachedVerification, cacheVerificationResult } from './verificationCache';
 
 export interface UnifiedVerificationInput {
   facilityName: string;
@@ -60,8 +61,49 @@ function hashInput(input: UnifiedVerificationInput): string {
 
 /**
  * Run all applicable verification sources and combine results.
+ * Uses caching to avoid redundant API calls.
+ * 
+ * @param options.skipCache - Force fresh verification (default: false)
  */
 export async function runUnifiedVerification(
+  input: UnifiedVerificationInput,
+  options: { skipCache?: boolean } = {},
+): Promise<UnifiedVerificationResult> {
+  // Check cache first (unless skipCache is true)
+  if (!options.skipCache) {
+    const cached = await getCachedVerification(
+      input.facilityName,
+      input.latitude,
+      input.longitude,
+      input.state,
+    );
+    
+    if (cached) {
+      // Return cached result (still valid)
+      return cached;
+    }
+  }
+  
+  // No cache hit - run live verification
+  const result = await runLiveVerification(input);
+  
+  // Cache the result for future requests (non-blocking)
+  void cacheVerificationResult(
+    input.facilityName,
+    input.latitude,
+    input.longitude,
+    input.state,
+    result,
+  );
+  
+  return result;
+}
+
+/**
+ * Run live verification (bypasses cache).
+ * Internal function - use runUnifiedVerification() for normal usage.
+ */
+async function runLiveVerification(
   input: UnifiedVerificationInput,
 ): Promise<UnifiedVerificationResult> {
   const timestamp = Date.now();

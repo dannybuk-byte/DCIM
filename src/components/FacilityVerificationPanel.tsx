@@ -132,17 +132,19 @@ export const FacilityVerificationPanel: React.FC<FacilityVerificationPanelProps>
   const [result, setResult] = useState<UnifiedVerificationResult | null>(null);
   const [loading, setLoading] = useState(true);
   const [expanded, setExpanded] = useState(false);
+  const [isCached, setIsCached] = useState(false);
 
-  const runVerification = useCallback(async () => {
+  const runVerification = useCallback(async (skipCache = false) => {
     setLoading(true);
+    setIsCached(false);
     try {
-      const verificationResult = await runUnifiedVerification({
-        facilityName,
-        latitude,
-        longitude,
-        state,
-      });
+      const verificationResult = await runUnifiedVerification(
+        { facilityName, latitude, longitude, state },
+        { skipCache },
+      );
       setResult(verificationResult);
+      // If result timestamp is old, it was cached
+      setIsCached(!skipCache && (Date.now() - verificationResult.timestamp > 1000));
     } catch {
       setResult(null);
     } finally {
@@ -151,7 +153,12 @@ export const FacilityVerificationPanel: React.FC<FacilityVerificationPanelProps>
   }, [facilityName, latitude, longitude, state]);
 
   useEffect(() => {
-    runVerification();
+    // Debounce: only run verification after 300ms of stable props
+    const timeoutId = setTimeout(() => {
+      runVerification(false);
+    }, 300);
+    
+    return () => clearTimeout(timeoutId);
   }, [runVerification]);
 
   const overallStatus = getOverallStatus(result, loading);
@@ -234,17 +241,24 @@ export const FacilityVerificationPanel: React.FC<FacilityVerificationPanelProps>
 
           {/* Refresh button */}
           <div className="px-4 py-2 border-t border-slate-200">
-            <button
-              onClick={() => {
-                setLoading(true);
-                setResult(null);
-                runVerification();
-              }}
-              disabled={loading}
-              className="w-full px-3 py-2 text-xs font-medium text-slate-600 bg-slate-100 hover:bg-slate-200 disabled:opacity-50 rounded transition-colors"
-            >
-              {loading ? 'Verifying...' : 'Refresh Verification'}
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => {
+                  setLoading(true);
+                  setResult(null);
+                  runVerification(true); // Skip cache on manual refresh
+                }}
+                disabled={loading}
+                className="flex-1 px-3 py-2 text-xs font-medium text-slate-600 bg-slate-100 hover:bg-slate-200 disabled:opacity-50 rounded transition-colors"
+              >
+                {loading ? 'Verifying...' : 'Refresh Verification'}
+              </button>
+              {isCached && !loading && (
+                <span className="text-[10px] text-slate-400 whitespace-nowrap">
+                  cached
+                </span>
+              )}
+            </div>
           </div>
         </div>
       )}
