@@ -10,6 +10,8 @@ compatibility_date = "2024-01-01"
 # - /api/webhook/:provider - Webhook forwarding
 # - /api/epa/* - EPA ECHO proxy
 # - /api/sec/* - SEC EDGAR proxy
+# - /api/routeviews/prefix/:prefix - RouteViews BGP corroboration proxy (CORS + short cache)
+# - /api/eia/v2/* - EIA proxy (hides API key; CORS + short cache)
 # - /api/health - Health check
 
 # ============================================================================
@@ -56,6 +58,7 @@ ENVIRONMENT = "development"
 # SECRETS (set via CLI)
 # ============================================================================
 # wrangler secret put ANTHROPIC_API_KEY
+# wrangler secret put EIA_API_KEY
 # wrangler secret put SLACK_WEBHOOK_URL
 # wrangler secret put DISCORD_WEBHOOK_URL
 # wrangler secret put TEAMS_WEBHOOK_URL

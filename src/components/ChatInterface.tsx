@@ -8,11 +8,10 @@ import { AutocompleteInput } from './shared/AutocompleteInput';
 import { useNLPSearchSuggestions } from '../hooks/useNLPSearchSuggestions';
 import { recordSearch } from '../db/searchHistory';
 import { circuitBreakers } from '../utils/circuitBreaker';
-import { withTimeout } from '../utils/timeout';
-import { rateLimiters } from '../utils/rateLimiter';
 import { sanitizeSearchQuery } from '../utils/sanitization';
 import { trackError } from '../utils/errorTracking';
 import { safeDbOperation } from '../utils/dbOperations';
+import { askAIText } from '../ai/engine';
 
 interface Message {
   role: 'user' | 'assistant';
@@ -32,7 +31,6 @@ export default function ChatInterface({ isOpen, onClose }: { isOpen: boolean; on
   const [allSources, setAllSources] = useState<Source[]>([]);
   const [networkSecurityData, setNetworkSecurityData] = useState<NetworkSecurity[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const WORKER_URL = 'https://claude-api-proxy.dannybuk.workers.dev';
   
   // Get AI search suggestions for autocomplete
   const aiSuggestions = useNLPSearchSuggestions({
@@ -190,48 +188,19 @@ export default function ChatInterface({ isOpen, onClose }: { isOpen: boolean; on
       : `You are a compliance analyst. Data: ${d}`;
 
     try {
-      // Apply rate limiting
-      await rateLimiters.claudeAPI.check();
-      
-      // Use circuit breaker, timeout, and sanitization
+      // Use circuit breaker + sanitization (AI Engine handles provider routing, timeouts, and rate limiting)
       const sanitizedQuery = sanitizeSearchQuery(q);
       
-      const response = await circuitBreakers.claudeAPI.execute(
-        async () => {
-          return await withTimeout(
-            fetch(WORKER_URL, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                model: 'claude-sonnet-4-20250514',
-                max_tokens: deepMode ? 8192 : 4096,
-                system: systemPrompt,
-                messages: [{ role: 'user', content: sanitizedQuery }]
-              })
-            }),
-            30000, // 30 second timeout
-            () => {
-              throw new Error('Request timed out');
-            }
-          );
-        },
-        () => {
-          // Fallback: return error response
-          return {
-            ok: false,
-            json: async () => ({ 
-              content: [{ text: 'AI service temporarily unavailable. Using local data analysis...' }] 
-            })
-          } as Response;
-        }
-      );
+      const result = await circuitBreakers.claudeAPI.execute(async () => {
+        const { text } = await askAIText(systemPrompt, sanitizedQuery, {
+          maxTokens: deepMode ? 8192 : 4096,
+          temperature: 0.7,
+          timeoutMs: 30000,
+        });
+        return text;
+      });
 
-      if (!response.ok) {
-        throw new Error(`API error: ${response.status}`);
-      }
-
-      const j = await response.json();
-      return j.content?.[0]?.text || 'I found relevant compliance data. Please review the report below.';
+      return result || 'I found relevant compliance data. Please review the report below.';
     } catch (error) {
       console.error('Error calling Claude API:', error);
       trackError(error instanceof Error ? error : new Error(String(error)), {

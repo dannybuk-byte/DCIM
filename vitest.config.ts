@@ -50,11 +50,7 @@ export default defineConfig({
     
     // Thread settings
     pool: 'threads',
-    poolOptions: {
-      threads: {
-        singleThread: true, // Better for DOM testing
-      },
-    },
+    singleThread: true, // Better for DOM testing
   },
 });
 

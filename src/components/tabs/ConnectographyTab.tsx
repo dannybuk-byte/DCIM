@@ -15,6 +15,8 @@ import { getComplianceBadgeClasses } from '../../utils/classHelpers';
 import { ErrorBoundary } from '../ErrorBoundary';
 import { db, NetworkSecurity } from '../../db/database';
 import { calculateStats } from '../../utils/stats';
+import type { BGPAnomaly } from '../../services/bgpMonitoring';
+import { checkVerificationProxyHealth, type VerificationHealthSnapshot } from '../../services/verificationHealth';
 
 interface ConnectographyTabProps {
   facilities: Facility[];
@@ -449,6 +451,9 @@ PatternAnalysisTab.displayName = 'PatternAnalysisTab';
 const NetworkSecurityTab = memo(({ facilities }: { facilities: Facility[] }) => {
   const [selectedFacility, setSelectedFacility] = useState<number | null>(null);
   const [networkData, setNetworkData] = useState<NetworkSecurity[]>([]);
+  const [recentAnomalies, setRecentAnomalies] = useState<BGPAnomaly[]>([]);
+  const [anomaliesLoading, setAnomaliesLoading] = useState<boolean>(false);
+  const [verificationHealth, setVerificationHealth] = useState<VerificationHealthSnapshot>({ status: 'unknown', checkedAt: Date.now() });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -503,6 +508,135 @@ const NetworkSecurityTab = memo(({ facilities }: { facilities: Facility[] }) => 
     );
   };
 
+  const getAnomalyRpkiBadge = (state?: string) => {
+    const s = (state || '').toLowerCase();
+    const config: Record<string, { color: string; label: string }> = {
+      valid: { color: COLORS.green, label: 'RPKI valid' },
+      invalid: { color: COLORS.red, label: 'RPKI invalid' },
+      not_found: { color: COLORS.yellow, label: 'RPKI not found' },
+      unsupported: { color: COLORS.textMuted, label: 'RPKI unsupported' },
+      error: { color: COLORS.red, label: 'RPKI error' },
+    };
+    const { color, label } = config[s] || { color: COLORS.textMuted, label: 'RPKI —' };
+    return (
+      <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium" style={{ backgroundColor: `${color}22`, color }}>
+        {label}
+      </span>
+    );
+  };
+
+  const getCorroborationBadge = (status?: string) => {
+    const s = (status || '').toLowerCase();
+    const config: Record<string, { color: string; label: string; Icon: typeof CheckCircle2 }> = {
+      confirmed: { color: COLORS.green, label: 'RouteViews confirmed', Icon: CheckCircle2 },
+      pending: { color: COLORS.yellow, label: 'RouteViews pending', Icon: Clock },
+      unconfirmed: { color: COLORS.red, label: 'RouteViews unconfirmed', Icon: AlertTriangle },
+      error: { color: COLORS.red, label: 'RouteViews error', Icon: XCircle },
+    };
+    const { color, label, Icon } = config[s] || { color: COLORS.textMuted, label: 'RouteViews —', Icon: Clock };
+    return (
+      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium" style={{ backgroundColor: `${color}22`, color }}>
+        <Icon className="w-3 h-3" />
+        {label}
+      </span>
+    );
+  };
+
+  const getVerificationHealthBadge = (snap: VerificationHealthSnapshot) => {
+    const ageSec = Math.max(0, Math.floor((Date.now() - snap.checkedAt) / 1000));
+    if (snap.status === 'ok') {
+      return (
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium"
+          style={{ backgroundColor: `${COLORS.green}22`, color: COLORS.green }}>
+          <CheckCircle2 className="w-3 h-3" />
+          Verification OK
+          <span className="text-[10px]" style={{ color: COLORS.textMuted }}>({ageSec}s)</span>
+        </span>
+      );
+    }
+    if (snap.status === 'down') {
+      return (
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium"
+          style={{ backgroundColor: `${COLORS.red}22`, color: COLORS.red }}
+          title={snap.message || 'Verification proxy unavailable'}>
+          <AlertTriangle className="w-3 h-3" />
+          Verification down
+          <span className="text-[10px]" style={{ color: COLORS.textMuted }}>({ageSec}s)</span>
+        </span>
+      );
+    }
+    return (
+      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium"
+        style={{ backgroundColor: `${COLORS.yellow}22`, color: COLORS.yellow }}
+        title={snap.message || 'Verification status unknown'}>
+        <Clock className="w-3 h-3" />
+        Verification unknown
+      </span>
+    );
+  };
+
+  useEffect(() => {
+    let isActive = true;
+    let timer: ReturnType<typeof setInterval> | null = null;
+
+    async function run() {
+      const snap = await checkVerificationProxyHealth();
+      if (!isActive) return;
+      setVerificationHealth(snap);
+    }
+
+    void run();
+    timer = setInterval(() => { void run(); }, 30_000);
+
+    return () => {
+      isActive = false;
+      if (timer) clearInterval(timer);
+    };
+  }, []);
+
+  useEffect(() => {
+    let isActive = true;
+    let timer: ReturnType<typeof setInterval> | null = null;
+
+    async function loadRecentAnomalies() {
+      if (!selectedFacility) {
+        if (isActive) setRecentAnomalies([]);
+        return;
+      }
+      const networkInfo = networkData.find(n => n.facilityId === selectedFacility);
+      const asn = networkInfo?.asn;
+      if (!asn) {
+        if (isActive) setRecentAnomalies([]);
+        return;
+      }
+
+      try {
+        if (isActive) setAnomaliesLoading(true);
+        const rows = await db.bgpAnomalies.where('asn').equals(asn).limit(50).toArray();
+
+        const sorted = [...rows].sort((a: any, b: any) => {
+          const ta = typeof a.timestamp === 'number' ? a.timestamp : 0;
+          const tb = typeof b.timestamp === 'number' ? b.timestamp : 0;
+          return tb - ta;
+        });
+
+        if (isActive) setRecentAnomalies(sorted.slice(0, 10) as unknown as BGPAnomaly[]);
+      } catch (e) {
+        if (isActive) setRecentAnomalies([]);
+      } finally {
+        if (isActive) setAnomaliesLoading(false);
+      }
+    }
+
+    void loadRecentAnomalies();
+    timer = setInterval(() => { void loadRecentAnomalies(); }, 30_000);
+
+    return () => {
+      isActive = false;
+      if (timer) clearInterval(timer);
+    };
+  }, [selectedFacility, networkData]);
+
   const facilitiesWithNetwork = useMemo(() => {
     return facilities.filter(f => networkData.some(n => n.facilityId === f.id));
   }, [facilities, networkData]);
@@ -539,6 +673,10 @@ const NetworkSecurityTab = memo(({ facilities }: { facilities: Facility[] }) => 
             </div>
           </div>
         ))}
+      </div>
+
+      <div className="flex items-center justify-end">
+        {getVerificationHealthBadge(verificationHealth)}
       </div>
 
       {/* Network Data Grid */}
@@ -619,6 +757,52 @@ const NetworkSecurityTab = memo(({ facilities }: { facilities: Facility[] }) => 
                     <span className="text-slate-400">ASN</span>
                     <span className="text-white">{networkInfo?.asn || 'N/A'}</span>
                   </div>
+                </div>
+
+                <div className="pt-3 border-t border-slate-700/50">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-semibold text-slate-200">Recent BGP anomalies</span>
+                    <span className="text-xs text-slate-500">{anomaliesLoading ? 'Updating…' : 'Auto-updates'}</span>
+                  </div>
+
+                  {recentAnomalies.length === 0 ? (
+                    <div className="text-xs text-slate-500">
+                      No recent anomalies recorded for this ASN yet.
+                    </div>
+                  ) : (
+                    <div className="space-y-2 max-h-56 overflow-auto pr-1">
+                      {recentAnomalies.map((a) => (
+                        <div key={a.id} className="p-2 rounded border border-slate-700/50 bg-slate-900/40">
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="min-w-0">
+                              <div className="text-xs text-slate-300 truncate">
+                                <span className="font-semibold">{a.type}</span>
+                                <span className="text-slate-500"> • </span>
+                                <span className="text-slate-400">{a.prefix}</span>
+                              </div>
+                              <div className="text-[11px] text-slate-500">
+                                {typeof a.timestamp === 'number' ? new Date(a.timestamp).toLocaleString() : ''}
+                              </div>
+                            </div>
+
+                            <span className={`shrink-0 px-2 py-0.5 rounded text-xs font-medium ${
+                              a.significance === 'critical' ? 'bg-red-500/20 text-red-300' :
+                              a.significance === 'high' ? 'bg-orange-500/20 text-orange-300' :
+                              a.significance === 'medium' ? 'bg-yellow-500/20 text-yellow-300' :
+                              'bg-slate-700/50 text-slate-300'
+                            }`}>
+                              {a.significance}
+                            </span>
+                          </div>
+
+                          <div className="flex flex-wrap gap-2 mt-2">
+                            {getAnomalyRpkiBadge((a as any).rpkiState)}
+                            {getCorroborationBadge((a as any).corroborationStatus)}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
             );

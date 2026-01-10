@@ -1,0 +1,21 @@
+{
+  "mcpServers": {
+    "facility-sqlite": {
+      "command": "npx",
+      "args": ["-y", "mcp-sqlite", "./.cursor/data/facilities.sqlite"]
+    },
+    "bgp-monitor": {
+      "url": "https://YOUR-BGP-ENDPOINT.example/mcp",
+      "headers": {
+        "Authorization": "Bearer ${env:BGP_TOKEN}"
+      }
+    },
+    "ct-logs": {
+      "url": "https://YOUR-CT-LOG-ENDPOINT.example/mcp",
+      "headers": {
+        "Authorization": "Bearer ${env:CT_LOG_TOKEN}"
+      }
+    }
+  }
+}
+

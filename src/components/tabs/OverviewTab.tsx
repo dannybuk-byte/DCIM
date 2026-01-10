@@ -24,6 +24,7 @@ import {
   ActionButton,
   LiveIndicator,
 } from '../shared/CommandCenterComponents';
+import { MissionHeader, SubsidyGapHero, ComplianceBadge } from '../shared/HumanizedStats';
 
 const COLORS = {
   bg: '#0a0e17',
@@ -276,21 +277,55 @@ const OverviewTab = memo(function OverviewTab({ facilities, stats }: OverviewTab
 
   return (
     <div className="p-1 space-y-1.5">
-      {/* PROMINENT Command Center Header */}
-      <div className="bg-gradient-to-r from-blue-900 via-indigo-900 to-purple-900 border-2 border-cyan-500 rounded-lg p-2 shadow-2xl shadow-cyan-500/20">
-        <div className="flex items-center justify-between">
-          <div>
-            <div className="flex items-center gap-1.5 mb-0.5">
-              <BarChart3 className="w-5 h-5 text-cyan-400" />
-              <h1 className="text-lg font-bold text-white">Dashboard Overview</h1>
-              <div className="flex items-center gap-1 px-1.5 py-0.5 bg-green-900/50 border-2 border-green-500 rounded-full">
-                <div className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse" />
-                <span className="text-xs text-green-300 font-bold">LIVE</span>
-              </div>
+      {/* Mission Header - Humanized for organizers */}
+      <MissionHeader 
+        title="DCIM Accountability Dashboard"
+        subtitle="Exposing Big Tech's Broken Job Promises"
+        showPartners={true}
+      />
+
+      {/* Two-column hero section: Subsidy Gap + Quick Stats */}
+      <div className="grid grid-cols-3 gap-2">
+        {/* SubsidyGapHero - Prominent display */}
+        <SubsidyGapHero
+          amount={stats.totalSubsidyGap}
+          violatorCount={stats.nonCompliant}
+          avgSalary={50000}
+        />
+        
+        {/* Compliance Status Badges - Human-readable */}
+        <div className="col-span-2 bg-slate-900 rounded-xl p-3 border border-slate-700">
+          <div className="flex items-center justify-between mb-2">
+            <h3 className="text-sm font-bold text-white flex items-center gap-2">
+              <Activity className="w-4 h-4 text-cyan-400" />
+              Live Compliance Status
+            </h3>
+            <div className="flex items-center gap-1 px-2 py-0.5 bg-green-900/50 border border-green-500 rounded-full">
+              <div className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse" />
+              <span className="text-xs text-green-300 font-medium">LIVE</span>
             </div>
-            <p className="text-xs text-cyan-200 font-medium">
-              📊 Tracking {stats.totalFacilities.toLocaleString()} facilities across {metrics.stateCount} states • {metrics.operatorCount} operators
-            </p>
+          </div>
+          <div className="grid grid-cols-4 gap-2">
+            <ComplianceBadge status="Compliant" count={stats.compliant} percentage={Number(metrics.complianceRate)} showHelp size="lg" />
+            <ComplianceBadge status="Non-Compliant" count={stats.nonCompliant} percentage={Number(((stats.nonCompliant / stats.totalFacilities) * 100).toFixed(1))} showHelp size="lg" />
+            <ComplianceBadge status="At Risk" count={stats.atRisk} percentage={Number(metrics.atRiskRate)} showHelp size="lg" />
+            <div className="flex flex-col justify-center items-center bg-slate-800 rounded-lg p-2">
+              <span className="text-2xl font-bold text-cyan-300">{stats.totalFacilities.toLocaleString()}</span>
+              <span className="text-xs text-slate-400">Total Facilities</span>
+              <span className="text-[10px] text-slate-500">{metrics.stateCount} states • {metrics.operatorCount} operators</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Original Command Center Header - Retained for refresh/export */}
+      <div className="bg-gradient-to-r from-blue-900 via-indigo-900 to-purple-900 border border-cyan-500/50 rounded-lg p-2 shadow-lg">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <BarChart3 className="w-4 h-4 text-cyan-400" />
+            <span className="text-xs text-cyan-200 font-medium">
+              📊 Tracking {stats.totalFacilities.toLocaleString()} facilities
+            </span>
           </div>
           
           <div className="flex items-center gap-1.5">
@@ -314,130 +349,6 @@ const OverviewTab = memo(function OverviewTab({ facilities, stats }: OverviewTab
                 {new Date().toLocaleTimeString()}
               </div>
             </div>
-          </div>
-        </div>
-      </div>
-
-      {/* PROMINENT Status Summary Cards - MUCH BIGGER */}
-      <div className="grid grid-cols-5 gap-1.5">
-        {/* Total Facilities */}
-        <div className="bg-gradient-to-br from-blue-900 to-blue-950 border-3 border-blue-500 rounded-lg p-2 hover:scale-105 transition-all cursor-pointer shadow-xl hover:shadow-blue-500/50">
-          <div className="flex items-center justify-between mb-1">
-            <Building2 className="w-6 h-6 text-blue-400" />
-            <div className="text-2xl font-bold text-blue-300">
-              {stats.totalFacilities.toLocaleString()}
-            </div>
-          </div>
-          <div className="text-xs font-bold text-blue-400 mb-0.5 flex items-center gap-1">
-            Total Facilities
-            <HelpTooltip
-              term="Total Facilities"
-              definition="The complete count of all data center facilities being tracked in the system, including data centers, switching stations, points of presence (POPs), and other infrastructure."
-              example="We're tracking 11,992 facilities across the United States."
-              size="sm"
-            />
-          </div>
-          <div className="text-[9px] text-blue-500">All tracked sites</div>
-        </div>
-        
-        {/* Compliant */}
-        <div className="bg-gradient-to-br from-green-900 to-green-950 border-3 border-green-500 rounded-lg p-2 hover:scale-105 transition-all cursor-pointer shadow-xl hover:shadow-green-500/50">
-          <div className="flex items-center justify-between mb-1">
-            <CheckCircle className="w-6 h-6 text-green-400" />
-            <div className="text-2xl font-bold text-green-300">
-              {stats.compliant.toLocaleString()}
-            </div>
-          </div>
-          <div className="text-xs font-bold text-green-400 mb-0.5 flex items-center gap-1">
-            ✅ Meeting Requirements
-            <HelpTooltip
-              term="Compliant"
-              definition={GLOSSARY['Compliant']?.definition || "Facilities that are meeting all subsidy agreement requirements and regulatory obligations."}
-              example={GLOSSARY['Compliant']?.example}
-              size="sm"
-            />
-          </div>
-          <div className="text-[9px] text-green-500">{metrics.complianceRate}% rate - Good standing</div>
-        </div>
-        
-        {/* Non-Compliant */}
-        <div className="bg-gradient-to-br from-red-900 to-red-950 border-3 border-red-500 rounded-lg p-2 hover:scale-105 transition-all cursor-pointer shadow-xl hover:shadow-red-500/50 animate-pulse">
-          <div className="flex items-center justify-between mb-1">
-            <XCircle className="w-6 h-6 text-red-400" />
-            <div className="text-2xl font-bold text-red-300">
-              {stats.nonCompliant.toLocaleString()}
-            </div>
-          </div>
-          <div className="text-xs font-bold text-red-400 mb-0.5 flex items-center gap-1">
-            ❌ Not Meeting
-            <HelpTooltip
-              term="Non-Compliant"
-              definition={GLOSSARY['Non-Compliant']?.definition || "Facilities not meeting subsidy agreement requirements or regulatory obligations."}
-              example={GLOSSARY['Non-Compliant']?.example}
-              size="sm"
-            />
-          </div>
-          <div className="text-[9px] text-red-500 font-bold">⚠️ ACTION REQUIRED</div>
-        </div>
-        
-        {/* At Risk */}
-        <div className="bg-gradient-to-br from-yellow-900 to-yellow-950 border-3 border-yellow-500 rounded-lg p-2 hover:scale-105 transition-all cursor-pointer shadow-xl hover:shadow-yellow-500/50">
-          <div className="flex items-center justify-between mb-1">
-            <AlertTriangle className="w-6 h-6 text-yellow-400" />
-            <div className="text-2xl font-bold text-yellow-300">
-              {stats.atRisk.toLocaleString()}
-            </div>
-          </div>
-          <div className="text-xs font-bold text-yellow-400 mb-0.5 flex items-center gap-1">
-            ⚠️ Warning Signs
-            <HelpTooltip
-              term="At Risk"
-              definition={GLOSSARY['At Risk']?.definition || "Facilities showing early warning signs of potential future non-compliance."}
-              example={GLOSSARY['At Risk']?.example}
-              size="sm"
-            />
-          </div>
-          <div className="text-[9px] text-yellow-500">{metrics.atRiskRate}% - Monitor</div>
-        </div>
-        
-        {/* Total Gap */}
-        <div className="bg-gradient-to-br from-orange-900 to-orange-950 border-3 border-orange-500 rounded-lg p-2 hover:scale-105 transition-all cursor-pointer shadow-xl hover:shadow-orange-500/50">
-          <div className="flex items-center justify-between mb-1">
-            <DollarSign className="w-6 h-6 text-orange-400" />
-            <div className="text-xl font-bold text-orange-300">
-              {formatCurrency(stats.totalSubsidyGap)}
-            </div>
-          </div>
-          <div className="text-xs font-bold text-orange-400 mb-0.5 flex items-center gap-1">
-            💰 Missing Funding
-            <HelpTooltip
-              term="Subsidy Gap"
-              definition={GLOSSARY['Subsidy Gap']?.definition || "The difference between subsidies received and the value of promised jobs or economic activity not delivered."}
-              example={GLOSSARY['Subsidy Gap']?.example}
-              size="sm"
-            />
-          </div>
-          <div className="text-[9px] text-orange-500">Subsidy shortfall</div>
-        </div>
-      </div>
-
-      {/* Navigation Helper */}
-      <div className="bg-gradient-to-r from-purple-900 to-pink-900 border-2 border-purple-500 rounded-lg p-1.5">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-1.5">
-            <Target className="w-4 h-4 text-purple-400" />
-            <span className="text-xs font-bold text-white">Quick Navigation:</span>
-          </div>
-          <div className="flex items-center gap-1">
-            <button className="px-1.5 py-0.5 bg-purple-600 hover:bg-purple-500 text-white text-[10px] font-bold rounded transition-all">
-              → Intelligence Hub
-            </button>
-            <button className="px-4 py-2 bg-pink-600 hover:bg-pink-500 text-white font-bold rounded-lg transition-all">
-              → Problems Tab
-            </button>
-            <button className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-lg transition-all">
-              → Assurance Monitor
-            </button>
           </div>
         </div>
       </div>

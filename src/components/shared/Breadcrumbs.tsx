@@ -17,6 +17,10 @@ const TAB_HIERARCHY: Record<CommandCenterTab, { category: string; label: string 
   'Guides': { category: 'Getting Started', label: 'Guides & Documentation' },
   'Overview': { category: 'Dashboard', label: 'Overview' },
   'Intelligence': { category: 'Analysis', label: 'Intelligence Hub' },
+  'Pattern Intelligence': { category: 'Analysis', label: 'Pattern Intelligence Engine' },
+  'Deep Intelligence': { category: 'Analysis', label: 'Deep Intelligence Engine' },
+  'Predictive Subsidy': { category: 'Analysis', label: 'Predictive Subsidy Intelligence' },
+  'Regulatory Toolkit': { category: 'Analysis', label: 'Municipal DCIM Toolkit' },
   'Predictive Intel': { category: 'Analysis', label: 'Predictive Intelligence' },
   'Assurance Monitor': { category: 'Monitoring', label: 'Compliance Assurance' },
   'Problems': { category: 'Monitoring', label: 'Compliance Alerts' },
@@ -36,6 +40,16 @@ const TAB_HIERARCHY: Record<CommandCenterTab, { category: string; label: string 
   'Reports': { category: 'Tools', label: 'Report Generator' },
   'Pattern Analysis': { category: 'Analysis', label: 'Pattern Analysis' },
   'Pattern Lab': { category: 'Analysis', label: 'Pattern Laboratory' },
+  'AI Infrastructure': { category: 'Analysis', label: 'AI Infrastructure Intelligence' },
+  'Network Map': { category: 'Geographic', label: 'Network Map' },
+  'Follow Your Data': { category: 'Analysis', label: 'Follow Your Data' },
+  'Sanctions Monitor': { category: 'Monitoring', label: 'Sanctions Monitor' },
+  'Subsidy Accountability': { category: 'Compliance', label: 'Subsidy Accountability' },
+  'Organizer Hub': { category: 'Organizing', label: 'Organizer Command Center' },
+  'Surveillance Infrastructure': { category: 'Analysis', label: 'Surveillance Infrastructure Tracker' },
+  'Sanctuary City': { category: 'Analysis', label: 'Sanctuary City Infrastructure' },
+  'AI Agents': { category: 'AI', label: 'Multi-Agent Orchestrator' },
+  // 'POC' is disabled - requires @kuzu/kuzu-wasm
 };
 
 export function Breadcrumbs({ currentTab, onNavigate }: BreadcrumbsProps) {
@@ -64,11 +78,6 @@ export function Breadcrumbs({ currentTab, onNavigate }: BreadcrumbsProps) {
 
       {/* Current Tab */}
       <span className="text-xs text-cyan-400 font-semibold">{hierarchy.label}</span>
-
-      {/* "You are here" indicator */}
-      <div className="ml-2 px-2 py-0.5 bg-cyan-900/30 border border-cyan-700 rounded text-xs text-cyan-400">
-        📍 You are here
-      </div>
     </div>
   );
 }

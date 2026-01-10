@@ -1,16 +1,14 @@
 node_modules
-<<<<<<< HEAD
 node_modules/
-dist/
-.next/
-node_modules/
-dist/
-.next/
-dist/
-.vite/
-=======
 dist
+dist/
+.next/
+.vite/
+public/commit-hash.txt
+public/icon-192.png
+public/icon-512.png
 .mcp-memory.jsonl
 *.log
->>>>>>> origin/main
+.npm-cache/
 .DS_Store
+.env.local

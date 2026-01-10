@@ -12,6 +12,12 @@ import {
   type AIConfig,
   type UsageStats
 } from '../utils/apiKeyManager';
+import {
+  getOrganizerProfile,
+  resetOrganizerProfile,
+  saveOrganizerProfile,
+  type OrganizerProfile,
+} from '../ai/organizerProfile';
 
 interface AISettingsModalProps {
   isOpen: boolean;
@@ -28,6 +34,14 @@ export const AISettingsModal: React.FC<AISettingsModalProps> = ({ isOpen, onClos
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [usageStats, setUsageStats] = useState<UsageStats | null>(null);
+  const [profile, setProfile] = useState<OrganizerProfile>({
+    dataSensitivity: 'high',
+    shareWithExternalAI: false,
+    tone: 'strategic',
+    updatedAt: new Date().toISOString(),
+  });
+  const [profileSaving, setProfileSaving] = useState(false);
+  const [profileSaved, setProfileSaved] = useState(false);
 
   // Load existing config
   useEffect(() => {
@@ -40,6 +54,11 @@ export const AISettingsModal: React.FC<AISettingsModalProps> = ({ isOpen, onClos
         setEnabled(config.enabled);
       }
       setUsageStats(getUsageStats());
+      getOrganizerProfile()
+        .then((p) => {
+          if (p) setProfile(p);
+        })
+        .catch(() => {});
     }
   }, [isOpen]);
 
@@ -110,6 +129,36 @@ export const AISettingsModal: React.FC<AISettingsModalProps> = ({ isOpen, onClos
     if (confirm('Reset usage statistics? This will clear your query count and cost tracking.')) {
       resetUsageStats();
       setUsageStats(getUsageStats());
+    }
+  };
+
+  const handleSaveProfile = async () => {
+    setProfileSaved(false);
+    setProfileSaving(true);
+    try {
+      await saveOrganizerProfile(profile);
+      setProfileSaved(true);
+      setTimeout(() => setProfileSaved(false), 1200);
+    } finally {
+      setProfileSaving(false);
+    }
+  };
+
+  const handleResetProfile = async () => {
+    if (!confirm('Reset personalization profile? This will delete it from IndexedDB.')) return;
+    setProfileSaving(true);
+    try {
+      await resetOrganizerProfile();
+      setProfile({
+        dataSensitivity: 'high',
+        shareWithExternalAI: false,
+        tone: 'strategic',
+        updatedAt: new Date().toISOString(),
+      });
+      setProfileSaved(true);
+      setTimeout(() => setProfileSaved(false), 1200);
+    } finally {
+      setProfileSaving(false);
     }
   };
 
@@ -329,6 +378,131 @@ export const AISettingsModal: React.FC<AISettingsModalProps> = ({ isOpen, onClos
               </div>
             </>
           )}
+
+          {/* Personalization: Organizer Profile */}
+          <div className="p-4 bg-[#1e293b]/20 border border-[#1e293b] rounded-lg">
+            <div className="flex items-center justify-between mb-3">
+              <div>
+                <div className="text-sm font-semibold text-white">Personalization (Organizer Profile)</div>
+                <div className="text-xs text-gray-400 mt-1">
+                  Stored locally in IndexedDB. By default, this profile is only sent to local AI (Ollama/Anyway).
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={handleResetProfile}
+                  disabled={profileSaving}
+                  className="text-xs text-gray-400 hover:text-white transition-colors disabled:opacity-50"
+                >
+                  Reset
+                </button>
+                <button
+                  onClick={handleSaveProfile}
+                  disabled={profileSaving}
+                  className="px-3 py-1.5 bg-[#00d2d3] hover:bg-[#00d2d3]/80 text-[#0a0e17] text-xs font-semibold rounded transition-colors disabled:opacity-50"
+                >
+                  {profileSaving ? 'Saving…' : 'Save Profile'}
+                </button>
+              </div>
+            </div>
+
+            {profileSaved && (
+              <div className="mb-3 text-xs text-[#2ed573] bg-[#2ed573]/10 border border-[#2ed573]/30 rounded p-2">
+                Saved.
+              </div>
+            )}
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs text-gray-400 mb-1">Organization</label>
+                <input
+                  value={profile.organization || ''}
+                  onChange={(e) => setProfile((p) => ({ ...p, organization: e.target.value }))}
+                  className="w-full px-3 py-2 bg-[#0a0e17] border border-gray-700 rounded text-white text-sm focus:border-[#00d2d3] focus:outline-none"
+                  placeholder="e.g., CODE-CWA, TWC..."
+                />
+              </div>
+              <div>
+                <label className="block text-xs text-gray-400 mb-1">Region</label>
+                <input
+                  value={profile.region || ''}
+                  onChange={(e) => setProfile((p) => ({ ...p, region: e.target.value }))}
+                  className="w-full px-3 py-2 bg-[#0a0e17] border border-gray-700 rounded text-white text-sm focus:border-[#00d2d3] focus:outline-none"
+                  placeholder="e.g., Northern Virginia, Phoenix..."
+                />
+              </div>
+              <div className="md:col-span-2">
+                <label className="block text-xs text-gray-400 mb-1">Campaign goals</label>
+                <textarea
+                  value={profile.campaigns || ''}
+                  onChange={(e) => setProfile((p) => ({ ...p, campaigns: e.target.value }))}
+                  rows={3}
+                  className="w-full px-3 py-2 bg-[#0a0e17] border border-gray-700 rounded text-white text-sm focus:border-[#00d2d3] focus:outline-none"
+                  placeholder="What are you trying to win? What’s the campaign focus?"
+                />
+              </div>
+              <div>
+                <label className="block text-xs text-gray-400 mb-1">Targets</label>
+                <input
+                  value={profile.targetCompanies || ''}
+                  onChange={(e) => setProfile((p) => ({ ...p, targetCompanies: e.target.value }))}
+                  className="w-full px-3 py-2 bg-[#0a0e17] border border-gray-700 rounded text-white text-sm focus:border-[#00d2d3] focus:outline-none"
+                  placeholder="e.g., Amazon, Google..."
+                />
+              </div>
+              <div>
+                <label className="block text-xs text-gray-400 mb-1">Preferred outputs</label>
+                <input
+                  value={profile.preferredOutputs || ''}
+                  onChange={(e) => setProfile((p) => ({ ...p, preferredOutputs: e.target.value }))}
+                  className="w-full px-3 py-2 bg-[#0a0e17] border border-gray-700 rounded text-white text-sm focus:border-[#00d2d3] focus:outline-none"
+                  placeholder="e.g., talking points, one-pagers..."
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs text-gray-400 mb-1">Tone</label>
+                <select
+                  value={profile.tone || 'strategic'}
+                  onChange={(e) => setProfile((p) => ({ ...p, tone: e.target.value as OrganizerProfile['tone'] }))}
+                  className="w-full px-3 py-2 bg-[#0a0e17] border border-gray-700 rounded text-white text-sm focus:border-[#00d2d3] focus:outline-none"
+                >
+                  <option value="strategic">Strategic</option>
+                  <option value="direct">Direct</option>
+                  <option value="narrative">Narrative</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs text-gray-400 mb-1">Data sensitivity</label>
+                <select
+                  value={profile.dataSensitivity}
+                  onChange={(e) =>
+                    setProfile((p) => ({ ...p, dataSensitivity: e.target.value as OrganizerProfile['dataSensitivity'] }))
+                  }
+                  className="w-full px-3 py-2 bg-[#0a0e17] border border-gray-700 rounded text-white text-sm focus:border-[#00d2d3] focus:outline-none"
+                >
+                  <option value="high">High</option>
+                  <option value="medium">Medium</option>
+                  <option value="low">Low</option>
+                </select>
+              </div>
+
+              <label className="md:col-span-2 flex items-start gap-3 cursor-pointer bg-[#0a0e17] border border-gray-700 rounded p-3">
+                <input
+                  type="checkbox"
+                  checked={profile.shareWithExternalAI}
+                  onChange={(e) => setProfile((p) => ({ ...p, shareWithExternalAI: e.target.checked }))}
+                  className="mt-1"
+                />
+                <div>
+                  <div className="text-sm text-white">Allow sending this profile to external AI</div>
+                  <div className="text-xs text-gray-400 mt-1">
+                    If disabled, personalization applies only to local AI. Recommended for sensitive organizing data.
+                  </div>
+                </div>
+              </label>
+            </div>
+          </div>
 
           {/* Error Message */}
           {error && (

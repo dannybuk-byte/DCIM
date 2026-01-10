@@ -38,6 +38,9 @@ import AnimatedCard from './AnimatedCard'; // Animated cards with hover effects
 import AnimatedProgressBar from './AnimatedProgressBar'; // Progress bars with animations
 import ParticleBackground from './ParticleBackground'; // Particle effect backgrounds
 import { useAnimatedCounter } from '../utils/animations'; // Animation utilities
+import { getOrganizerProfile } from '../ai/organizerProfile';
+import { HeaderCapabilitiesBar } from './shared/HeaderCapabilitiesBar';
+import { DensityToggleInline } from './shared/DensityToggle';
 
 type ViewMode = 'omniscient' | 'intelligence' | 'hud' | 'timeline' | 'network' | 'map' | 'kanban' | 'deepdive';
 
@@ -50,6 +53,7 @@ export const OmniscientCommandInterface: React.FC = () => {
   const [showAISettings, setShowAISettings] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [personalizationActive, setPersonalizationActive] = useState(false);
   
   // Smart Panels state
   const [topBarExpanded, setTopBarExpanded] = useState(false);
@@ -60,6 +64,9 @@ export const OmniscientCommandInterface: React.FC = () => {
   
   const canvasRef = useRef<HTMLDivElement>(null);
   const idleTimerRef = useRef<NodeJS.Timeout>();
+  const panelStateRef = useRef({ top: false, left: false, right: false });
+  const rafRef = useRef<number | null>(null);
+  const lastMouseRef = useRef({ x: 0, y: 0 });
 
   // Load facilities
   useEffect(() => {
@@ -77,6 +84,24 @@ export const OmniscientCommandInterface: React.FC = () => {
     };
     loadData();
   }, []);
+
+  // Load personalization state (used for subtle UI indicator)
+  useEffect(() => {
+    let cancelled = false;
+    async function loadProfile() {
+      const p = await getOrganizerProfile().catch(() => null);
+      if (cancelled) return;
+      setPersonalizationActive(Boolean(p && (p.organization || p.region || p.campaigns || p.targetCompanies)));
+    }
+    loadProfile();
+    // Refresh after closing AI settings (user may have edited profile)
+    if (!showAISettings) {
+      loadProfile();
+    }
+    return () => {
+      cancelled = true;
+    };
+  }, [showAISettings]);
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -108,32 +133,48 @@ export const OmniscientCommandInterface: React.FC = () => {
     if (isFullscreen) return; // Disable smart panels in fullscreen
 
     const handleMouseMove = (e: MouseEvent) => {
-      const { clientX, clientY } = e;
-      const windowWidth = window.innerWidth;
-      const windowHeight = window.innerHeight;
+      lastMouseRef.current = { x: e.clientX, y: e.clientY };
 
-      // Top bar expands when mouse near top
-      setTopBarExpanded(clientY < 60);
+      if (rafRef.current === null) {
+        rafRef.current = window.requestAnimationFrame(() => {
+          rafRef.current = null;
 
-      // Left panel shows when mouse near left edge
-      setLeftPanelVisible(clientX < 50);
+          const { x, y } = lastMouseRef.current;
+          const windowWidth = window.innerWidth;
 
-      // Right panel shows when mouse near right edge
-      setRightPanelVisible(clientX > windowWidth - 50);
+          const nextTop = y < 60;
+          const nextLeft = x < 50;
+          const nextRight = x > windowWidth - 50;
 
-      // Reset idle timer
-      setIsIdle(false);
-      if (idleTimerRef.current) {
-        clearTimeout(idleTimerRef.current);
+          const prev = panelStateRef.current;
+          if (prev.top !== nextTop) {
+            panelStateRef.current.top = nextTop;
+            setTopBarExpanded(nextTop);
+          }
+          if (prev.left !== nextLeft) {
+            panelStateRef.current.left = nextLeft;
+            setLeftPanelVisible(nextLeft);
+          }
+          if (prev.right !== nextRight) {
+            panelStateRef.current.right = nextRight;
+            setRightPanelVisible(nextRight);
+          }
+        });
       }
-      idleTimerRef.current = setTimeout(() => {
-        setIsIdle(true);
-      }, 10000); // 10 seconds idle
+
+      // Reset idle timer (avoid forcing re-render unless needed)
+      setIsIdle((prev) => (prev ? false : prev));
+      if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
+      idleTimerRef.current = setTimeout(() => setIsIdle(true), 10000);
     };
 
     window.addEventListener('mousemove', handleMouseMove);
     return () => {
       window.removeEventListener('mousemove', handleMouseMove);
+      if (rafRef.current !== null) {
+        cancelAnimationFrame(rafRef.current);
+        rafRef.current = null;
+      }
       if (idleTimerRef.current) {
         clearTimeout(idleTimerRef.current);
       }
@@ -239,6 +280,16 @@ export const OmniscientCommandInterface: React.FC = () => {
                 <div className="text-gray-500">✗</div>
               </div>
               
+              {/* Density Toggle */}
+              <ErrorBoundary fallback={<span className="text-gray-500 text-[10px]">Density</span>}>
+                <DensityToggleInline className="flex-shrink-0" />
+              </ErrorBoundary>
+
+              {/* Enhanced Capabilities Bar */}
+              <ErrorBoundary fallback={<span className="text-cyan-400 text-[10px] px-1.5 py-0.5 bg-cyan-900/30 rounded">AI</span>}>
+                <HeaderCapabilitiesBar />
+              </ErrorBoundary>
+
               {/* Alert Badge */}
               <button
                 onClick={() => setShowAlertPopup(!showAlertPopup)}
@@ -256,6 +307,14 @@ export const OmniscientCommandInterface: React.FC = () => {
               >
                 <Sparkles size={14} className="text-[#00d2d3]" />
                 <span className="text-[10px] text-[#00d2d3] font-semibold">AI</span>
+                {personalizationActive && (
+                  <span
+                    className="ml-1 px-1.5 py-0.5 rounded bg-[#2ed573]/20 border border-[#2ed573]/40 text-[#2ed573] text-[9px] font-bold"
+                    title="Personalization active"
+                  >
+                    P
+                  </span>
+                )}
               </button>
 
               {/* Help Button - SUPER Prominent with Animation */}

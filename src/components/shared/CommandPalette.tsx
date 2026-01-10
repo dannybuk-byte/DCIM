@@ -1,331 +1,573 @@
 /**
- * Command Palette - Spotlight-style search for DCIM Command Center
- * Powered by FlexSearch for instant results across 11,992 facilities
+ * CommandPalette - Universal Feature Access
+ * 
+ * A VS Code-style command palette that provides:
+ * 1. Quick access to all features
+ * 2. Fuzzy search across commands
+ * 3. Keyboard navigation
+ * 4. Grouped by category
+ * 
+ * ANTIFRAGILE: Works even if navigation breaks, helps users discover features
  */
 
-import { memo, useState, useEffect, useCallback, useRef } from 'react';
-import { 
-  Search, X, Building2, MapPin, Users, AlertTriangle, 
-  CheckCircle, XCircle, Clock, ArrowRight, Command, Hash
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import {
+  Command, Search, X, ChevronRight,
+  Home, Building2, Brain, Wrench,
+  Download, Upload, Shield, History,
+  Keyboard, Settings, HelpCircle, RefreshCw,
+  Globe, Maximize2, Eye, Database,
+  FileJson, AlertTriangle, CheckCircle
 } from 'lucide-react';
-import { useFlexSearch } from '../../hooks/useFlexSearch';
-import type { Facility } from '../../types';
-import { formatCurrency } from '../../utils/formatting';
+import { logSystem } from '../../utils/actionHistory';
 
-const COLORS = {
-  bg: '#0a0e17',
-  bgCard: '#0d1219',
-  text: '#e8eef6',
-  textMuted: '#5a6d8a',
-  red: '#ff4757',
-  yellow: '#ffa502',
-  green: '#2ed573',
-  cyan: '#00d2d3',
-  purple: '#a855f7',
-};
+// ============================================================================
+// TYPES
+// ============================================================================
+
+export interface CommandItem {
+  id: string;
+  label: string;
+  description?: string;
+  category: string;
+  icon?: React.ReactNode;
+  shortcut?: string[];
+  action: () => void;
+  keywords?: string[];
+}
 
 interface CommandPaletteProps {
   isOpen: boolean;
   onClose: () => void;
-  facilities: Facility[];
-  onSelectFacility?: (facility: Facility) => void;
-  onFilterByOperator?: (operator: string) => void;
-  onFilterByState?: (state: string) => void;
-  onNavigateToTab?: (tab: string) => void;
+  commands: CommandItem[];
 }
 
-const complianceIcons: Record<string, { icon: typeof CheckCircle; color: string }> = {
-  'Compliant': { icon: CheckCircle, color: COLORS.green },
-  'Non-Compliant': { icon: XCircle, color: COLORS.red },
-  'At Risk': { icon: AlertTriangle, color: COLORS.yellow },
-  'Unknown': { icon: Clock, color: COLORS.textMuted },
-};
+// ============================================================================
+// FUZZY SEARCH
+// ============================================================================
 
-// Quick actions for command palette
-const QUICK_ACTIONS = [
-  { id: 'tab:overview', label: 'Go to Overview', icon: Hash, category: 'Navigation' },
-  { id: 'tab:pattern-lab', label: 'Go to Pattern Lab', icon: Hash, category: 'Navigation' },
-  { id: 'tab:network-security', label: 'Go to Network Security', icon: Hash, category: 'Navigation' },
-  { id: 'tab:connectography', label: 'Go to Connectography', icon: Hash, category: 'Navigation' },
-  { id: 'filter:non-compliant', label: 'Show Non-Compliant Only', icon: XCircle, category: 'Filter' },
-  { id: 'filter:at-risk', label: 'Show At Risk Only', icon: AlertTriangle, category: 'Filter' },
-  { id: 'filter:high-gap', label: 'Show High Subsidy Gap (>$1M)', icon: AlertTriangle, category: 'Filter' },
-];
-
-export const CommandPalette = memo(function CommandPalette({
-  isOpen,
-  onClose,
-  facilities,
-  onSelectFacility,
-  onFilterByOperator,
-  onFilterByState,
-  onNavigateToTab,
-}: CommandPaletteProps) {
-  const inputRef = useRef<HTMLInputElement>(null);
-  const listRef = useRef<HTMLDivElement>(null);
-  const [selectedIndex, setSelectedIndex] = useState(0);
+function fuzzyMatch(text: string, query: string): { match: boolean; score: number } {
+  if (!query) return { match: true, score: 1 };
   
-  const { 
-    search, 
-    results, 
-    query, 
-    isSearching, 
-    isIndexed,
-    indexedCount 
-  } = useFlexSearch(facilities, { limit: 20, debounceMs: 100 });
-
-  // Focus input when opened
-  useEffect(() => {
-    if (isOpen && inputRef.current) {
-      inputRef.current.focus();
-      setSelectedIndex(0);
+  const textLower = text.toLowerCase();
+  const queryLower = query.toLowerCase();
+  
+  // Exact match
+  if (textLower.includes(queryLower)) {
+    return { match: true, score: 2 };
+  }
+  
+  // Fuzzy match - all query chars must appear in order
+  let queryIndex = 0;
+  for (let i = 0; i < textLower.length && queryIndex < queryLower.length; i++) {
+    if (textLower[i] === queryLower[queryIndex]) {
+      queryIndex++;
     }
-  }, [isOpen]);
+  }
+  
+  if (queryIndex === queryLower.length) {
+    return { match: true, score: 1 };
+  }
+  
+  return { match: false, score: 0 };
+}
 
-  // Reset selection when results change
-  useEffect(() => {
-    setSelectedIndex(0);
-  }, [results, query]);
-
-  // Keyboard navigation
-  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
-    const totalItems = query ? results.length : QUICK_ACTIONS.length;
-    
-    switch (e.key) {
-      case 'ArrowDown':
-        e.preventDefault();
-        setSelectedIndex(prev => (prev + 1) % totalItems);
-        break;
-      case 'ArrowUp':
-        e.preventDefault();
-        setSelectedIndex(prev => (prev - 1 + totalItems) % totalItems);
-        break;
-      case 'Enter':
-        e.preventDefault();
-        if (query && results[selectedIndex]) {
-          handleSelectFacility(results[selectedIndex].facility);
-        } else if (!query && QUICK_ACTIONS[selectedIndex]) {
-          handleQuickAction(QUICK_ACTIONS[selectedIndex].id);
-        }
-        break;
-      case 'Escape':
-        onClose();
-        break;
+function searchCommands(commands: CommandItem[], query: string): CommandItem[] {
+  if (!query.trim()) return commands;
+  
+  const results: { command: CommandItem; score: number }[] = [];
+  
+  for (const command of commands) {
+    // Check label
+    const labelMatch = fuzzyMatch(command.label, query);
+    if (labelMatch.match) {
+      results.push({ command, score: labelMatch.score * 3 });
+      continue;
     }
-  }, [query, results, selectedIndex, onClose]);
-
-  const handleSelectFacility = useCallback((facility: Facility) => {
-    onSelectFacility?.(facility);
-    onClose();
-  }, [onSelectFacility, onClose]);
-
-  const handleQuickAction = useCallback((actionId: string) => {
-    const [type, value] = actionId.split(':');
     
-    if (type === 'tab') {
-      const tabMap: Record<string, string> = {
-        'overview': 'Overview',
-        'pattern-lab': 'Pattern Lab',
-        'network-security': 'Network Security',
-        'connectography': 'Connectography',
-      };
-      onNavigateToTab?.(tabMap[value] || 'Overview');
-    } else if (type === 'filter') {
-      // Handle filter actions
-      if (value === 'non-compliant') {
-        // This would need to be wired up to the filter system
+    // Check description
+    if (command.description) {
+      const descMatch = fuzzyMatch(command.description, query);
+      if (descMatch.match) {
+        results.push({ command, score: descMatch.score * 2 });
+        continue;
       }
     }
     
-    onClose();
-  }, [onNavigateToTab, onClose]);
+    // Check keywords
+    if (command.keywords) {
+      for (const keyword of command.keywords) {
+        const keywordMatch = fuzzyMatch(keyword, query);
+        if (keywordMatch.match) {
+          results.push({ command, score: keywordMatch.score });
+          break;
+        }
+      }
+    }
+    
+    // Check category
+    const catMatch = fuzzyMatch(command.category, query);
+    if (catMatch.match) {
+      results.push({ command, score: catMatch.score * 0.5 });
+    }
+  }
+  
+  // Sort by score descending
+  results.sort((a, b) => b.score - a.score);
+  
+  return results.map(r => r.command);
+}
 
-  // Scroll selected item into view
+// ============================================================================
+// COMMAND PALETTE COMPONENT
+// ============================================================================
+
+export function CommandPalette({ isOpen, onClose, commands }: CommandPaletteProps) {
+  const [query, setQuery] = useState('');
+  const [selectedIndex, setSelectedIndex] = useState(0);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const listRef = useRef<HTMLDivElement>(null);
+
+  // Filter commands
+  const filteredCommands = useMemo(() => {
+    return searchCommands(commands, query);
+  }, [commands, query]);
+
+  // Group by category
+  const groupedCommands = useMemo(() => {
+    const groups: Record<string, CommandItem[]> = {};
+    for (const command of filteredCommands) {
+      if (!groups[command.category]) {
+        groups[command.category] = [];
+      }
+      groups[command.category].push(command);
+    }
+    return groups;
+  }, [filteredCommands]);
+
+  // Flatten for keyboard navigation
+  const flatCommands = useMemo(() => {
+    return Object.values(groupedCommands).flat();
+  }, [groupedCommands]);
+
+  // Reset on open
   useEffect(() => {
-    if (listRef.current) {
+    if (isOpen) {
+      setQuery('');
+      setSelectedIndex(0);
+      setTimeout(() => inputRef.current?.focus(), 50);
+    }
+  }, [isOpen]);
+
+  // Keep selected item in view
+  useEffect(() => {
+    if (listRef.current && flatCommands.length > 0) {
       const selectedElement = listRef.current.querySelector(`[data-index="${selectedIndex}"]`);
       selectedElement?.scrollIntoView({ block: 'nearest' });
     }
-  }, [selectedIndex]);
+  }, [selectedIndex, flatCommands.length]);
+
+  // Reset selection when query changes
+  useEffect(() => {
+    setSelectedIndex(0);
+  }, [query]);
+
+  // Handle keyboard navigation
+  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
+    switch (e.key) {
+      case 'ArrowDown':
+        e.preventDefault();
+        setSelectedIndex(i => Math.min(i + 1, flatCommands.length - 1));
+        break;
+      case 'ArrowUp':
+        e.preventDefault();
+        setSelectedIndex(i => Math.max(i - 1, 0));
+        break;
+      case 'Enter':
+        e.preventDefault();
+        if (flatCommands[selectedIndex]) {
+          executeCommand(flatCommands[selectedIndex]);
+        }
+        break;
+      case 'Escape':
+        e.preventDefault();
+        onClose();
+        break;
+    }
+  }, [flatCommands, selectedIndex, onClose]);
+
+  // Execute command
+  const executeCommand = useCallback((command: CommandItem) => {
+    logSystem(`Command executed: ${command.label}`, { category: command.category });
+    onClose();
+    // Small delay to allow modal to close before action
+    setTimeout(() => command.action(), 100);
+  }, [onClose]);
 
   if (!isOpen) return null;
 
+  let globalIndex = 0;
+
   return (
-    <div 
-      className="fixed inset-0 z-[100] flex items-start justify-center pt-[15vh]"
-      onClick={onClose}
-    >
-      {/* Backdrop */}
-      <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" />
-      
-      {/* Palette */}
+    <div className="fixed inset-0 z-[100] flex items-start justify-center pt-[15vh] bg-black/50 backdrop-blur-sm">
       <div 
-        className="relative w-full max-w-2xl mx-4 bg-gray-900 border border-gray-700 rounded-xl shadow-2xl overflow-hidden"
-        onClick={e => e.stopPropagation()}
+        className="bg-white rounded-xl shadow-2xl w-full max-w-xl mx-4 overflow-hidden"
+        onKeyDown={handleKeyDown}
       >
-        {/* Search Input */}
-        <div className="flex items-center gap-3 px-4 py-3 border-b border-gray-800">
-          <Search className="w-5 h-5 text-gray-500" />
+        {/* Search input */}
+        <div className="flex items-center gap-3 px-4 py-3 border-b border-gray-200">
+          <Search className="w-5 h-5 text-gray-400" />
           <input
             ref={inputRef}
             type="text"
             value={query}
-            onChange={e => search(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder="Search facilities, operators, locations..."
-            className="flex-1 bg-transparent text-white text-lg placeholder-gray-500 focus:outline-none"
+            onChange={e => setQuery(e.target.value)}
+            placeholder="Type a command or search..."
+            className="flex-1 text-sm outline-none placeholder-gray-400"
             autoComplete="off"
+            autoCorrect="off"
+            autoCapitalize="off"
             spellCheck={false}
           />
-          {query && (
-            <button
-              onClick={() => search('')}
-              className="p-1 hover:bg-gray-800 rounded transition-colors"
-            >
-              <X className="w-4 h-4 text-gray-500" />
-            </button>
-          )}
-          <div className="flex items-center gap-1 px-2 py-1 bg-gray-800 rounded text-xs text-gray-500">
-            <Command className="w-3 h-3" />
-            <span>K</span>
-          </div>
+          <button
+            onClick={onClose}
+            className="p-1 hover:bg-gray-100 rounded transition-colors"
+          >
+            <X className="w-4 h-4 text-gray-400" />
+          </button>
         </div>
 
-        {/* Status bar */}
-        <div className="px-4 py-1.5 bg-gray-950 border-b border-gray-800 flex items-center justify-between text-xs">
-          <div className="flex items-center gap-2">
-            {isSearching ? (
-              <span className="text-cyan-400 flex items-center gap-1">
-                <div className="w-2 h-2 bg-cyan-400 rounded-full animate-pulse" />
-                Searching...
-              </span>
-            ) : isIndexed ? (
-              <span className="text-green-400 flex items-center gap-1">
-                <div className="w-2 h-2 bg-green-400 rounded-full" />
-                {indexedCount.toLocaleString()} facilities indexed
-              </span>
-            ) : (
-              <span className="text-yellow-400 flex items-center gap-1">
-                <div className="w-2 h-2 bg-yellow-400 rounded-full animate-pulse" />
-                Indexing...
-              </span>
-            )}
-          </div>
-          {query && (
-            <span className="px-2 py-1 bg-cyan-500/20 text-cyan-400 text-xs font-bold rounded-md border border-cyan-500/30">
-              {results.length} {results.length === 1 ? 'result' : 'results'}
-            </span>
-          )}
-        </div>
-
-        {/* Results */}
-        <div 
-          ref={listRef}
-          className="max-h-[50vh] overflow-y-auto"
-        >
-          {query ? (
-            // Search results
-            results.length > 0 ? (
-              <div className="py-2">
-                {results.map((result, index) => {
-                  const f = result.facility;
-                  const statusInfo = complianceIcons[f.complianceStatus] || complianceIcons['Unknown'];
-                  const StatusIcon = statusInfo.icon;
+        {/* Commands list */}
+        <div ref={listRef} className="max-h-[50vh] overflow-y-auto">
+          {flatCommands.length === 0 ? (
+            <div className="p-8 text-center text-gray-400">
+              <Command className="w-8 h-8 mx-auto mb-2 opacity-50" />
+              <p className="text-sm">No commands found</p>
+            </div>
+          ) : (
+            Object.entries(groupedCommands).map(([category, categoryCommands]) => (
+              <div key={category}>
+                {/* Category header */}
+                <div className="px-4 py-2 bg-gray-50 text-xs font-medium text-gray-500 uppercase tracking-wider sticky top-0">
+                  {category}
+                </div>
+                
+                {/* Commands in category */}
+                {categoryCommands.map(command => {
+                  const index = globalIndex++;
+                  const isSelected = index === selectedIndex;
                   
                   return (
                     <button
-                      key={f.id}
+                      key={command.id}
                       data-index={index}
-                      onClick={() => handleSelectFacility(f)}
-                      className={`
-                        w-full px-4 py-2.5 flex items-center gap-3 text-left transition-colors
-                        ${index === selectedIndex ? 'bg-cyan-500/10' : 'hover:bg-gray-800/50'}
-                      `}
+                      onClick={() => executeCommand(command)}
+                      className={`w-full px-4 py-2 flex items-center gap-3 text-left transition-colors ${
+                        isSelected 
+                          ? 'bg-blue-50 text-blue-700' 
+                          : 'hover:bg-gray-50 text-gray-700'
+                      }`}
                     >
-                      <Building2 className="w-5 h-5 text-gray-500 flex-shrink-0" />
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2">
-                          <span className="font-medium text-white truncate">{f.name}</span>
-                          <StatusIcon className="w-3.5 h-3.5 flex-shrink-0" style={{ color: statusInfo.color }} />
-                        </div>
-                        <div className="flex items-center gap-3 text-xs text-gray-500">
-                          <span className="flex items-center gap-1">
-                            <Users className="w-3 h-3" />
-                            {f.operator}
-                          </span>
-                          <span className="flex items-center gap-1">
-                            <MapPin className="w-3 h-3" />
-                            {f.city}, {f.state}
-                          </span>
-                          {f.subsidyGap > 0 && (
-                            <span className="text-yellow-400">
-                              {formatCurrency(f.subsidyGap)}
-                            </span>
-                          )}
-                        </div>
+                      {/* Icon */}
+                      <div className={`flex-shrink-0 ${isSelected ? 'text-blue-500' : 'text-gray-400'}`}>
+                        {command.icon || <ChevronRight className="w-4 h-4" />}
                       </div>
-                      <ArrowRight className="w-4 h-4 text-gray-600 flex-shrink-0" />
+                      
+                      {/* Label and description */}
+                      <div className="flex-1 min-w-0">
+                        <div className="text-sm font-medium truncate">{command.label}</div>
+                        {command.description && (
+                          <div className="text-xs text-gray-500 truncate">{command.description}</div>
+                        )}
+                      </div>
+                      
+                      {/* Shortcut */}
+                      {command.shortcut && (
+                        <div className="flex items-center gap-1 flex-shrink-0">
+                          {command.shortcut.map((key, i) => (
+                            <kbd
+                              key={i}
+                              className="px-1.5 py-0.5 bg-gray-100 border border-gray-300 rounded text-[10px] font-mono"
+                            >
+                              {key}
+                            </kbd>
+                          ))}
+                        </div>
+                      )}
                     </button>
                   );
                 })}
               </div>
-            ) : (
-              <div className="py-12 text-center text-gray-500">
-                <Search className="w-8 h-8 mx-auto mb-2 opacity-50" />
-                <div>No facilities found</div>
-                <div className="text-xs mt-1">Try a different search term</div>
-              </div>
-            )
-          ) : (
-            // Quick actions when no query
-            <div className="py-2">
-              <div className="px-4 py-1.5 text-xs text-gray-500 uppercase tracking-wide">
-                Quick Actions
-              </div>
-              {QUICK_ACTIONS.map((action, index) => {
-                const Icon = action.icon;
-                return (
-                  <button
-                    key={action.id}
-                    data-index={index}
-                    onClick={() => handleQuickAction(action.id)}
-                    className={`
-                      w-full px-4 py-2.5 flex items-center gap-3 text-left transition-colors
-                      ${index === selectedIndex ? 'bg-cyan-500/10' : 'hover:bg-gray-800/50'}
-                    `}
-                  >
-                    <Icon className="w-4 h-4 text-gray-500" />
-                    <span className="flex-1 text-white">{action.label}</span>
-                    <span className="text-xs text-gray-600">{action.category}</span>
-                  </button>
-                );
-              })}
-            </div>
+            ))
           )}
         </div>
 
         {/* Footer */}
-        <div className="px-4 py-2 border-t border-gray-800 flex items-center justify-between text-xs text-gray-500">
-          <div className="flex items-center gap-4">
+        <div className="px-4 py-2 bg-gray-50 border-t border-gray-200 flex items-center justify-between text-xs text-gray-400">
+          <div className="flex items-center gap-3">
             <span className="flex items-center gap-1">
-              <kbd className="px-1.5 py-0.5 bg-gray-800 rounded">↑↓</kbd>
-              Navigate
+              <kbd className="px-1 bg-gray-200 rounded">↑↓</kbd> navigate
             </span>
             <span className="flex items-center gap-1">
-              <kbd className="px-1.5 py-0.5 bg-gray-800 rounded">Enter</kbd>
-              Select
+              <kbd className="px-1 bg-gray-200 rounded">↵</kbd> select
             </span>
             <span className="flex items-center gap-1">
-              <kbd className="px-1.5 py-0.5 bg-gray-800 rounded">Esc</kbd>
-              Close
+              <kbd className="px-1 bg-gray-200 rounded">esc</kbd> close
             </span>
           </div>
-          <span>Powered by FlexSearch</span>
+          <span>{flatCommands.length} commands</span>
         </div>
       </div>
     </div>
   );
-});
+}
+
+// ============================================================================
+// DEFAULT COMMANDS FACTORY
+// ============================================================================
+
+interface CreateCommandsOptions {
+  onNavigate?: (view: string) => void;
+  onExport?: () => void;
+  onImport?: () => void;
+  onShowKeyboardHelp?: () => void;
+  onShowActionHistory?: () => void;
+  onShowIntegrity?: () => void;
+  onToggleDensity?: (mode: string) => void;
+  onToggleSidebar?: () => void;
+}
+
+export function createDefaultCommands(options: CreateCommandsOptions): CommandItem[] {
+  const commands: CommandItem[] = [];
+
+  // Navigation commands
+  if (options.onNavigate) {
+    commands.push(
+      {
+        id: 'nav-overview',
+        label: 'Go to Overview',
+        description: 'Dashboard overview with stats',
+        category: 'Navigation',
+        icon: <Home className="w-4 h-4" />,
+        action: () => options.onNavigate?.('overview'),
+        keywords: ['home', 'dashboard', 'main'],
+      },
+      {
+        id: 'nav-facilities',
+        label: 'Go to Facilities',
+        description: 'Browse all data center facilities',
+        category: 'Navigation',
+        icon: <Building2 className="w-4 h-4" />,
+        action: () => options.onNavigate?.('facilities'),
+        keywords: ['data centers', 'buildings', 'list'],
+      },
+      {
+        id: 'nav-intelligence',
+        label: 'Go to Intelligence',
+        description: 'Organizing intelligence and AI agents',
+        category: 'Navigation',
+        icon: <Brain className="w-4 h-4" />,
+        action: () => options.onNavigate?.('intelligence'),
+        keywords: ['ai', 'agents', 'organizing'],
+      },
+      {
+        id: 'nav-tools',
+        label: 'Go to Tools',
+        description: 'Coalition and organizing tools',
+        category: 'Navigation',
+        icon: <Wrench className="w-4 h-4" />,
+        action: () => options.onNavigate?.('tools'),
+        keywords: ['coalition', 'organizing'],
+      }
+    );
+  }
+
+  // Data commands
+  if (options.onExport) {
+    commands.push({
+      id: 'data-export',
+      label: 'Export Data',
+      description: 'Download data as JSON, CSV, or backup',
+      category: 'Data',
+      icon: <Download className="w-4 h-4" />,
+      shortcut: ['⌘', 'E'],
+      action: options.onExport,
+      keywords: ['download', 'save', 'backup', 'json', 'csv'],
+    });
+  }
+
+  if (options.onImport) {
+    commands.push({
+      id: 'data-import',
+      label: 'Import Data',
+      description: 'Restore from a backup file',
+      category: 'Data',
+      icon: <Upload className="w-4 h-4" />,
+      action: options.onImport,
+      keywords: ['upload', 'restore', 'backup'],
+    });
+  }
+
+  if (options.onShowIntegrity) {
+    commands.push({
+      id: 'data-integrity',
+      label: 'Check Data Integrity',
+      description: 'Validate data quality and detect issues',
+      category: 'Data',
+      icon: <Shield className="w-4 h-4" />,
+      action: options.onShowIntegrity,
+      keywords: ['validate', 'quality', 'corruption', 'health'],
+    });
+  }
+
+  // View commands
+  if (options.onToggleDensity) {
+    commands.push(
+      {
+        id: 'view-compact',
+        label: 'Compact View',
+        description: 'Maximum data density',
+        category: 'View',
+        icon: <Maximize2 className="w-4 h-4" />,
+        shortcut: ['Alt', '1'],
+        action: () => options.onToggleDensity?.('compact'),
+        keywords: ['dense', 'small'],
+      },
+      {
+        id: 'view-comfortable',
+        label: 'Comfortable View',
+        description: 'Balanced density',
+        category: 'View',
+        icon: <Eye className="w-4 h-4" />,
+        shortcut: ['Alt', '2'],
+        action: () => options.onToggleDensity?.('comfortable'),
+        keywords: ['normal', 'default'],
+      },
+      {
+        id: 'view-spacious',
+        label: 'Spacious View',
+        description: 'Accessibility-friendly spacing',
+        category: 'View',
+        icon: <Eye className="w-4 h-4" />,
+        shortcut: ['Alt', '3'],
+        action: () => options.onToggleDensity?.('spacious'),
+        keywords: ['large', 'accessibility', 'a11y'],
+      }
+    );
+  }
+
+  if (options.onToggleSidebar) {
+    commands.push({
+      id: 'view-sidebar',
+      label: 'Toggle Sidebar',
+      description: 'Show or hide the navigation sidebar',
+      category: 'View',
+      icon: <ChevronRight className="w-4 h-4" />,
+      shortcut: ['[', ']'],
+      action: options.onToggleSidebar,
+      keywords: ['collapse', 'expand', 'navigation'],
+    });
+  }
+
+  // Help commands
+  if (options.onShowKeyboardHelp) {
+    commands.push({
+      id: 'help-keyboard',
+      label: 'Keyboard Shortcuts',
+      description: 'Show all keyboard shortcuts',
+      category: 'Help',
+      icon: <Keyboard className="w-4 h-4" />,
+      shortcut: ['?'],
+      action: options.onShowKeyboardHelp,
+      keywords: ['hotkeys', 'keys'],
+    });
+  }
+
+  if (options.onShowActionHistory) {
+    commands.push({
+      id: 'help-history',
+      label: 'Action History',
+      description: 'View recent actions and events',
+      category: 'Help',
+      icon: <History className="w-4 h-4" />,
+      action: options.onShowActionHistory,
+      keywords: ['audit', 'log', 'events'],
+    });
+  }
+
+  // System commands
+  commands.push(
+    {
+      id: 'system-refresh',
+      label: 'Refresh Page',
+      description: 'Reload the application',
+      category: 'System',
+      icon: <RefreshCw className="w-4 h-4" />,
+      shortcut: ['⌘', 'R'],
+      action: () => window.location.reload(),
+      keywords: ['reload', 'restart'],
+    },
+    {
+      id: 'system-clear-storage',
+      label: 'Clear Local Storage',
+      description: 'Reset app state (use with caution)',
+      category: 'System',
+      icon: <Database className="w-4 h-4" />,
+      action: () => {
+        if (confirm('This will reset all settings and session data. Continue?')) {
+          localStorage.clear();
+          sessionStorage.clear();
+          window.location.reload();
+        }
+      },
+      keywords: ['reset', 'cache'],
+    }
+  );
+
+  return commands;
+}
+
+// ============================================================================
+// HOOK FOR GLOBAL SHORTCUT
+// ============================================================================
+
+export function useCommandPalette(commands: CommandItem[]): {
+  isOpen: boolean;
+  open: () => void;
+  close: () => void;
+  toggle: () => void;
+  CommandPaletteComponent: React.FC;
+} {
+  const [isOpen, setIsOpen] = useState(false);
+
+  // Global keyboard shortcut (Cmd+K or Ctrl+K)
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        setIsOpen(prev => !prev);
+      }
+    };
+
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, []);
+
+  const CommandPaletteComponent = useCallback(() => (
+    <CommandPalette
+      isOpen={isOpen}
+      onClose={() => setIsOpen(false)}
+      commands={commands}
+    />
+  ), [isOpen, commands]);
+
+  return {
+    isOpen,
+    open: () => setIsOpen(true),
+    close: () => setIsOpen(false),
+    toggle: () => setIsOpen(prev => !prev),
+    CommandPaletteComponent,
+  };
+}
 
 export default CommandPalette;
-

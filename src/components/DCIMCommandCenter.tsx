@@ -14,7 +14,7 @@ import { calculateStats } from '../utils/stats';
 import { safeDbOperation } from '../utils/dbOperations';
 import { trackError } from '../utils/errorTracking';
 import { formatCurrency } from '../utils/formatting';
-import { Search, X, Filter, FileText, Sparkles, Building2, Network, Download, Settings, BarChart3, Home, ChevronRight, Maximize2, BookOpenCheck, List, Layout } from 'lucide-react';
+import { Search, X, Filter, FileText, Sparkles, Building2, Network, Download, Settings, BarChart3, Home, ChevronRight, Maximize2, BookOpenCheck, List, Layout, HelpCircle, DollarSign, Shield, AlertTriangle, Brain, Eye, Target, TrendingUp, Database, Globe, Activity, Cpu, Bot } from 'lucide-react';
 import { ViewModeToggle, ViewMode } from './shared/ViewModeToggle';
 import { LayerTogglesPanel, LayerState } from './shared/LayerTogglesPanel';
 import { ExpandableSection } from './shared/ExpandableSection';
@@ -55,18 +55,39 @@ import { PredictiveIntelligenceTab } from './tabs/PredictiveIntelligenceTab'; //
 // import { GraphDatabasePOC } from './tabs/GraphDatabasePOC'; // POC requires @kuzu/kuzu-wasm (uninstalled)
 import { ComplianceFlowTab } from './tabs/ComplianceFlowTab'; // Intent-Based Visualization
 import { AssuranceMonitorTab } from './tabs/AssuranceMonitorTab'; // Juniper Marvis-style continuous monitoring
+import { EpochAIIntelligenceTab } from './tabs/EpochAIIntelligenceTab'; // Epoch AI data centers intelligence
+import { SubsidyAccountabilityPanel } from './panels/SubsidyAccountabilityPanel'; // Good Jobs First integration
+import { OrganizerCommandCenter } from './panels/OrganizerCommandCenter'; // Labor organizing command center
 import { IntelligenceHubTab } from './tabs/IntelligenceHubTab'; // UNIFIED: All intelligence methods combined
 import { NetworkVisualizationTab } from './tabs/NetworkVisualizationTab'; // Network visualization with tree & globe
+import { PatternIntelligenceDashboard } from './PatternIntelligenceDashboard'; // NEW: Enhanced Surveillance & Pattern Recognition
+import { DeepIntelligence } from './DeepIntelligence'; // NEW: Full API data extraction
+import { PredictiveSubsidyDashboard } from './PredictiveSubsidyDashboard'; // NEW: Predictive Subsidy Intelligence
+import { RegulatoryToolkit } from './RegulatoryToolkit'; // NEW: Municipal DCIM Intelligence Toolkit
+import { FollowYourDataTab } from './tabs/FollowYourDataTab'; // NEW: Infrastructure Discovery with CAP, NPU, ILSR
+import { SanctionsMonitorTab } from './tabs/SanctionsMonitorTab'; // NEW: OFAC Sanctions Network Hygiene Enforcement
+import { SurveillanceInfrastructureTab } from './tabs/SurveillanceInfrastructureTab'; // NEW: ICE/DHS surveillance tracker
+import { SanctuaryCityTab } from './tabs/SanctuaryCityTab'; // NEW: Sanctuary City Infrastructure Accountability
+import IncidentCommandTab from './tabs/IncidentCommandTab'; // NEW: Incident Command System (ICS)
+import { ApprovalWorkflow } from './ApprovalWorkflow'; // NEW: Multi-Agent Human-in-the-Loop Approvals (TWIML-inspired)
+import { SmartSearchNav, NavProvider, QuickAccessNav } from './AntifragileNavigation'; // NEW: Antifragile Navigation System
+import { MobileBottomNav, MobileDrawer, MobileHeader } from './mobile'; // Mobile navigation components
 import EvidencePanel from './EvidencePanel'; // FRE 902(13)-(14) Evidence Integrity
 import { NestedFAQ } from './NestedFAQ'; // Comprehensive help documentation
+import { WelcomeOnboarding } from './onboarding/WelcomeOnboarding'; // First-time user onboarding
+import { MissionHeader, SubsidyGapHero } from './shared/HumanizedStats'; // Humanized stats components
 import { indexFacilities } from '../search/SearchEngine'; // FlexSearch initialization
 import { detectDashboardAction } from '../utils/dashboardActions';
 import { ErrorBoundary } from './ErrorBoundary';
+import { NetworkStatusBanner } from './shared/SystemHealthDashboard'; // Antifragile network status
+import { saveActiveTab, getLastActiveTab, savePreferences, getSavedPreferences, recordVisit } from '../utils/sessionPersistence'; // Session persistence
 import { CommandPalette } from './shared/CommandPalette';
-import { SimpleBuildBadge } from './SimpleBuildBadge';
+// SimpleBuildBadge removed to reduce clutter
 import { SettingsPanel } from './shared/SettingsPanel';
 import { downloadComplianceReport } from '../services/PDFReportGenerator';
 import { PWAStatus } from './shared/PWAStatus';
+import { HeaderCapabilitiesBar } from './shared/HeaderCapabilitiesBar';
+import { DensityToggleInline } from './shared/DensityToggle';
 import { TabTransition } from './shared/TabTransition';
 import { TableOfContents } from './shared/TableOfContents';
 import { NavigationSidebar } from './shared/NavigationSidebar';
@@ -96,7 +117,12 @@ export type CommandCenterTab =
   | 'OSINT Tools' 
   | 'Pattern Analysis' // REPLACED: Comprehensive pattern analysis (was "DCIM Analytics")
   | 'Pattern Lab' // NEW: Web Worker + explainability
+  | 'Pattern Intelligence' // NEW: Enhanced Surveillance & Pattern Recognition Engine
+  | 'Deep Intelligence' // NEW: Full API data extraction - OpenCorp, SEC, PeeringDB, USASpending
   | 'Predictive Intel' // NEW: Forecasting, Risk Scoring, Monte Carlo
+  | 'Predictive Subsidy' // NEW: Good Jobs First-style subsidy risk prediction
+  | 'Regulatory Toolkit' // NEW: Municipal DCIM Intelligence Toolkit
+  | 'Follow Your Data' // NEW: Infrastructure Discovery with CAP Taxonomy, NPU, ILSR
   | 'Infrastructure' 
   | 'Network Map' // NEW: 20-level tree + 3D globe visualization
   | 'Network Security' // New NotebookLM tab
@@ -106,7 +132,15 @@ export type CommandCenterTab =
   | 'Connectography'
   | 'Intelligence' // UNIFIED: Pattern Analysis + Pattern Lab + Assurance + Predictions + Graph
   | 'Compliance Flow' // Visualization-focused view
-  | 'Assurance Monitor'; // Continuous monitoring
+  | 'Assurance Monitor' // Continuous monitoring
+  | 'Sanctions Monitor' // NEW: OFAC Sanctions Network Hygiene Enforcement
+  | 'Subsidy Accountability' // NEW: Good Jobs First subsidy accountability tracking
+  | 'Organizer Hub' // NEW: Labor organizing command center
+  | 'Incident Command' // NEW: Incident triage + timelines + evidence packaging
+  | 'AI Infrastructure' // NEW: Epoch AI data center intelligence
+  | 'Surveillance Infrastructure' // NEW: ICE/DHS surveillance tracker
+  | 'Sanctuary City' // NEW: Sanctuary City Infrastructure Accountability
+  | 'AI Agents'; // NEW: Multi-Agent Orchestrator with Human-in-the-Loop Approvals
   // | 'POC';  // Disabled - requires @kuzu/kuzu-wasm
 
 interface DCIMCommandCenterProps {
@@ -490,10 +524,30 @@ export default function DCIMCommandCenter({ onActionRequested: _onActionRequeste
   const [stats, setStats] = useState<ComplianceStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [showSkeleton, setShowSkeleton] = useState(false); // Show skeleton after loading screen
-  const [activeTab, setActiveTab] = useState<CommandCenterTab>('Overview');
+  
+  // 🛡️ ANTIFRAGILE: Restore last active tab from session (graceful fallback to 'Overview')
+  const [activeTab, setActiveTab] = useState<CommandCenterTab>(() => {
+    const { tab } = getLastActiveTab();
+    return (tab as CommandCenterTab) || 'Overview';
+  });
   const [isPending, startTabTransition] = useTransition();
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false); // Navigation sidebar state
+  
+  // 🛡️ ANTIFRAGILE: Restore sidebar state from session
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
+    const prefs = getSavedPreferences();
+    return prefs?.sidebarCollapsed ?? false;
+  }); // Navigation sidebar state
   const [showFAQ, setShowFAQ] = useState(false); // Help & Documentation modal
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false); // Mobile drawer state
+  
+  // Handle mobile tab changes - close drawer and switch tab
+  const handleMobileTabChange = useCallback((tabId: string) => {
+    if (tabId === 'menu') {
+      setMobileMenuOpen(true);
+    } else {
+      setActiveTab(tabId as CommandCenterTab);
+    }
+  }, []);
   const { enabled: provenanceMode, setEnabled: setProvenanceMode} = useProvenanceMode();
   const [isFullscreenTab, setIsFullscreenTab] = useState(false);
   const [connectographyOpen, setConnectographyOpen] = useState(false);
@@ -510,6 +564,9 @@ export default function DCIMCommandCenter({ onActionRequested: _onActionRequeste
   const handleTabChange = useCallback((tab: CommandCenterTab) => {
     startTabTransition(() => {
       setActiveTab(tab);
+      
+      // 🛡️ ANTIFRAGILE: Persist active tab for session recovery
+      saveActiveTab(tab);
       
       // Reset scroll position smoothly on tab change
       requestAnimationFrame(() => {
@@ -733,6 +790,19 @@ export default function DCIMCommandCenter({ onActionRequested: _onActionRequeste
     };
   }, []);
 
+  // 🛡️ ANTIFRAGILE: Record visit and log session info
+  useEffect(() => {
+    const { isReturning, lastVisit } = recordVisit();
+    if (isReturning && lastVisit) {
+      console.log(`[Session] Welcome back! Last visit: ${lastVisit.toLocaleDateString()}`);
+    }
+  }, []);
+
+  // 🛡️ ANTIFRAGILE: Persist sidebar state changes
+  useEffect(() => {
+    savePreferences({ sidebarCollapsed });
+  }, [sidebarCollapsed]);
+
 
   // Keyboard shortcuts with cleanup (Rule 4)
   useEffect(() => {
@@ -745,10 +815,10 @@ export default function DCIMCommandCenter({ onActionRequested: _onActionRequeste
         return;
       }
 
-      // Cmd/Ctrl + K for global search
+      // Cmd/Ctrl + K for Smart Search Navigation
       if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
         e.preventDefault();
-        setShowGlobalSearch(true);
+        setShowSmartSearch(true);
         return;
       }
       
@@ -906,7 +976,18 @@ export default function DCIMCommandCenter({ onActionRequested: _onActionRequeste
     'Facilities',
     'OSINT Tools',
     'Intelligence',  // UNIFIED: All intelligence methods in one place
+    'Pattern Intelligence', // NEW: Enhanced Surveillance & Pattern Recognition
+    'Deep Intelligence', // NEW: Full API data extraction - OpenCorp, SEC, PeeringDB
     'Predictive Intel', // Deep dive forecasting (kept separate for detail)
+    'Predictive Subsidy', // NEW: Good Jobs First-style subsidy risk prediction
+    'Subsidy Accountability', // NEW: Good Jobs First accountability tracking
+    'Organizer Hub', // NEW: Labor organizing command center
+    'Incident Command', // NEW: Incident triage + timelines + evidence packaging
+    'Surveillance Infrastructure', // NEW: ICE/DHS surveillance tracker
+    'Sanctuary City', // NEW: Sanctuary City Infrastructure Accountability
+    'AI Agents', // NEW: Multi-Agent Orchestrator with Human-in-the-Loop Approvals (TWIML-inspired)
+    'Regulatory Toolkit', // NEW: Municipal DCIM scrapers and APIs
+    'Follow Your Data', // NEW: Infrastructure Discovery with CAP, NPU, ILSR
     'Infrastructure',
     'Network Security',
     'Reports',
@@ -915,10 +996,51 @@ export default function DCIMCommandCenter({ onActionRequested: _onActionRequeste
     'Explorer',
     'Compliance Flow',  // Visualization-focused
     'Assurance Monitor',  // Continuous monitoring
+    'Sanctions Monitor',  // NEW: OFAC Network Hygiene Enforcement
     // Legacy tabs (will be deprecated):
     // 'Pattern Analysis', // → Merged into Intelligence
     // 'Pattern Lab', // → Merged into Intelligence (scenarios)
   ];
+
+  // NAV_TABS: Rich metadata for antifragile navigation system
+  const NAV_TABS = useMemo(() => [
+    { id: 'Guides', label: 'Guides', shortLabel: 'Guide', icon: <BookOpenCheck className="w-4 h-4" />, group: 'Getting Started', keywords: ['help', 'tutorial', 'start', 'learn'], description: 'Getting started guides' },
+    { id: 'Overview', label: 'Dashboard Overview', shortLabel: 'Overview', icon: <Home className="w-4 h-4" />, group: 'Getting Started', keywords: ['dashboard', 'summary', 'home', 'stats'], description: 'Main dashboard with key metrics' },
+    { id: 'Geography', label: 'Geographic View', shortLabel: 'Geo', icon: <Globe className="w-4 h-4" />, group: 'Getting Started', keywords: ['map', 'location', 'region', 'state'], description: 'Geographic facility distribution' },
+    { id: 'Problems', label: 'Problems & Alerts', shortLabel: 'Problems', icon: <AlertTriangle className="w-4 h-4" />, group: 'Getting Started', keywords: ['alert', 'issue', 'risk', 'warning', 'critical'], description: 'Facilities requiring attention' },
+    { id: 'Early Warning', label: 'Early Warning', shortLabel: 'Warning', icon: <AlertTriangle className="w-4 h-4" />, group: 'Getting Started', keywords: ['predict', 'forecast', 'early', 'risk'], description: 'Early warning indicators' },
+    { id: 'Geographic Intel', label: 'Geographic Intel', shortLabel: 'Geo Intel', icon: <Globe className="w-4 h-4" />, group: 'Analysis & Intelligence', keywords: ['geo', 'region', 'county', 'demographics'], description: 'Regional intelligence analysis' },
+    { id: 'Subsidy Tracking', label: 'Subsidy Tracking', shortLabel: 'Subsidies', icon: <DollarSign className="w-4 h-4" />, group: 'Analysis & Intelligence', keywords: ['subsidy', 'tax', 'incentive', 'money'], description: 'Track subsidy compliance' },
+    { id: 'Worker Safety', label: 'Worker Safety', shortLabel: 'Safety', icon: <Shield className="w-4 h-4" />, group: 'Analysis & Intelligence', keywords: ['osha', 'safety', 'worker', 'violation'], description: 'Worker safety tracking' },
+    { id: 'Facilities', label: 'Facilities', shortLabel: 'Fac', icon: <Building2 className="w-4 h-4" />, group: 'Operations', keywords: ['facility', 'building', 'data center', 'site'], description: 'All facilities list' },
+    { id: 'OSINT Tools', label: 'OSINT Tools', shortLabel: 'OSINT', icon: <Search className="w-4 h-4" />, group: 'Analysis & Intelligence', keywords: ['osint', 'search', 'investigation', 'research'], description: 'Open source intelligence tools' },
+    { id: 'Intelligence', label: 'Intelligence Hub', shortLabel: 'Intel Hub', icon: <Brain className="w-4 h-4" />, group: 'Analysis & Intelligence', keywords: ['ai', 'intel', 'analysis', 'insights', 'agents'], description: 'AI-powered intelligence center' },
+    { id: 'Pattern Intelligence', label: 'Pattern Engine', shortLabel: 'Patterns', icon: <Eye className="w-4 h-4" />, group: 'Analysis & Intelligence', keywords: ['pattern', 'ml', 'anomaly', 'detection'], description: 'ML-powered pattern detection' },
+    { id: 'Deep Intelligence', label: 'Deep Intel', shortLabel: 'Deep', icon: <Database className="w-4 h-4" />, group: 'Analysis & Intelligence', keywords: ['deep', 'api', 'sec', 'peeringdb', 'opencorporates'], description: 'Full API data extraction' },
+    { id: 'Predictive Intel', label: 'Predictions', shortLabel: 'Predict', icon: <TrendingUp className="w-4 h-4" />, group: 'Analysis & Intelligence', keywords: ['forecast', 'predict', 'future', 'monte carlo'], description: 'Predictive analytics' },
+    { id: 'Predictive Subsidy', label: 'Subsidy Intel', shortLabel: 'Sub Intel', icon: <Target className="w-4 h-4" />, group: 'Analysis & Intelligence', keywords: ['subsidy', 'good jobs first', 'tax break', 'clawback', 'risk'], description: 'Predictive subsidy risk analysis' },
+    { id: 'Subsidy Accountability', label: '💰 Subsidy Accountability', shortLabel: 'Accountability', icon: <DollarSign className="w-4 h-4" />, group: 'Analysis & Intelligence', keywords: ['subsidy', 'accountability', 'jobs promised', 'jobs actual', 'good jobs first', 'transparency', 'state', 'gap'], description: 'Good Jobs First subsidy accountability - verify promises vs reality' },
+    { id: 'Organizer Hub', label: '✊ Organizer Hub', shortLabel: 'Organize', icon: <Target className="w-4 h-4" />, group: 'Analysis & Intelligence', keywords: ['organize', 'union', 'labor', 'foia', 'incident', 'contractor', 'cba', 'legislative', 'coalition', 'ibew', 'corridor', 'campaign'], description: 'Labor organizing command center - FOIA, incidents, contractors, CBAs, legislation, union density, coalition coordination' },
+    { id: 'Incident Command', label: '🚨 Incident Command', shortLabel: 'Incidents', icon: <AlertTriangle className="w-4 h-4" />, group: 'Operations', keywords: ['incident', 'triage', 'timeline', 'telemetry', 'bgp', 'ct', 'evidence', 'investigation'], description: 'Triage signals into incidents, build timelines, and preserve evidence' },
+    { id: 'Surveillance Infrastructure', label: '🔴 Surveillance Tracker', shortLabel: 'Surveillance', icon: <Eye className="w-4 h-4" />, group: 'Analysis & Intelligence', keywords: ['ice', 'surveillance', 'dhs', 'cbp', 'palantir', 'clearview', 'facial recognition', 'skip tracing', 'deportation', 'immigrant', 'contract', 'federal'], description: 'Track ICE/DHS surveillance infrastructure, contracts, and companies targeting immigrant communities' },
+    { id: 'Sanctuary City', label: '🏛️ Sanctuary City', shortLabel: 'Sanctuary', icon: <Shield className="w-4 h-4" />, group: 'Analysis & Intelligence', keywords: ['sanctuary', 'nyc', 'mayor', 'mamdani', 'carrier hotel', 'reit', 'equinix', 'digital realty', 'franchise', 'nycida', 'enforcement', 'ice', 'data flow', 'executive order', 'regulatory', '111 8th avenue', '60 hudson', 'charter 363'], description: 'NYC ICE Data Infrastructure: REIT Exposure and Mayoral Regulatory Authority' },
+    { id: 'AI Agents', label: '🤖 AI Agents', shortLabel: 'Agents', icon: <Bot className="w-4 h-4" />, group: 'Analysis & Intelligence', keywords: ['ai', 'agent', 'multi-agent', 'orchestrator', 'approval', 'human-in-the-loop', 'hitl', 'autonomous', 'evidence', 'triangulation', 'twiml'], description: 'Multi-agent orchestrator with human-in-the-loop approvals for autonomous evidence gathering' },
+    { id: 'Regulatory Toolkit', label: 'Regulatory APIs', shortLabel: 'Reg APIs', icon: <Database className="w-4 h-4" />, group: 'Analysis & Intelligence', keywords: ['municipal', 'regulatory', 'scraper', 'api', 'bls', 'sec', 'epa'], description: 'Municipal DCIM scrapers & APIs' },
+    { id: 'Follow Your Data', label: 'Follow Your Data', shortLabel: 'Follow', icon: <Globe className="w-4 h-4" />, group: 'Analysis & Intelligence', keywords: ['follow', 'data', 'infrastructure', 'cap', 'npu', 'ilsr', 'community', 'geolocation', 'discovery'], description: 'Infrastructure discovery with CAP taxonomy, NPU framework, ILSR alternatives' },
+    { id: 'Infrastructure', label: 'Infrastructure', shortLabel: 'Infra', icon: <Network className="w-4 h-4" />, group: 'Operations', keywords: ['infra', 'network', 'power', 'cooling'], description: 'Infrastructure details' },
+    { id: 'Network Security', label: 'Network Security', shortLabel: 'Security', icon: <Shield className="w-4 h-4" />, group: 'Operations', keywords: ['security', 'bgp', 'rpki', 'network'], description: 'Network security analysis' },
+    { id: 'Reports', label: 'Reports', shortLabel: 'Report', icon: <FileText className="w-4 h-4" />, group: 'Operations', keywords: ['report', 'export', 'pdf', 'csv'], description: 'Generate compliance reports' },
+    { id: 'Compare', label: 'Compare', shortLabel: 'Compare', icon: <BarChart3 className="w-4 h-4" />, group: 'Visualization', keywords: ['compare', 'benchmark', 'versus'], description: 'Compare facilities' },
+    { id: 'Connectography', label: 'Connectography', shortLabel: 'Connect', icon: <Globe className="w-4 h-4" />, group: 'Visualization', keywords: ['connect', 'flow', 'global', 'network'], description: 'Global connection mapping' },
+    { id: 'Explorer', label: 'Explorer', shortLabel: 'Explore', icon: <Search className="w-4 h-4" />, group: 'Operations', keywords: ['explore', 'browse', 'search', 'filter'], description: 'Facility explorer' },
+    { id: 'Compliance Flow', label: 'Compliance Flow', shortLabel: 'Flow', icon: <Network className="w-4 h-4" />, group: 'Visualization', keywords: ['flow', 'process', 'compliance', 'workflow'], description: 'Compliance workflow view' },
+    { id: 'Assurance Monitor', label: 'Assurance Monitor', shortLabel: 'Monitor', icon: <Activity className="w-4 h-4" />, group: 'Operations', keywords: ['monitor', 'continuous', 'live', 'realtime'], description: 'Continuous assurance monitoring' },
+    { id: 'Sanctions Monitor', label: 'OFAC Sanctions Monitor', shortLabel: 'Sanctions', icon: <Shield className="w-4 h-4" />, group: 'Analysis & Intelligence', keywords: ['ofac', 'sanctions', 'sdn', 'treasury', 'compliance', 'whistleblower', 'russia', 'iran'], description: 'Network hygiene enforcement - OFAC/FinCEN sanctions monitoring' },
+    { id: 'AI Infrastructure', label: 'AI Infrastructure', shortLabel: 'AI Infra', icon: <Cpu className="w-4 h-4" />, group: 'Analysis & Intelligence', keywords: ['epoch', 'ai', 'frontier', 'data center', 'power', 'gigawatt', 'openai', 'meta', 'google', 'xai', 'anthropic', 'satellite'], description: 'Epoch AI frontier data center intelligence' },
+  ], []);
+
+  // State for smart search modal
+  const [showSmartSearch, setShowSmartSearch] = useState(false);
 
   const tabNavigationRef = useRef<HTMLDivElement>(null);
   const mainContentRef = useRef<HTMLDivElement>(null);
@@ -1039,7 +1161,7 @@ export default function DCIMCommandCenter({ onActionRequested: _onActionRequeste
       ref={mainContentRef}
       key={activeTab}
       id="main-content"
-      className="flex-1 bg-gray-950 p-1.5 scroll-smooth main-scroll"
+      className="flex-1 bg-gray-950 p-1.5 scroll-smooth main-scroll min-h-0"
       role="tabpanel"
       aria-labelledby={`tab-${activeTab.toLowerCase().replace(/\s+/g, '-')}`}
       tabIndex={0}
@@ -1050,8 +1172,8 @@ export default function DCIMCommandCenter({ onActionRequested: _onActionRequeste
         overflowX: 'hidden',
         overscrollBehavior: 'contain',
         scrollPadding: '0',
-        height: '100%',
-        maxHeight: '100%',
+        height: 'calc(100vh - 140px)',
+        maxHeight: 'calc(100vh - 140px)',
         outline: 'none',
         position: 'relative'
       }}
@@ -1094,7 +1216,7 @@ export default function DCIMCommandCenter({ onActionRequested: _onActionRequeste
 
       {activeTab === 'Explorer' && (
         <ErrorBoundary>
-          <div className="h-full">
+          <div className="min-h-0 overflow-y-auto" style={{ height: 'calc(100vh - 140px)', maxHeight: 'calc(100vh - 140px)' }}>
             <FacilityExplorer facilities={filteredFacilities} />
           </div>
         </ErrorBoundary>
@@ -1120,7 +1242,9 @@ export default function DCIMCommandCenter({ onActionRequested: _onActionRequeste
       )}
 
       {activeTab === 'Facilities' && (
-        <FacilitiesTabWithExpandability facilities={deferredFacilities} />
+        <ErrorBoundary>
+          <FacilitiesTabWithExpandability facilities={deferredFacilities} />
+        </ErrorBoundary>
       )}
 
       {activeTab === 'OSINT Tools' && (
@@ -1156,11 +1280,15 @@ export default function DCIMCommandCenter({ onActionRequested: _onActionRequeste
       )}
 
       {activeTab === 'Infrastructure' && (
-        <InfrastructureTabWithExpandability facilities={deferredFacilities} />
+        <ErrorBoundary>
+          <InfrastructureTabWithExpandability facilities={deferredFacilities} />
+        </ErrorBoundary>
       )}
 
       {activeTab === 'Reports' && (
-        <ReportsTabWithExpandability facilities={deferredFacilities} stats={stats} />
+        <ErrorBoundary>
+          <ReportsTabWithExpandability facilities={deferredFacilities} stats={stats} />
+        </ErrorBoundary>
       )}
 
       {activeTab === 'Compare' && (
@@ -1178,6 +1306,95 @@ export default function DCIMCommandCenter({ onActionRequested: _onActionRequeste
       {activeTab === 'Intelligence' && (
         <ErrorBoundary>
           <IntelligenceHubTab facilities={deferredFacilities} />
+        </ErrorBoundary>
+      )}
+
+      {/* NEW: Pattern Intelligence - Enhanced Surveillance & Pattern Recognition */}
+      {activeTab === 'Pattern Intelligence' && (
+        <ErrorBoundary>
+          <div className="p-6 overflow-y-auto min-h-0 bg-slate-50" style={{ height: 'calc(100vh - 140px)', maxHeight: 'calc(100vh - 140px)' }}>
+            <PatternIntelligenceDashboard />
+          </div>
+        </ErrorBoundary>
+      )}
+
+      {/* NEW: Deep Intelligence - Full API Data Extraction */}
+      {activeTab === 'Deep Intelligence' && (
+        <ErrorBoundary>
+          <div className="p-6 overflow-y-auto min-h-0 bg-slate-50" style={{ height: 'calc(100vh - 140px)', maxHeight: 'calc(100vh - 140px)' }}>
+            <DeepIntelligence />
+          </div>
+        </ErrorBoundary>
+      )}
+
+      {activeTab === 'Predictive Subsidy' && (
+        <ErrorBoundary>
+          <div className="p-6 overflow-y-auto min-h-0 bg-slate-50" style={{ height: 'calc(100vh - 140px)', maxHeight: 'calc(100vh - 140px)' }}>
+            <PredictiveSubsidyDashboard />
+          </div>
+        </ErrorBoundary>
+      )}
+
+      {activeTab === 'Subsidy Accountability' && (
+        <ErrorBoundary>
+          <div className="min-h-0 overflow-y-auto" style={{ height: 'calc(100vh - 140px)', maxHeight: 'calc(100vh - 140px)' }}>
+            <SubsidyAccountabilityPanel />
+          </div>
+        </ErrorBoundary>
+      )}
+
+      {activeTab === 'Organizer Hub' && (
+        <ErrorBoundary>
+          <div className="min-h-0 overflow-y-auto" style={{ height: 'calc(100vh - 140px)', maxHeight: 'calc(100vh - 140px)' }}>
+            <OrganizerCommandCenter />
+          </div>
+        </ErrorBoundary>
+      )}
+
+      {activeTab === 'Incident Command' && (
+        <ErrorBoundary>
+          <div className="min-h-0 overflow-y-auto" style={{ height: 'calc(100vh - 140px)', maxHeight: 'calc(100vh - 140px)' }}>
+            <IncidentCommandTab />
+          </div>
+        </ErrorBoundary>
+      )}
+
+      {activeTab === 'Surveillance Infrastructure' && (
+        <ErrorBoundary>
+          <div className="min-h-0 overflow-y-auto" style={{ height: 'calc(100vh - 140px)', maxHeight: 'calc(100vh - 140px)' }}>
+            <SurveillanceInfrastructureTab />
+          </div>
+        </ErrorBoundary>
+      )}
+
+      {activeTab === 'Sanctuary City' && (
+        <ErrorBoundary>
+          <div className="min-h-0 overflow-y-auto" style={{ height: 'calc(100vh - 140px)', maxHeight: 'calc(100vh - 140px)' }}>
+            <SanctuaryCityTab />
+          </div>
+        </ErrorBoundary>
+      )}
+
+      {/* NEW: AI Agents - Multi-Agent Orchestrator with Human-in-the-Loop (TWIML-inspired) */}
+      {activeTab === 'AI Agents' && (
+        <ErrorBoundary>
+          <div className="min-h-0 overflow-y-auto bg-gray-50" style={{ height: 'calc(100vh - 120px)', maxHeight: 'calc(100vh - 120px)' }}>
+            <ApprovalWorkflow />
+          </div>
+        </ErrorBoundary>
+      )}
+
+      {activeTab === 'Regulatory Toolkit' && (
+        <ErrorBoundary>
+          <div className="p-6 overflow-y-auto min-h-0 bg-slate-50" style={{ height: 'calc(100vh - 140px)', maxHeight: 'calc(100vh - 140px)' }}>
+            <RegulatoryToolkit />
+          </div>
+        </ErrorBoundary>
+      )}
+
+      {activeTab === 'Follow Your Data' && (
+        <ErrorBoundary>
+          <FollowYourDataTab facilities={deferredFacilities} />
         </ErrorBoundary>
       )}
 
@@ -1199,6 +1416,20 @@ export default function DCIMCommandCenter({ onActionRequested: _onActionRequeste
         </ErrorBoundary>
       )}
 
+      {/* NEW: OFAC Sanctions Monitor - Network Hygiene Enforcement */}
+      {activeTab === 'Sanctions Monitor' && (
+        <ErrorBoundary>
+          <SanctionsMonitorTab facilities={deferredFacilities} />
+        </ErrorBoundary>
+      )}
+
+      {/* NEW: AI Infrastructure Intelligence - Epoch AI */}
+      {activeTab === 'AI Infrastructure' && (
+        <ErrorBoundary>
+          <EpochAIIntelligenceTab />
+        </ErrorBoundary>
+      )}
+
       {/* POC tab disabled - requires @kuzu/kuzu-wasm
       {activeTab === 'POC' && (
         <ErrorBoundary>
@@ -1206,17 +1437,37 @@ export default function DCIMCommandCenter({ onActionRequested: _onActionRequeste
         </ErrorBoundary>
       )}
       */}
-
-      {activeTab === 'POC' && (
-        <ErrorBoundary>
-          <GraphDatabasePOC />
-        </ErrorBoundary>
-      )}
     </div>
   );
 
   return (
     <>
+      {/* 🛡️ ANTIFRAGILE: Network Status Banner - shows offline/online status */}
+      <NetworkStatusBanner />
+      
+      {/* MOBILE NAVIGATION - Shows on screens <= 768px */}
+      <MobileHeader
+        title="DCIM Dashboard"
+        subtitle={`${stats?.totalFacilities?.toLocaleString() || 0} Facilities`}
+        onMenuClick={() => setMobileMenuOpen(true)}
+        onSearchClick={() => setShowSmartSearch(true)}
+      />
+      
+      <MobileDrawer
+        isOpen={mobileMenuOpen}
+        onClose={() => setMobileMenuOpen(false)}
+        activeTab={activeTab}
+        onTabChange={(tab) => {
+          handleTabChange(tab as CommandCenterTab);
+          setMobileMenuOpen(false);
+        }}
+      />
+      
+      <MobileBottomNav
+        activeTab={activeTab}
+        onTabChange={handleMobileTabChange}
+      />
+
       {/* MISSION CONTROL LAYOUT - NEW */}
       {useMissionControl ? (
         <MissionControlLayout
@@ -1228,27 +1479,38 @@ export default function DCIMCommandCenter({ onActionRequested: _onActionRequeste
             atRisk: 0,
             unknown: 0,
             totalSubsidyGap: 0,
+            totalIssues: 0,
+            avgDaysSinceAudit: 0,
+            overdueAudits: 0,
+            medianSubsidyGap: 0,
+            maxSubsidyGap: 0,
           }}
-          onRefresh={loadData}
+          onRefresh={() => window.location.reload()}
         />
       ) : (
-        /* ORIGINAL TAB-BASED LAYOUT */
-    <div className="h-screen bg-gray-950 text-white flex" style={{ overflow: 'hidden', position: 'relative', height: '100vh' }}>
-      {/* Navigation Sidebar */}
-      <NavigationSidebar
-        activeTab={activeTab}
-        onTabChange={(tab) => handleTabChange(tab)}
-        isCollapsed={sidebarCollapsed}
-        onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
-        alertCounts={{
-          problems: stats?.nonCompliant ?? 0,
-          earlyWarning: stats?.atRisk ?? 0,
-          intelligence: 0, // TODO: Calculate actual count
-        }}
-      />
+        /* ORIGINAL TAB-BASED LAYOUT - Now with Antifragile Navigation */
+    <NavProvider tabs={NAV_TABS} activeTab={activeTab} onTabChange={(tab) => handleTabChange(tab as CommandCenterTab)}>
+    <div className="min-h-screen md:h-screen bg-gray-950 text-white flex flex-col md:flex-row pb-16 md:pb-0" style={{ overflow: 'auto', position: 'relative' }}>
+      {/* Smart Search Modal (⌘K) */}
+      <SmartSearchNav isOpen={showSmartSearch} onClose={() => setShowSmartSearch(false)} />
+      
+      {/* Navigation Sidebar - Hidden on mobile */}
+      <div className="hidden md:block desktop-sidebar">
+        <NavigationSidebar
+          activeTab={activeTab}
+          onTabChange={(tab) => handleTabChange(tab)}
+          isCollapsed={sidebarCollapsed}
+          onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
+          alertCounts={{
+            problems: stats?.nonCompliant ?? 0,
+            earlyWarning: stats?.atRisk ?? 0,
+            intelligence: 0, // TODO: Calculate actual count
+          }}
+        />
+      </div>
 
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col" style={{ overflow: 'hidden' }}>
+      <div className="flex-1 flex flex-col" style={{ overflow: 'auto', minHeight: 0 }}>
       {/* Skip Links for Accessibility */}
       <div className="sr-only focus-within:not-sr-only focus-within:absolute focus-within:z-[100] focus-within:top-4 focus-within:left-4">
         <a
@@ -1265,8 +1527,22 @@ export default function DCIMCommandCenter({ onActionRequested: _onActionRequeste
         </a>
       </div>
 
-      {/* Top Bar - Ultra-compact Header with Live Metrics */}
-      <header className="bg-gray-900 border-b border-gray-800 z-50 relative" style={{ position: 'relative', zIndex: 50 }}>
+      {/* Mission Banner - Hidden on mobile (shown in mobile header) */}
+      <div className="hidden md:block bg-gradient-to-r from-red-900 via-orange-900 to-amber-900 px-4 py-1.5">
+        <div className="flex items-center justify-between text-sm">
+          <div className="flex items-center gap-3">
+            <span className="text-white font-bold">⚡ Big Tech Accountability</span>
+            <span className="text-orange-300 text-xs">Labor organizer intelligence • "Docks to Data Centers"</span>
+          </div>
+          <div className="flex items-center gap-3 text-xs">
+            <span className="text-red-400 font-bold">${((stats?.subsidyGap ?? 0) / 1e9).toFixed(2)}B Gap</span>
+            <span className="text-yellow-400">{(stats?.nonCompliant ?? 0).toLocaleString()} Violations</span>
+          </div>
+        </div>
+      </div>
+      
+      {/* Top Bar - Ultra-compact Header with Live Metrics (hidden on mobile) */}
+      <header className="hidden md:block bg-gray-900 border-b border-gray-800 z-50 relative desktop-header" style={{ position: 'relative', zIndex: 50 }}>
         {/* Breadcrumbs */}
         <div className="px-1.5 py-0.5 border-b border-gray-800/50 bg-gray-900/50">
           <Breadcrumbs currentTab={activeTab} onNavigate={(tab) => handleTabChange(tab)} />
@@ -1304,6 +1580,16 @@ export default function DCIMCommandCenter({ onActionRequested: _onActionRequeste
             </span>
             <span className="text-gray-500">|</span>
             <span className="text-gray-400">{filteredFacilities?.length ?? 0} filtered</span>
+            <span className="text-gray-500">|</span>
+            {/* Density Toggle - Safe, uses context only */}
+            <ErrorBoundary fallback={<span className="text-gray-500 text-[10px]">Density</span>}>
+              <DensityToggleInline className="flex-shrink-0" />
+            </ErrorBoundary>
+            <span className="text-gray-500">|</span>
+            {/* Enhanced Capabilities Status Bar - Wrapped for safety */}
+            <ErrorBoundary fallback={<span className="text-cyan-400 text-[10px] px-1.5 py-0.5 bg-cyan-900/30 rounded">AI</span>}>
+              <HeaderCapabilitiesBar onOpenSettings={() => setShowSettings(true)} />
+            </ErrorBoundary>
             </div>
 
           {/* AI Search - Compact */}
@@ -1377,6 +1663,15 @@ export default function DCIMCommandCenter({ onActionRequested: _onActionRequeste
                 <Sparkles className="w-4 h-4" />
                 </button>
               </Tooltip>
+            <Tooltip content="AI Agents - Multi-Agent Orchestrator">
+              <button 
+                onClick={() => handleTabChange('AI Agents')} 
+                className="p-1.5 bg-violet-600 hover:bg-violet-700 rounded text-white flex items-center gap-1"
+              >
+                <Bot className="w-4 h-4" />
+                <span className="text-[9px] font-bold hidden xl:inline">AGENTS</span>
+              </button>
+            </Tooltip>
             <div className="h-4 w-px bg-gray-700" />
             <Tooltip content="Fullscreen (F)">
               <button onClick={() => setIsFullscreenTab(true)} className="p-1.5 bg-gray-800 hover:bg-gray-700 rounded border border-gray-700">
@@ -1741,7 +2036,7 @@ export default function DCIMCommandCenter({ onActionRequested: _onActionRequeste
       <TableOfContents
         isOpen={showTableOfContents}
         onClose={() => setShowTableOfContents(false)}
-        onNavigate={handleTabChange}
+        onNavigate={(tab) => handleTabChange(tab as CommandCenterTab)}
         currentTab={activeTab}
       />
 
@@ -1762,24 +2057,13 @@ export default function DCIMCommandCenter({ onActionRequested: _onActionRequeste
         <HelpCircle className="w-6 h-6" />
       </button>
 
-      {/* Simple Build Badge - GUARANTEED TO WORK */}
-      <SimpleBuildBadge />
-      
-      {/* TEST BADGE - Ultra simple, no styling */}
-      <div style={{
-        position: 'fixed',
-        top: '10px',
-        right: '10px',
-        background: 'red',
-        color: 'white',
-        padding: '20px',
-        fontSize: '20px',
-        zIndex: 99999,
-        border: '5px solid yellow'
-      }}>
-        TEST BADGE
-      </div>
+      {/* Quick Access Bar (Floating Favorites) - Antifragile Navigation */}
+      <ErrorBoundary fallback={null}>
+        <QuickAccessNav />
+      </ErrorBoundary>
+
     </div>
+    </NavProvider>
       )}
     </>
   );

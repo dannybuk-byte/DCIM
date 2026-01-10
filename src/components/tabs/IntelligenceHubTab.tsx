@@ -32,6 +32,7 @@ import {
 import type { Facility } from '../../types';
 import { useUnifiedIntelligence } from '../../hooks/useUnifiedIntelligence';
 import type { IntelligenceFinding, IntelligenceScenario } from '../../analyzers/unified/intelligenceEngine';
+// @ts-ignore - No type declarations for react-cytoscapejs
 import CytoscapeComponent from 'react-cytoscapejs';
 import AutonomousAgentsPanel from '../AutonomousAgentsPanel';
 import { BGPMonitorPanel } from '../BGPMonitorPanel';

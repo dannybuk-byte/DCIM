@@ -54,7 +54,7 @@ export function useComplianceAssurance(facilities: Facility[]) {
       await Promise.all(
         facilities.map(async (facility) => {
           const result = await complianceAssuranceEngine.runAssurance(facility);
-          results.set(facility.id, result);
+          results.set(String(facility.id), result);
           
           if (result.status === 'VIOLATED') violations++;
           if (result.status === 'DRIFTING') drifting++;

@@ -3033,15 +3033,15 @@ export const PhotorealisticGisView = memo(function PhotorealisticGisView({
             elevationScale={deckElevationScale}
             containerRef={deckContainerRef}
             onFacilityClick={(f) => setSelectedFacility({
-              id: f.id,
+              id: String(f.id),
               name: f.name,
               type: f.type,
               operator: f.operator,
               status: f.complianceStatus,
               city: f.city,
               state: f.state,
-              lat: f.latitude,
-              lng: f.longitude
+              lat: f.latitude ?? 0,
+              lng: f.longitude ?? 0
             })}
           />
           <DeckGLControlPanel

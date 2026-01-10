@@ -28,6 +28,9 @@ import {
   ChevronLeft,
   ChevronRight,
   HelpCircle,
+  Database,
+  Cpu,
+  Bot,
 } from 'lucide-react';
 import { Tooltip } from './Tooltip';
 import type { CommandCenterTab } from '../DCIMCommandCenter';
@@ -96,6 +99,38 @@ const NAV_GROUPS: NavGroup[] = [
         keywords: ['analysis', 'intelligence', 'ai', 'patterns', 'predictions'],
       },
       {
+        id: 'Pattern Intelligence',
+        label: '🧠 Pattern Engine',
+        icon: <Activity className="w-5 h-5" />,
+        color: 'cyan',
+        description: 'Real-time BGP, CT monitoring, workload detection, business health',
+        keywords: ['pattern', 'bgp', 'certificate', 'workload', 'crypto', 'ai training', 'surveillance'],
+      },
+      {
+        id: 'Deep Intelligence',
+        label: '🔍 Deep Intel',
+        icon: <Eye className="w-5 h-5" />,
+        color: 'purple',
+        description: 'Full API extraction: OpenCorp, SEC, PeeringDB, USASpending',
+        keywords: ['deep', 'api', 'sec', 'peeringdb', 'opencorporates', 'usaspending', 'subsidiaries', 'officers'],
+      },
+      {
+        id: 'Predictive Subsidy',
+        label: '🎯 Subsidy Intel',
+        icon: <Target className="w-5 h-5" />,
+        color: 'rose',
+        description: 'Good Jobs First-style predictive subsidy risk analysis',
+        keywords: ['subsidy', 'good jobs first', 'tax break', 'clawback', 'jobs promised', 'dark states'],
+      },
+      {
+        id: 'Regulatory Toolkit',
+        label: '🏛️ Regulatory APIs',
+        icon: <Database className="w-5 h-5" />,
+        color: 'emerald',
+        description: 'Municipal DCIM scrapers, APIs, and integration guides',
+        keywords: ['municipal', 'regulatory', 'scraper', 'api', 'bls', 'sec', 'epa', 'foia', 'permit'],
+      },
+      {
         id: 'Predictive Intel',
         label: 'Predictions',
         icon: <TrendingUp className="w-5 h-5" />,
@@ -110,6 +145,54 @@ const NAV_GROUPS: NavGroup[] = [
         color: 'green',
         description: 'Continuous compliance monitoring and validation',
         keywords: ['monitor', 'assurance', 'continuous', 'validate'],
+      },
+      {
+        id: 'AI Infrastructure',
+        label: '🛰️ AI Infrastructure',
+        icon: <Cpu className="w-5 h-5" />,
+        color: 'cyan',
+        description: 'Epoch AI frontier data center tracking - power, location, construction',
+        keywords: ['epoch', 'ai', 'frontier', 'data center', 'power', 'gigawatt', 'openai', 'meta', 'google', 'xai', 'anthropic', 'satellite'],
+      },
+      {
+        id: 'Subsidy Accountability',
+        label: '💰 Subsidy Accountability',
+        icon: <DollarSign className="w-5 h-5" />,
+        color: 'amber',
+        description: 'Good Jobs First data - verify subsidy promises vs. reality',
+        keywords: ['subsidy', 'accountability', 'jobs', 'promised', 'actual', 'good jobs first', 'transparency', 'state', 'gap', 'tax'],
+      },
+      {
+        id: 'Organizer Hub',
+        label: '✊ Organizer Hub',
+        icon: <Target className="w-5 h-5" />,
+        color: 'rose',
+        description: 'Labor organizing command center - FOIA, incidents, contractors, CBAs, legislation, union density, coalition',
+        keywords: ['organize', 'union', 'labor', 'foia', 'incident', 'contractor', 'cba', 'legislative', 'coalition', 'ibew', 'corridor', 'campaign', 'worker'],
+      },
+      {
+        id: 'Surveillance Infrastructure',
+        label: '🔴 Surveillance Tracker',
+        icon: <Eye className="w-5 h-5" />,
+        color: 'red',
+        description: 'Track ICE/DHS surveillance infrastructure, contracts, and companies targeting immigrant communities',
+        keywords: ['ice', 'surveillance', 'dhs', 'cbp', 'palantir', 'clearview', 'facial recognition', 'skip tracing', 'deportation', 'immigrant', 'contract', 'federal', 'ero', 'hsi'],
+      },
+      {
+        id: 'Sanctuary City',
+        label: '🏛️ Sanctuary City',
+        icon: <Shield className="w-5 h-5" />,
+        color: 'rose',
+        description: 'NYC ICE Data Infrastructure: REIT Exposure and Mayoral Regulatory Authority - Carrier Hotels, Enforcement Pyramid, Executive Order Framework',
+        keywords: ['sanctuary', 'nyc', 'mayor', 'mamdani', 'carrier hotel', 'reit', 'equinix', 'digital realty', 'franchise', 'nycida', 'enforcement', 'ice', 'data flow', 'executive order', '111 8th avenue', '60 hudson', 'charter 363', 'mayoral authority'],
+      },
+      {
+        id: 'AI Agents',
+        label: '🤖 AI Agents',
+        icon: <Bot className="w-5 h-5" />,
+        color: 'violet',
+        description: 'Multi-agent orchestrator with human-in-the-loop approvals - anomaly, compliance, subsidy, network, and ownership agents',
+        keywords: ['ai', 'agent', 'multi-agent', 'orchestrator', 'approval', 'human-in-the-loop', 'hitl', 'autonomous', 'twiml', 'evidence', 'triangulation'],
       },
     ],
   },
@@ -270,6 +353,10 @@ export function NavigationSidebar({
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(
     new Set(NAV_GROUPS.map((g) => g.title))
   );
+  const [showDescriptions, setShowDescriptions] = useState(() => {
+    // Show descriptions by default for first-time users
+    return localStorage.getItem('dcim_hide_descriptions') !== 'true';
+  });
 
   const toggleGroup = (groupTitle: string) => {
     setExpandedGroups((prev) => {
@@ -308,7 +395,7 @@ export function NavigationSidebar({
     return (
       <div className="w-16 bg-gray-900 border-r border-gray-800 flex flex-col items-center py-4 space-y-2">
         {/* Expand button */}
-        <Tooltip content="Expand Navigation" placement="right">
+        <Tooltip content="Expand Navigation" position="right">
           <button
             onClick={onToggleCollapse}
             className="p-2 hover:bg-gray-800 rounded-lg transition-colors text-gray-400 hover:text-white"
@@ -325,7 +412,7 @@ export function NavigationSidebar({
           const badge = getBadge(item.id);
 
           return (
-            <Tooltip key={item.id} content={item.label} placement="right">
+            <Tooltip key={item.id} content={item.label} position="right">
               <button
                 onClick={() => onTabChange(item.id)}
                 className={`relative p-2 rounded-lg transition-all ${
@@ -357,12 +444,31 @@ export function NavigationSidebar({
             <Network className="w-5 h-5 text-cyan-400" />
             <h2 className="font-bold text-sm text-white">Navigation</h2>
           </div>
-          <button
-            onClick={onToggleCollapse}
-            className="p-1 hover:bg-gray-800 rounded transition-colors text-gray-400 hover:text-white"
-          >
-            <ChevronLeft className="w-4 h-4" />
-          </button>
+          <div className="flex items-center gap-1">
+            {/* Toggle descriptions */}
+            <Tooltip content={showDescriptions ? 'Hide descriptions' : 'Show descriptions'} position="bottom">
+              <button
+                onClick={() => {
+                  setShowDescriptions(!showDescriptions);
+                  localStorage.setItem('dcim_hide_descriptions', showDescriptions ? 'true' : 'false');
+                }}
+                className={`p-1 rounded transition-colors ${
+                  showDescriptions 
+                    ? 'bg-cyan-900/50 text-cyan-400' 
+                    : 'hover:bg-gray-800 text-gray-400 hover:text-white'
+                }`}
+                title={showDescriptions ? 'Hide descriptions' : 'Show descriptions'}
+              >
+                <HelpCircle className="w-4 h-4" />
+              </button>
+            </Tooltip>
+            <button
+              onClick={onToggleCollapse}
+              className="p-1 hover:bg-gray-800 rounded transition-colors text-gray-400 hover:text-white"
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </button>
+          </div>
         </div>
 
         {/* Search */}
@@ -405,26 +511,26 @@ export function NavigationSidebar({
                   const isActive = activeTab === item.id;
                   const badge = getBadge(item.id);
 
-                  return (
-                    <Tooltip key={item.id} content={item.description} placement="right">
-                      <button
-                        onClick={() => onTabChange(item.id)}
-                        className={`w-full px-4 py-2 flex items-center justify-between hover:bg-gray-800/70 transition-all ${
-                          isActive
-                            ? `bg-${item.color}-900/30 border-l-2 border-${item.color}-500`
-                            : ''
-                        }`}
-                      >
-                        <div className="flex items-center gap-3">
-                          <div
-                            className={`${
-                              isActive ? `text-${item.color}-400` : 'text-gray-500'
-                            }`}
-                          >
-                            {item.icon}
-                          </div>
+                  const buttonContent = (
+                    <button
+                      onClick={() => onTabChange(item.id)}
+                      className={`w-full px-4 ${showDescriptions ? 'py-2.5' : 'py-2'} flex items-start justify-between hover:bg-gray-800/70 transition-all text-left ${
+                        isActive
+                          ? `bg-${item.color}-900/30 border-l-2 border-${item.color}-500`
+                          : ''
+                      }`}
+                    >
+                      <div className="flex items-start gap-3 flex-1 min-w-0">
+                        <div
+                          className={`mt-0.5 flex-shrink-0 ${
+                            isActive ? `text-${item.color}-400` : 'text-gray-500'
+                          }`}
+                        >
+                          {item.icon}
+                        </div>
+                        <div className="flex-1 min-w-0">
                           <span
-                            className={`text-sm ${
+                            className={`text-sm block ${
                               isActive
                                 ? `text-${item.color}-300 font-semibold`
                                 : 'text-gray-400'
@@ -432,13 +538,28 @@ export function NavigationSidebar({
                           >
                             {item.label}
                           </span>
+                          {/* Inline description when enabled */}
+                          {showDescriptions && (
+                            <span className="text-xs text-gray-500 block mt-0.5 leading-relaxed line-clamp-2">
+                              {item.description}
+                            </span>
+                          )}
                         </div>
-                        {badge !== undefined && badge > 0 && (
-                          <div className="px-1.5 py-0.5 bg-red-600 text-white text-xs font-bold rounded">
-                            {badge > 99 ? '99+' : badge}
-                          </div>
-                        )}
-                      </button>
+                      </div>
+                      {badge !== undefined && badge > 0 && (
+                        <div className="px-1.5 py-0.5 bg-red-600 text-white text-xs font-bold rounded flex-shrink-0 ml-2">
+                          {badge > 99 ? '99+' : badge}
+                        </div>
+                      )}
+                    </button>
+                  );
+
+                  // Only wrap in tooltip if descriptions are hidden
+                  return showDescriptions ? (
+                    <div key={item.id}>{buttonContent}</div>
+                  ) : (
+                    <Tooltip key={item.id} content={item.description} position="right">
+                      {buttonContent}
                     </Tooltip>
                   );
                 })}

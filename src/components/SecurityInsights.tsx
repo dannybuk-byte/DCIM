@@ -35,7 +35,7 @@ export const SecurityInsights: React.FC<SecurityInsightsProps> = React.memo(({ f
         const cloud = await detectCloudProvider(facilityIP);
         
         // Verify company
-        const verification = await verifyCompany(facility.operator || facility.provider);
+        const verification = await verifyCompany(facility.operator || 'Unknown');
 
         if (isMounted) {
           setCloudProvider(cloud);

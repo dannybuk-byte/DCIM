@@ -114,6 +114,7 @@ export function POCTab() {
     try {
       // Test 1: Load time
       const loadStart = performance.now();
+      // @ts-ignore - @kuzu/kuzu-wasm is an optional dependency
       const kuzu_wasm = await import('@kuzu/kuzu-wasm');
       const loadDuration = performance.now() - loadStart;
       
@@ -219,9 +220,10 @@ export function POCTab() {
         details: `Returned ${result.getNumTuples()} rows`
       });
 
-      // Test 6: Memory usage (approximate)
-      if (performance.memory) {
-        const memoryMB = (performance.memory.usedJSHeapSize / 1024 / 1024).toFixed(1);
+      // Test 6: Memory usage (approximate) - Chrome-only API
+      const perfWithMemory = performance as Performance & { memory?: { usedJSHeapSize: number } };
+      if (perfWithMemory.memory) {
+        const memoryMB = (perfWithMemory.memory.usedJSHeapSize / 1024 / 1024).toFixed(1);
         updateMetric(techIndex, 5, {
           status: parseFloat(memoryMB) < 200 ? 'success' : parseFloat(memoryMB) < 500 ? 'warning' : 'error',
           value: `${memoryMB}MB`,

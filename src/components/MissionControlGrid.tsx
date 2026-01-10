@@ -281,7 +281,7 @@ export const MissionControlGrid: React.FC = () => {
   }, [savedPresets, savePresets]);
 
   return (
-    <div className="h-screen w-full bg-[#0a0e17] text-[#e8eef6] flex flex-col overflow-hidden">
+    <div className="h-screen w-full bg-[#0a0e17] text-[#e8eef6] flex flex-col overflow-auto">
       {/* TEMPORARY BANNER - CONFIRM NEW ARCHITECTURE IS LOADING */}
       <div style={{
         background: 'linear-gradient(90deg, #00d2d3, #00ff88)',
@@ -490,7 +490,7 @@ export const MissionControlGrid: React.FC = () => {
       </div>
 
       {/* Main Content Grid */}
-      <div className="flex-1 overflow-hidden">
+      <div className="flex-1 overflow-auto min-h-0">
         {layoutMode === 'single' && (
           <div className="w-full h-full p-4 overflow-auto">
             <DenseDataView 

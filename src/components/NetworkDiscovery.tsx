@@ -39,11 +39,61 @@ export const NetworkDiscovery: React.FC<NetworkDiscoveryProps> = React.memo(({
 
     const runDiscovery = async () => {
       try {
-        // Construct domain from facility info if not provided
-        const targetDomain = domain || 
-          facility.name.toLowerCase()
-            .replace(/[^a-z0-9]+/g, '-')
-            .replace(/^-|-$/g, '') + '.com';
+        // Map operators to their actual domains for DNS lookup
+        const operatorDomains: Record<string, string> = {
+          'amazon': 'aws.amazon.com',
+          'amazon web services': 'aws.amazon.com',
+          'aws': 'aws.amazon.com',
+          'google': 'cloud.google.com',
+          'alphabet': 'cloud.google.com',
+          'microsoft': 'azure.microsoft.com',
+          'azure': 'azure.microsoft.com',
+          'meta': 'datacenters.fb.com',
+          'facebook': 'datacenters.fb.com',
+          'apple': 'apple.com',
+          'oracle': 'cloud.oracle.com',
+          'ibm': 'ibm.com',
+          'equinix': 'equinix.com',
+          'digital realty': 'digitalrealty.com',
+          'cyrusone': 'cyrusone.com',
+          'coresite': 'coresite.com',
+          'qts': 'qtsdatacenters.com',
+          'vantage': 'vantage-dc.com',
+          'switch': 'switch.com',
+          'flexential': 'flexential.com',
+          'edgeconnex': 'edgeconnex.com',
+          'ntt': 'ntt.com',
+          'lumen': 'lumen.com',
+          'centurylink': 'lumen.com',
+        };
+        
+        // Find operator domain from facility info
+        const operatorLower = (facility.operator || '').toLowerCase();
+        let targetDomain = domain;
+        
+        if (!targetDomain) {
+          // Try to match operator to known domain
+          for (const [key, domainValue] of Object.entries(operatorDomains)) {
+            if (operatorLower.includes(key)) {
+              targetDomain = domainValue;
+              break;
+            }
+          }
+          
+          // Fallback: construct from operator name
+          if (!targetDomain && facility.operator) {
+            targetDomain = facility.operator.toLowerCase()
+              .replace(/[^a-z0-9]+/g, '')
+              .slice(0, 30) + '.com';
+          }
+          
+          // Last resort: facility name (usually won't work)
+          if (!targetDomain) {
+            targetDomain = facility.name.toLowerCase()
+              .replace(/[^a-z0-9]+/g, '-')
+              .replace(/^-|-$/g, '') + '.com';
+          }
+        }
 
         // Run DNS reconnaissance
         const dns = await getFacilityDNSInfo(targetDomain);
