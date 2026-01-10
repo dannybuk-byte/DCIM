@@ -9,6 +9,10 @@
  */
 
 import { db } from '../db/database';
+import { rpkiValidator } from './rpkiValidation';
+import type { BGPPrefixBaselineRecord } from '../db/database';
+import { apiUrl } from '../config/apiBase';
+import { telemetryBus } from './telemetryBus';
 
 // ============================================================================
 // TYPES
@@ -44,6 +48,15 @@ export interface BGPAnomaly {
   significance: 'low' | 'medium' | 'high' | 'critical';
   description: string;
   businessInference: string;
+  // Accuracy hardening (best-effort, async):
+  rpkiState?: 'valid' | 'invalid' | 'not_found' | 'unsupported' | 'error';
+  rpkiReason?: string;
+  peerCount?: number;
+  warmupSuppressed?: boolean;
+  corroborationStatus?: 'confirmed' | 'pending' | 'unconfirmed' | 'error';
+  corroborationSources?: string[];
+  corroborationDetails?: unknown;
+  corroborationCheckedAt?: number;
 }
 
 export interface BGPStats {
@@ -115,6 +128,13 @@ class BGPMonitoringService {
   private knownPrefixes: Set<string> = new Set();
   private prefixPaths: Map<string, number[]> = new Map();
   private prefixOrigins: Map<string, string> = new Map();
+  private baselineLoaded = false;
+  private warmupUntil = 0;
+  private warmupWindowMs = 12 * 60 * 1000;
+  private minPeersForAlert = 5;
+  private observationWindowMs = 2 * 60 * 1000;
+  private anomalyObservations = new Map<string, { peers: Set<string>; firstSeen: number }>();
+  private routeViewsCorroborationEnabled = true;
   private reconnectTimer: ReturnType<typeof setTimeout> | null = null;
   private pingInterval: ReturnType<typeof setInterval> | null = null;
   private maxReconnectAttempts = 5;
@@ -151,17 +171,23 @@ class BGPMonitoringService {
         this.ws = new WebSocket(RIPE_WS_URL);
 
         this.ws.onopen = () => {
-          console.log('BGP: Connected to RIPE RIS Live');
-          this.state.isConnected = true;
-          this.state.connectionAttempts = 0;
-          
-          // Subscribe to updates
-          this.subscribe();
-          
-          // Start keepalive ping
-          this.startPing();
-          
-          resolve();
+          (async () => {
+            console.log('BGP: Connected to RIPE RIS Live');
+            this.state.isConnected = true;
+            this.state.connectionAttempts = 0;
+
+            // Warmup + baseline load to reduce cold-start false positives
+            this.warmupUntil = Date.now() + this.warmupWindowMs;
+            await this.loadBaseline();
+
+            // Subscribe to updates
+            this.subscribe();
+
+            // Start keepalive ping
+            this.startPing();
+
+            resolve();
+          })().catch(reject);
         };
 
         this.ws.onmessage = (event) => {
@@ -270,12 +296,14 @@ class BGPMonitoringService {
             this.state.routeStats.announcements++;
             
             // Check for anomalies
-            this.detectAnomalies(prefix, path, originASN, message.data.timestamp);
+            this.detectAnomalies(prefix, path, originASN, message.data.timestamp, message.data.peer_asn);
             
             // Update tracking
             this.knownPrefixes.add(prefix);
             this.prefixPaths.set(prefix, [...path]);
             this.prefixOrigins.set(prefix, originASN);
+
+            void this.persistBaseline(prefix, originASN, provider || (involvedASN ? this.state.watchedASNs.get(String(involvedASN)) : undefined), path, message.data.peer_asn);
           }
         }
         this.state.routeStats.uniquePrefixes = this.knownPrefixes.size;
@@ -320,12 +348,23 @@ class BGPMonitoringService {
     prefix: string, 
     path: number[], 
     originASN: string,
-    timestamp: number
+    timestamp: number,
+    peerAsn: string
   ): void {
     const provider = this.state.watchedASNs.get(originASN) || 'Unknown';
+    const now = Date.now();
     
     // NEW PREFIX DETECTION
     if (!this.knownPrefixes.has(prefix)) {
+      // During warmup, treat as baseline-building (avoid noisy "new" alerts).
+      if (now < this.warmupUntil || !this.baselineLoaded) {
+        // Still persist baseline via caller
+        return;
+      }
+
+      const candidateKey = `new_prefix|${prefix}|${originASN}`;
+      if (!this.observePeers(candidateKey, peerAsn)) return;
+
       this.createAnomaly({
         type: 'new_prefix',
         prefix,
@@ -335,7 +374,8 @@ class BGPMonitoringService {
         currentPath: path,
         significance: 'high',
         description: `New prefix announced: ${prefix} from AS${originASN}`,
-        businessInference: `${provider} infrastructure expansion - new network segment deployed`
+        businessInference: `${provider} infrastructure expansion - new network segment deployed`,
+        peerCount: this.getPeerCount(candidateKey),
       });
       return;
     }
@@ -347,6 +387,10 @@ class BGPMonitoringService {
       
       // Unusual path length change (3+ hops)
       if (pathLengthChange >= 3) {
+        const candidateKey = `unusual_path|${prefix}|${originASN}`;
+        if (!this.observePeers(candidateKey, peerAsn)) {
+          return;
+        }
         this.createAnomaly({
           type: 'unusual_path',
           prefix,
@@ -357,7 +401,8 @@ class BGPMonitoringService {
           currentPath: path,
           significance: pathLengthChange >= 5 ? 'critical' : 'medium',
           description: `Path length changed by ${pathLengthChange} hops for ${prefix}`,
-          businessInference: 'Significant routing change - possible peering adjustment or network restructuring'
+          businessInference: 'Significant routing change - possible peering adjustment or network restructuring',
+          peerCount: this.getPeerCount(candidateKey),
         });
       }
       
@@ -365,6 +410,10 @@ class BGPMonitoringService {
       const previousOrigin = previousPath[previousPath.length - 1];
       const currentOrigin = path[path.length - 1];
       if (previousOrigin !== currentOrigin) {
+        const candidateKey = `origin_change|${prefix}|${previousOrigin}->${currentOrigin}`;
+        if (!this.observePeers(candidateKey, peerAsn)) {
+          return;
+        }
         this.createAnomaly({
           type: 'origin_change',
           prefix,
@@ -375,10 +424,31 @@ class BGPMonitoringService {
           currentPath: path,
           significance: 'critical',
           description: `Origin ASN changed from AS${previousOrigin} to AS${currentOrigin}`,
-          businessInference: 'Potential route leak or intentional origin change - investigate immediately'
+          businessInference: 'Potential route leak or intentional origin change - investigate immediately',
+          peerCount: this.getPeerCount(candidateKey),
         });
       }
     }
+  }
+
+  private observePeers(candidateKey: string, peerAsn: string): boolean {
+    const now = Date.now();
+    const existing = this.anomalyObservations.get(candidateKey);
+    if (existing && now - existing.firstSeen > this.observationWindowMs) {
+      this.anomalyObservations.delete(candidateKey);
+    }
+
+    const next = this.anomalyObservations.get(candidateKey) ?? { peers: new Set<string>(), firstSeen: now };
+    next.peers.add(String(peerAsn || ''));
+    this.anomalyObservations.set(candidateKey, next);
+
+    // Require N unique peers before alerting (reduces localized artifacts)
+    return next.peers.size >= this.minPeersForAlert;
+  }
+
+  private getPeerCount(candidateKey: string): number | undefined {
+    const entry = this.anomalyObservations.get(candidateKey);
+    return entry ? entry.peers.size : undefined;
   }
 
   /**
@@ -412,10 +482,205 @@ class BGPMonitoringService {
    */
   private async persistAnomaly(anomaly: BGPAnomaly): Promise<void> {
     try {
+      // Best-effort RPKI validation (IPv4 only for now)
+      const rpki = await rpkiValidator.validateRoute(anomaly.prefix, anomaly.asn);
+      anomaly.rpkiState = rpki.state;
+      anomaly.rpkiReason = rpki.reason;
+
+      // Second-source corroboration (best-effort) for critical origin changes
+      if (
+        this.routeViewsCorroborationEnabled &&
+        anomaly.type === 'origin_change' &&
+        anomaly.significance === 'critical'
+      ) {
+        await this.corroborateWithRouteViews(anomaly);
+      }
+
+      // Emit telemetry for Incident Command triage (append-only).
+      // This lets Incident Command apply conservative confirmation gates using verification fields.
+      const toTelemetrySeverity = (sig: BGPAnomaly['significance']) => {
+        if (sig === 'critical') return 'critical';
+        if (sig === 'high') return 'high';
+        if (sig === 'medium') return 'medium';
+        return 'low';
+      };
+
+      void telemetryBus.emit({
+        source: 'bgp',
+        type: 'bgp_anomaly',
+        severity: toTelemetrySeverity(anomaly.significance),
+        title: `BGP ${anomaly.type}`,
+        summary: `${anomaly.prefix} • AS${anomaly.asn} • ${anomaly.significance}`,
+        correlationId: `bgp:${anomaly.type}:${anomaly.prefix}:${anomaly.asn}`,
+        payload: {
+          anomalyId: anomaly.id,
+          prefix: anomaly.prefix,
+          asn: anomaly.asn,
+          provider: anomaly.provider,
+          anomalyType: anomaly.type,
+          significance: anomaly.significance,
+          rpkiState: anomaly.rpkiState,
+          rpkiReason: anomaly.rpkiReason,
+          corroborationStatus: anomaly.corroborationStatus,
+          corroborationCheckedAt: anomaly.corroborationCheckedAt,
+          peerCount: anomaly.peerCount,
+        },
+        // Dedup within a minute window for same prefix/type/asn to avoid floods
+        fingerprint: [
+          'bgp_anomaly',
+          anomaly.type,
+          anomaly.prefix,
+          anomaly.asn,
+          String(Math.floor((anomaly.timestamp || Date.now()) / 60_000)),
+        ].join('|'),
+        timestamp: anomaly.timestamp || Date.now(),
+      });
+
       await db.bgpAnomalies?.add(anomaly);
     } catch (error) {
       // Table may not exist, create it
       console.warn('BGP: Could not persist anomaly', error);
+    }
+  }
+
+  private async corroborateWithRouteViews(anomaly: BGPAnomaly): Promise<void> {
+    const checkedAt = Date.now();
+    anomaly.corroborationCheckedAt = checkedAt;
+    anomaly.corroborationSources = ['ris-live', 'routeviews'];
+
+    try {
+      const prefixEncoded = encodeURIComponent(anomaly.prefix);
+      const res = await fetch(apiUrl(`/api/routeviews/prefix/${prefixEncoded}`), { signal: AbortSignal.timeout(12_000) });
+
+      if (!res.ok) {
+        anomaly.corroborationStatus = 'error';
+        anomaly.corroborationDetails = { status: res.status };
+        void telemetryBus.emit({
+          source: 'bgp',
+          type: 'routeviews_corroboration_failed',
+          severity: 'medium',
+          title: 'RouteViews corroboration failed',
+          summary: `HTTP ${res.status} for ${anomaly.prefix}`,
+          payload: {
+            prefix: anomaly.prefix,
+            asn: anomaly.asn,
+            anomalyId: anomaly.id,
+            status: res.status,
+          },
+          fingerprint: ['routeviews_failed', anomaly.prefix, anomaly.asn, String(res.status)].join('|'),
+          timestamp: checkedAt,
+        });
+        return;
+      }
+
+      const data = (await res.json()) as unknown;
+
+      // RouteViews response is an array of route observations (observed in practice)
+      const origins = new Set<string>();
+      if (Array.isArray(data)) {
+        for (const row of data) {
+          if (!row || typeof row !== 'object') continue;
+          const r = row as Record<string, unknown>;
+          if (typeof r.origin_asn === 'number') origins.add(String(r.origin_asn));
+          if (typeof r.origin_asn === 'string') origins.add(r.origin_asn);
+        }
+      }
+
+      const suspectedOrigin = String(anomaly.asn);
+      if (origins.size === 0) {
+        anomaly.corroborationStatus = 'pending';
+      } else if (origins.has(suspectedOrigin)) {
+        anomaly.corroborationStatus = 'confirmed';
+      } else {
+        anomaly.corroborationStatus = 'unconfirmed';
+      }
+
+      anomaly.corroborationDetails = {
+        routeviewsOrigins: Array.from(origins).slice(0, 25),
+      };
+    } catch (e) {
+      anomaly.corroborationStatus = 'error';
+      anomaly.corroborationDetails = { message: e instanceof Error ? e.message : String(e) };
+      const msg = e instanceof Error ? e.message : String(e);
+      void telemetryBus.emit({
+        source: 'bgp',
+        type: 'routeviews_corroboration_failed',
+        severity: 'medium',
+        title: 'RouteViews corroboration failed',
+        summary: msg,
+        payload: {
+          prefix: anomaly.prefix,
+          asn: anomaly.asn,
+          anomalyId: anomaly.id,
+          message: msg,
+        },
+        fingerprint: ['routeviews_failed', anomaly.prefix, anomaly.asn, msg].join('|'),
+        timestamp: checkedAt,
+      });
+    }
+  }
+
+  private async loadBaseline(): Promise<void> {
+    try {
+      const watched = Array.from(this.state.watchedASNs.keys());
+      // Load baseline per watched origin ASN; keep it bounded per ASN.
+      await Promise.all(
+        watched.map(async (asn) => {
+          const rows = await db.bgpPrefixBaselines
+            .where('originAsn')
+            .equals(asn)
+            .limit(50_000)
+            .toArray();
+          for (const r of rows) {
+            this.knownPrefixes.add(r.prefix);
+            this.prefixOrigins.set(r.prefix, r.originAsn);
+            if (r.lastPath) this.prefixPaths.set(r.prefix, r.lastPath);
+          }
+        }),
+      );
+      this.baselineLoaded = true;
+      console.log(`BGP: Loaded prefix baseline for ${watched.length} ASNs`);
+    } catch (e) {
+      // If baseline isn't available, warmup still protects us
+      this.baselineLoaded = false;
+    }
+  }
+
+  private async persistBaseline(
+    prefix: string,
+    originAsn: string,
+    provider: string | undefined,
+    path: number[],
+    peerAsn: string,
+  ): Promise<void> {
+    // Only persist baselines for watched origin ASNs (keeps size sane)
+    if (!this.state.watchedASNs.has(originAsn)) return;
+    const id = `${originAsn}|${prefix}`;
+    const now = Date.now();
+    const record: BGPPrefixBaselineRecord = {
+      id,
+      prefix,
+      originAsn,
+      provider,
+      firstSeen: now,
+      lastSeen: now,
+      lastPath: path,
+      lastPeerAsn: peerAsn,
+    };
+    try {
+      const existing = await db.bgpPrefixBaselines.get(id);
+      if (existing) {
+        await db.bgpPrefixBaselines.update(id, {
+          lastSeen: now,
+          lastPath: path,
+          lastPeerAsn: peerAsn,
+          provider: provider ?? existing.provider,
+        });
+      } else {
+        await db.bgpPrefixBaselines.put(record);
+      }
+    } catch {
+      // ignore; monitoring must not crash app
     }
   }
 

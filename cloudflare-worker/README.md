@@ -25,6 +25,18 @@ Enter your API key when prompted.
 wrangler deploy
 ```
 
+## Deploy from Cloudflare Dashboard (Git integration)
+
+If Cloudflare build fails with an `ERESOLVE` dependency error, it usually means Cloudflare tried to install the **root app** dependencies.
+
+To deploy **only the Worker**:
+
+1. When setting up the Worker from GitHub, set **Root directory** to:
+   - `cloudflare-worker`
+2. Leave **Build command** blank.
+
+This folder contains a minimal `package.json` + `package-lock.json` so Cloudflare’s build system does not need to touch the main app dependencies.
+
 ## Usage
 
 Once deployed, you'll get a URL like `https://claude-api-proxy.your-subdomain.workers.dev`

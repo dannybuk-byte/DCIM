@@ -1,6 +1,8 @@
 node_modules
 dist
 public/commit-hash.txt
+public/icon-192.png
+public/icon-512.png
 .mcp-memory.jsonl
 *.log
 .npm-cache/

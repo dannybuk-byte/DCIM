@@ -170,6 +170,98 @@ export interface CorrelationRecord {
   investigationPriority: string;
 }
 
+// ============================================================================
+// Telemetry Bus + Incident Command System (ICS)
+// ============================================================================
+export type TelemetrySeverity = 'low' | 'medium' | 'high' | 'critical';
+
+export type TelemetrySource =
+  | 'bgp'
+  | 'ct'
+  | 'self_healing'
+  | 'degradation'
+  | 'api'
+  | 'power'
+  | 'workforce'
+  | 'manual'
+  | 'system';
+
+export interface TelemetryEventRecord {
+  id: string; // stable ID (client-generated)
+  timestamp: number; // ms since epoch
+  source: TelemetrySource;
+  type: string; // e.g. 'anomaly', 'change', 'incident'
+  severity: TelemetrySeverity;
+  title?: string;
+  summary?: string;
+  facilityId?: number;
+  correlationId?: string;
+  fingerprint?: string; // used for dedup
+  payload?: unknown;
+}
+
+export type IncidentStatus = 'suspected' | 'confirmed' | 'mitigated' | 'dismissed';
+
+export interface IncidentRecord {
+  id: string;
+  title: string;
+  status: IncidentStatus;
+  severity: TelemetrySeverity;
+  createdAt: number;
+  updatedAt: number;
+  lastEventAt?: number;
+  summary?: string;
+  assignedTo?: string;
+  openedBy?: string;
+  tags?: string[];
+  relatedFacilityIds?: number[];
+  correlationIds?: string[];
+}
+
+export interface IncidentEventLinkRecord {
+  id?: number;
+  incidentId: string;
+  eventId: string;
+  timestamp: number;
+}
+
+// ============================================================================
+// Real-time monitoring hardening (BGP baseline + RPKI cache)
+// ============================================================================
+export interface BGPPrefixBaselineRecord {
+  /**
+   * Stable ID: `${originAsn}|${prefix}`
+   */
+  id: string;
+  prefix: string;
+  originAsn: string;
+  provider?: string;
+  firstSeen: number;
+  lastSeen: number;
+  lastPath?: number[];
+  lastPeerAsn?: string;
+}
+
+export interface RpkiVrp {
+  prefix: string;
+  maxLength: number;
+  asn: string; // e.g. "15169"
+  ta?: string; // trust anchor hint (optional)
+}
+
+export interface RpkiCacheRecord {
+  /**
+   * Primary key, e.g. "cloudflare_rpki_vrps"
+   */
+  key: string;
+  fetchedAt: number;
+  etag?: string;
+  /**
+   * Raw VRPs. This can be large; store once and build indexes in-memory.
+   */
+  vrps: RpkiVrp[];
+}
+
 // Network Security & Infrastructure Tracking (NotebookLM-inspired)
 export interface NetworkSecurity {
   id?: number;
@@ -295,6 +387,14 @@ export class ComplianceDatabase extends Dexie {
     usageCount: number;
     avgLatencyMs: number;
   }, string>;
+
+  // NEW v13: Telemetry Bus + Incident Command System
+  telemetryEvents!: Table<TelemetryEventRecord, string>;
+  incidents!: Table<IncidentRecord, string>;
+  incidentEventLinks!: Table<IncidentEventLinkRecord, number>;
+  // NEW v14: Real-time hardening tables
+  bgpPrefixBaselines!: Table<BGPPrefixBaselineRecord, string>;
+  rpkiCache!: Table<RpkiCacheRecord, string>;
 
   constructor() {
     super('ComplianceDatabase');
@@ -577,6 +677,111 @@ export class ComplianceDatabase extends Dexie {
       mcpTools: 'id, name, provider, version, registeredAt, lastUsedAt'
     }).upgrade(async (_tx) => {
       console.log('Database upgraded to version 12: Agent Memory, Signal Correlation, MCP Tools added (full TWIML implementation).');
+    });
+
+    // Version 13: Telemetry Bus + Incident Command System (append-only event sourcing)
+    this.version(13).stores({
+      facilities: '++id, name, type, operator, country, state, city, complianceStatus, subsidyGap, lastAuditDate',
+      dataProvenance: '++id, dataPointId, facilityId, metricName, [facilityId+metricName]',
+      communityContext: 'countyFips',
+      subsidyAgreements: '++id, facilityId',
+      localSignatures: '++id, facilityId',
+      localOrganizations: '++id, countyFips, type',
+      knowledgeGaps: '++id, facilityId, [facilityId+status]',
+      engagementTracking: '++id, facilityId',
+      settings: 'key',
+      networkSecurity: 'facilityId',
+      sources: '++id, type, domain, dateAdded, [type+domain]',
+      citations: '++id, dataType, facilityId, sourceId, [dataType+facilityId]',
+      researchNotes: '++id, facilityId, noteType, createdAt, [facilityId+noteType]',
+      searchHistory: '++id, query, context, createdAt',
+      bgpAnomalies: 'id, asn, detectedAt, severity, category',
+      ctAlerts: 'id, domain, detectedAt, alertType, severity, [domain+alertType]',
+      curiosityQuestions: '++id, facilityId, category, status, generatedAt',
+      predictions: '++id, facilityId, predictionType, status, generatedAt, resolvedAt',
+      learnedPatterns: 'id, patternType, confidence, lastUpdated',
+      correlations: 'id, signalTypes, confidence, detectedAt, status',
+      sdnCache: 'id, cachedAt',
+      sanctionsRiskScores: 'facilityId, score, calculatedAt',
+      sanctionsReports: '++id, facilityId, status, createdAt',
+      bgpSanctionsAlerts: '++id, asn, alertType, detectedAt',
+      communityBenefitsAgreements: 'id, company, state, status',
+      bills: 'id, state, status, category, introducedDate',
+      unionPresence: 'facilityId, [location.state], [operationsUnion.status]',
+      coalitionPartners: 'id, type, engagementStatus, *focusAreas',
+      sharedWatchlists: 'id, createdBy, accessLevel',
+      campaigns: 'id, leadOrganization, status, targetCompany',
+      evidenceRecords: 'id, sourceIdentifier, facilityId, captureTimestamp, dataHash',
+      evidenceBlobs: 'id, storedAt',
+      knowledgeTriples: 'id, subject, predicate, object, confidence, timestamp',
+      knowledgeEntities: 'uri, type, label, createdAt, updatedAt',
+      agentStates: 'id, type, status, lastHeartbeat',
+      agentTasks: 'id, type, priority, status, assignedTo, startedAt',
+      agentApprovals: 'id, agentId, action, status, timestamp, expiresAt',
+      triangulationResults: 'id, claimSubject, verified, overallConfidence, timestamp',
+      agentMemories: '++id, agentId, agentType, memoryType, confidence, createdAt, [agentId+memoryType], *tags',
+      signalCorrelations: '++id, correlationId, pattern, confidence, detectedAt, *facilityIds',
+      mcpTools: 'id, name, provider, version, registeredAt, lastUsedAt',
+      telemetryEvents:
+        'id, timestamp, source, type, severity, facilityId, correlationId, fingerprint, [facilityId+timestamp], [source+timestamp], [correlationId+timestamp]',
+      incidents: 'id, status, severity, createdAt, updatedAt, lastEventAt, *tags',
+      incidentEventLinks: '++id, incidentId, eventId, timestamp, [incidentId+timestamp], [eventId]'
+    }).upgrade(async (_tx) => {
+      console.log('Database upgraded to version 13: Telemetry Bus + Incident Command System added.');
+    });
+
+    // Version 14: Real-time monitoring hardening (BGP baselines + RPKI cache)
+    this.version(14).stores({
+      facilities: '++id, name, type, operator, country, state, city, complianceStatus, subsidyGap, lastAuditDate',
+      dataProvenance: '++id, dataPointId, facilityId, metricName, [facilityId+metricName]',
+      communityContext: 'countyFips',
+      subsidyAgreements: '++id, facilityId',
+      localSignatures: '++id, facilityId',
+      localOrganizations: '++id, countyFips, type',
+      knowledgeGaps: '++id, facilityId, [facilityId+status]',
+      engagementTracking: '++id, facilityId',
+      settings: 'key',
+      networkSecurity: 'facilityId',
+      sources: '++id, type, domain, dateAdded, [type+domain]',
+      citations: '++id, dataType, facilityId, sourceId, [dataType+facilityId]',
+      researchNotes: '++id, facilityId, noteType, createdAt, [facilityId+noteType]',
+      searchHistory: '++id, query, context, createdAt',
+      bgpAnomalies: 'id, asn, detectedAt, severity, category',
+      ctAlerts: 'id, domain, detectedAt, alertType, severity, [domain+alertType]',
+      curiosityQuestions: '++id, facilityId, category, status, generatedAt',
+      predictions: '++id, facilityId, predictionType, status, generatedAt, resolvedAt',
+      learnedPatterns: 'id, patternType, confidence, lastUpdated',
+      correlations: 'id, signalTypes, confidence, detectedAt, status',
+      sdnCache: 'id, cachedAt',
+      sanctionsRiskScores: 'facilityId, score, calculatedAt',
+      sanctionsReports: '++id, facilityId, status, createdAt',
+      bgpSanctionsAlerts: '++id, asn, alertType, detectedAt',
+      communityBenefitsAgreements: 'id, company, state, status',
+      bills: 'id, state, status, category, introducedDate',
+      unionPresence: 'facilityId, [location.state], [operationsUnion.status]',
+      coalitionPartners: 'id, type, engagementStatus, *focusAreas',
+      sharedWatchlists: 'id, createdBy, accessLevel',
+      campaigns: 'id, leadOrganization, status, targetCompany',
+      evidenceRecords: 'id, sourceIdentifier, facilityId, captureTimestamp, dataHash',
+      evidenceBlobs: 'id, storedAt',
+      knowledgeTriples: 'id, subject, predicate, object, confidence, timestamp',
+      knowledgeEntities: 'uri, type, label, createdAt, updatedAt',
+      agentStates: 'id, type, status, lastHeartbeat',
+      agentTasks: 'id, type, priority, status, assignedTo, startedAt',
+      agentApprovals: 'id, agentId, action, status, timestamp, expiresAt',
+      triangulationResults: 'id, claimSubject, verified, overallConfidence, timestamp',
+      agentMemories: '++id, agentId, agentType, memoryType, confidence, createdAt, [agentId+memoryType], *tags',
+      signalCorrelations: '++id, correlationId, pattern, confidence, detectedAt, *facilityIds',
+      mcpTools: 'id, name, provider, version, registeredAt, lastUsedAt',
+      telemetryEvents:
+        'id, timestamp, source, type, severity, facilityId, correlationId, fingerprint, [facilityId+timestamp], [source+timestamp], [correlationId+timestamp]',
+      incidents: 'id, status, severity, createdAt, updatedAt, lastEventAt, *tags',
+      incidentEventLinks: '++id, incidentId, eventId, timestamp, [incidentId+timestamp], [eventId]',
+      // NEW v14
+      bgpPrefixBaselines: 'id, originAsn, prefix, lastSeen, [originAsn+lastSeen]',
+      rpkiCache: 'key, fetchedAt'
+    }).upgrade(async (_tx) => {
+      console.log('Database upgraded to version 14: BGP baseline + RPKI cache added.');
     });
   }
 }

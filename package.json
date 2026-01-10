@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "prebuild": "bash generate-build-info.sh",
+    "predev": "bash ./scripts/predev.sh && node ./scripts/generatePwaIcons.cjs",
+    "prebuild": "bash generate-build-info.sh && node ./scripts/generatePwaIcons.cjs",
     "build": "vite build",
     "preview": "vite preview",
     "test": "vitest",
@@ -53,6 +54,7 @@
     "zod": "^4.3.4"
   },
   "devDependencies": {
+    "@testing-library/dom": "^10.4.1",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.1",
     "@types/react": "^18.2.43",
@@ -61,6 +63,7 @@
     "@vitejs/plugin-react": "^4.2.1",
     "autoprefixer": "^10.4.16",
     "jsdom": "^27.4.0",
+    "pngjs": "^7.0.0",
     "postcss": "^8.4.32",
     "tailwindcss": "^3.4.0",
     "typescript": "^5.3.3",

@@ -21,6 +21,8 @@
 const RATE_LIMIT = {
   CLAUDE_API: { requests: 20, window: 60 }, // 20 req/min
   WEBHOOK: { requests: 10, window: 60 },     // 10 req/min
+  ROUTEVIEWS: { requests: 60, window: 60 },  // 60 req/min (per IP)
+  EIA: { requests: 60, window: 60 },         // 60 req/min (per IP)
 };
 
 async function checkRateLimit(env, key, limit) {
@@ -69,6 +71,33 @@ function corsResponse(body, status = 200, headers = {}) {
 
 function handleOptions() {
   return new Response(null, { headers: CORS_HEADERS });
+}
+
+// ============================================================================
+// CACHE HELPERS (Cache API, no KV required)
+// ============================================================================
+
+async function getCachedJson(env, cacheKeyUrl) {
+  void env;
+  const cache = caches.default;
+  const cached = await cache.match(cacheKeyUrl.toString());
+  if (!cached) return null;
+  try {
+    return await cached.json();
+  } catch {
+    return null;
+  }
+}
+
+async function putCachedJson(env, cacheKeyUrl, json, ttlSeconds) {
+  void env;
+  const cache = caches.default;
+  const res = corsResponse(json, 200, {
+    'Cache-Control': `public, max-age=${ttlSeconds}`,
+    'CF-Cache-Status': 'MISS',
+  });
+  await cache.put(cacheKeyUrl.toString(), res.clone());
+  return res;
 }
 
 // ============================================================================
@@ -296,6 +325,124 @@ async function handlePeeringDbProxy(request, path) {
 }
 
 /**
+ * RouteViews API Proxy (to avoid CORS + stabilize short caching)
+ * GET /api/routeviews/prefix/:prefix
+ *
+ * Note: the upstream API does not consistently include Access-Control-Allow-Origin.
+ * This proxy normalizes it and adds short caching to reduce load.
+ */
+async function handleRouteViewsProxy(request, env, path) {
+  const clientIP = request.headers.get('CF-Connecting-IP') || 'unknown';
+  const rateCheck = await checkRateLimit(env, `routeviews:${clientIP}`, RATE_LIMIT.ROUTEVIEWS);
+  if (!rateCheck.allowed) return corsResponse({ error: 'Rate limit exceeded' }, 429);
+
+  const raw = path.replace('/api/routeviews/prefix/', '');
+  const decoded = decodeURIComponent(raw || '');
+  const prefix = decoded.trim();
+
+  // Minimal validation: allow IPv4/IPv6 CIDR-ish strings only
+  if (!/^[0-9a-fA-F:.]+\/\d{1,3}$/.test(prefix)) {
+    return corsResponse({ error: 'Invalid prefix format' }, 400);
+  }
+
+  const cacheKeyUrl = new URL(request.url);
+  cacheKeyUrl.pathname = '/__cache/routeviews_prefix';
+  cacheKeyUrl.search = `?prefix=${encodeURIComponent(prefix)}`;
+
+  const cached = await getCachedJson(env, cacheKeyUrl);
+  if (cached) {
+    return corsResponse(cached, 200, { 'CF-Cache-Status': 'HIT' });
+  }
+
+  const upstreamUrl = `https://api.routeviews.org/prefix/${encodeURIComponent(prefix)}`;
+  try {
+    const upstream = await fetch(upstreamUrl, {
+      headers: {
+        'Accept': 'application/json',
+        'User-Agent': 'DCIM-CommandCenter/1.0',
+      },
+    });
+
+    const text = await upstream.text();
+    const json = text ? JSON.parse(text) : null;
+
+    if (!upstream.ok) {
+      return corsResponse(
+        { error: `RouteViews upstream error: ${upstream.status}`, upstream: { url: upstreamUrl } },
+        upstream.status,
+      );
+    }
+
+    // Cache 30 seconds (fits corroboration window)
+    return await putCachedJson(env, cacheKeyUrl, json, 30);
+  } catch (error) {
+    return corsResponse({ error: error.message }, 500);
+  }
+}
+
+/**
+ * EIA API Proxy (hide API key from browser)
+ * GET /api/eia/v2/* (mirrors api.eia.gov/v2/*)
+ *
+ * Requires secret:
+ * - wrangler secret put EIA_API_KEY
+ */
+async function handleEiaProxy(request, env, path) {
+  const clientIP = request.headers.get('CF-Connecting-IP') || 'unknown';
+  const rateCheck = await checkRateLimit(env, `eia:${clientIP}`, RATE_LIMIT.EIA);
+  if (!rateCheck.allowed) return corsResponse({ error: 'Rate limit exceeded' }, 429);
+
+  if (!env.EIA_API_KEY) {
+    return corsResponse({ error: 'EIA API key not configured on worker' }, 501);
+  }
+
+  const rest = path.replace('/api/eia/', '');
+  if (!rest.startsWith('v2/')) {
+    return corsResponse({ error: 'Invalid EIA path (expected /api/eia/v2/...)' }, 400);
+  }
+
+  const url = new URL(request.url);
+  // Strip any client-provided api_key and replace with server secret.
+  url.searchParams.delete('api_key');
+
+  const upstream = new URL(`https://api.eia.gov/${rest}`);
+  url.searchParams.forEach((value, key) => upstream.searchParams.append(key, value));
+  upstream.searchParams.set('api_key', env.EIA_API_KEY);
+
+  const cacheKeyUrl = new URL(request.url);
+  cacheKeyUrl.pathname = '/__cache/eia';
+  cacheKeyUrl.search = `?u=${encodeURIComponent(upstream.pathname + '?' + upstream.searchParams.toString())}`;
+
+  const cached = await getCachedJson(env, cacheKeyUrl);
+  if (cached) {
+    return corsResponse(cached, 200, { 'CF-Cache-Status': 'HIT' });
+  }
+
+  try {
+    const res = await fetch(upstream.toString(), {
+      headers: {
+        'Accept': 'application/json',
+        'User-Agent': 'DCIM-CommandCenter/1.0',
+      },
+    });
+    const text = await res.text();
+    const json = text ? JSON.parse(text) : null;
+
+    if (!res.ok) {
+      return corsResponse(
+        { error: `EIA upstream error: ${res.status}`, upstream: { path: upstream.pathname } },
+        res.status,
+      );
+    }
+
+    // Cache 60 seconds (safe default for hourly feeds + reduces key abuse)
+    return await putCachedJson(env, cacheKeyUrl, json, 60);
+  } catch (error) {
+    return corsResponse({ error: error.message }, 500);
+  }
+}
+
+/**
  * USASpending API Proxy (to avoid CORS)
  * POST /api/usaspending/*
  */
@@ -472,6 +619,16 @@ export default {
       // USASpending proxy
       if (path.startsWith('/api/usaspending/') && request.method === 'POST') {
         return handleUsaSpendingProxy(request, path);
+      }
+
+      // RouteViews proxy (prefix corroboration)
+      if (path.startsWith('/api/routeviews/prefix/') && request.method === 'GET') {
+        return handleRouteViewsProxy(request, env, path);
+      }
+
+      // EIA proxy (hide API key)
+      if (path.startsWith('/api/eia/') && request.method === 'GET') {
+        return handleEiaProxy(request, env, path);
       }
 
       // 404 for unknown routes

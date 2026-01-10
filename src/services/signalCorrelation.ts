@@ -15,6 +15,10 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { db } from '../db/database';
+import { telemetryBus } from './telemetryBus';
+import type { TelemetrySeverity, TelemetrySource } from '../db/database';
+import { defaultSourceAssessment } from './sourceConfidence';
+import { applyTemporalDecay, defaultDecayForSignalType } from './temporalDecay';
 
 // ============================================================================
 // TYPES
@@ -242,6 +246,51 @@ class SignalCorrelationEngine {
     }
 
     this.emit({ type: 'signal_ingested', signal: fullSignal });
+
+    // Telemetry Bus (append-only). Dedup/retention handled by telemetryBus.
+    const toTelemetrySource = (src: SignalSource): TelemetrySource => {
+      if (src === 'bgp' || src === 'ct' || src === 'power' || src === 'workforce') return src;
+      return 'system';
+    };
+
+    const toSeverity = (sig: Signal): TelemetrySeverity => {
+      const dataType = (sig.data?.type as string | undefined) ?? undefined;
+      if (sig.source === 'bgp' && dataType === 'hijack') return 'critical';
+      if (sig.type === 'alert') return sig.confidence >= 0.8 ? 'high' : 'medium';
+      if (sig.type === 'anomaly') return sig.confidence >= 0.8 ? 'high' : 'medium';
+      return 'low';
+    };
+
+    const fingerprintParts: string[] = [
+      fullSignal.source,
+      fullSignal.type,
+      String(fullSignal.facilityId ?? ''),
+      String((fullSignal.data?.asn as string | undefined) ?? ''),
+      String((fullSignal.data?.prefix as string | undefined) ?? ''),
+      String((fullSignal.data?.domain as string | undefined) ?? ''),
+      String((fullSignal.data?.type as string | undefined) ?? ''),
+    ];
+
+    void telemetryBus.emit({
+      source: toTelemetrySource(fullSignal.source),
+      type: fullSignal.type,
+      severity: toSeverity(fullSignal),
+      title: `${fullSignal.source.toUpperCase()} ${fullSignal.type}`,
+      summary: `confidence ${(fullSignal.confidence * 100).toFixed(0)}%`,
+      facilityId: fullSignal.facilityId,
+      correlationId: undefined,
+      fingerprint: fingerprintParts.filter(Boolean).join('|') || undefined,
+      payload: {
+        signal: fullSignal,
+        sourceAssessment: defaultSourceAssessment(fullSignal.source),
+        decayedConfidence: applyTemporalDecay(
+          Math.min(Math.max(fullSignal.confidence, 0), 1),
+          Math.max(0, Date.now() - fullSignal.timestamp),
+          defaultDecayForSignalType(fullSignal.type),
+        ),
+      },
+      timestamp: fullSignal.timestamp,
+    });
     
     return fullSignal;
   }

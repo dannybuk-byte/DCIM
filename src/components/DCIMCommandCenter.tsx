@@ -68,6 +68,7 @@ import { FollowYourDataTab } from './tabs/FollowYourDataTab'; // NEW: Infrastruc
 import { SanctionsMonitorTab } from './tabs/SanctionsMonitorTab'; // NEW: OFAC Sanctions Network Hygiene Enforcement
 import { SurveillanceInfrastructureTab } from './tabs/SurveillanceInfrastructureTab'; // NEW: ICE/DHS surveillance tracker
 import { SanctuaryCityTab } from './tabs/SanctuaryCityTab'; // NEW: Sanctuary City Infrastructure Accountability
+import IncidentCommandTab from './tabs/IncidentCommandTab'; // NEW: Incident Command System (ICS)
 import { ApprovalWorkflow } from './ApprovalWorkflow'; // NEW: Multi-Agent Human-in-the-Loop Approvals (TWIML-inspired)
 import { SmartSearchNav, NavProvider, QuickAccessNav } from './AntifragileNavigation'; // NEW: Antifragile Navigation System
 import { MobileBottomNav, MobileDrawer, MobileHeader } from './mobile'; // Mobile navigation components
@@ -135,6 +136,7 @@ export type CommandCenterTab =
   | 'Sanctions Monitor' // NEW: OFAC Sanctions Network Hygiene Enforcement
   | 'Subsidy Accountability' // NEW: Good Jobs First subsidy accountability tracking
   | 'Organizer Hub' // NEW: Labor organizing command center
+  | 'Incident Command' // NEW: Incident triage + timelines + evidence packaging
   | 'AI Infrastructure' // NEW: Epoch AI data center intelligence
   | 'Surveillance Infrastructure' // NEW: ICE/DHS surveillance tracker
   | 'Sanctuary City' // NEW: Sanctuary City Infrastructure Accountability
@@ -980,6 +982,7 @@ export default function DCIMCommandCenter({ onActionRequested: _onActionRequeste
     'Predictive Subsidy', // NEW: Good Jobs First-style subsidy risk prediction
     'Subsidy Accountability', // NEW: Good Jobs First accountability tracking
     'Organizer Hub', // NEW: Labor organizing command center
+    'Incident Command', // NEW: Incident triage + timelines + evidence packaging
     'Surveillance Infrastructure', // NEW: ICE/DHS surveillance tracker
     'Sanctuary City', // NEW: Sanctuary City Infrastructure Accountability
     'AI Agents', // NEW: Multi-Agent Orchestrator with Human-in-the-Loop Approvals (TWIML-inspired)
@@ -1018,6 +1021,7 @@ export default function DCIMCommandCenter({ onActionRequested: _onActionRequeste
     { id: 'Predictive Subsidy', label: 'Subsidy Intel', shortLabel: 'Sub Intel', icon: <Target className="w-4 h-4" />, group: 'Analysis & Intelligence', keywords: ['subsidy', 'good jobs first', 'tax break', 'clawback', 'risk'], description: 'Predictive subsidy risk analysis' },
     { id: 'Subsidy Accountability', label: '💰 Subsidy Accountability', shortLabel: 'Accountability', icon: <DollarSign className="w-4 h-4" />, group: 'Analysis & Intelligence', keywords: ['subsidy', 'accountability', 'jobs promised', 'jobs actual', 'good jobs first', 'transparency', 'state', 'gap'], description: 'Good Jobs First subsidy accountability - verify promises vs reality' },
     { id: 'Organizer Hub', label: '✊ Organizer Hub', shortLabel: 'Organize', icon: <Target className="w-4 h-4" />, group: 'Analysis & Intelligence', keywords: ['organize', 'union', 'labor', 'foia', 'incident', 'contractor', 'cba', 'legislative', 'coalition', 'ibew', 'corridor', 'campaign'], description: 'Labor organizing command center - FOIA, incidents, contractors, CBAs, legislation, union density, coalition coordination' },
+    { id: 'Incident Command', label: '🚨 Incident Command', shortLabel: 'Incidents', icon: <AlertTriangle className="w-4 h-4" />, group: 'Operations', keywords: ['incident', 'triage', 'timeline', 'telemetry', 'bgp', 'ct', 'evidence', 'investigation'], description: 'Triage signals into incidents, build timelines, and preserve evidence' },
     { id: 'Surveillance Infrastructure', label: '🔴 Surveillance Tracker', shortLabel: 'Surveillance', icon: <Eye className="w-4 h-4" />, group: 'Analysis & Intelligence', keywords: ['ice', 'surveillance', 'dhs', 'cbp', 'palantir', 'clearview', 'facial recognition', 'skip tracing', 'deportation', 'immigrant', 'contract', 'federal'], description: 'Track ICE/DHS surveillance infrastructure, contracts, and companies targeting immigrant communities' },
     { id: 'Sanctuary City', label: '🏛️ Sanctuary City', shortLabel: 'Sanctuary', icon: <Shield className="w-4 h-4" />, group: 'Analysis & Intelligence', keywords: ['sanctuary', 'nyc', 'mayor', 'mamdani', 'carrier hotel', 'reit', 'equinix', 'digital realty', 'franchise', 'nycida', 'enforcement', 'ice', 'data flow', 'executive order', 'regulatory', '111 8th avenue', '60 hudson', 'charter 363'], description: 'NYC ICE Data Infrastructure: REIT Exposure and Mayoral Regulatory Authority' },
     { id: 'AI Agents', label: '🤖 AI Agents', shortLabel: 'Agents', icon: <Bot className="w-4 h-4" />, group: 'Analysis & Intelligence', keywords: ['ai', 'agent', 'multi-agent', 'orchestrator', 'approval', 'human-in-the-loop', 'hitl', 'autonomous', 'evidence', 'triangulation', 'twiml'], description: 'Multi-agent orchestrator with human-in-the-loop approvals for autonomous evidence gathering' },
@@ -1343,6 +1347,14 @@ export default function DCIMCommandCenter({ onActionRequested: _onActionRequeste
         <ErrorBoundary>
           <div className="min-h-0 overflow-y-auto" style={{ height: 'calc(100vh - 140px)', maxHeight: 'calc(100vh - 140px)' }}>
             <OrganizerCommandCenter />
+          </div>
+        </ErrorBoundary>
+      )}
+
+      {activeTab === 'Incident Command' && (
+        <ErrorBoundary>
+          <div className="min-h-0 overflow-y-auto" style={{ height: 'calc(100vh - 140px)', maxHeight: 'calc(100vh - 140px)' }}>
+            <IncidentCommandTab />
           </div>
         </ErrorBoundary>
       )}

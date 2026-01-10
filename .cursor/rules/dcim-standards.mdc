@@ -1,0 +1,39 @@
+---
+description: DCIM Compliance App standards (mission + antifragility)
+globs:
+  - src/**/*.{ts,tsx}
+  - scripts/**/*
+  - public/manifest.json
+  - vite.config.ts
+alwaysApply: true
+---
+
+## Mission (do not drift)
+
+This is a **labor organizing tool**, not a corporate DCIM product.
+
+- Prefer features that help organizers **find evidence**, **explain harm**, and **win campaigns**.
+- Preserve “court-admissible” posture: avoid speculative claims in UI copy and exports.
+
+## Antifragility requirements
+
+- **No blank screens**: errors must degrade into readable fallback UI.
+- **Error boundaries** around major UI surfaces; avoid throwing in render.
+- **Circuit breakers + timeouts** on network calls (see `src/utils/circuitBreaker.ts` and related utilities).
+- **Idempotent startup**: avoid “start on import” side effects; prefer explicit init functions and cleanup.
+- **Cleanup effects**: every `setInterval`/event listener must be cleaned up on unmount.
+
+## TypeScript / React conventions
+
+- Functional components + hooks.
+- Avoid `any` — use `unknown` + type guards.
+- Prefer **named exports** for new files. (Don’t churn existing defaults unless you’re already editing them.)
+- Favor adapters over widening core types. If a component needs enrichment fields, use a separate type (e.g. `FacilityEnriched`) or a mapper.
+
+## Data model “gotchas” (common mismatches)
+
+- `operator` (not `provider`)
+- `jobsCreated` (not `jobsActual`)
+- `powerCapacityMW` (not `capacity`)
+- `complianceStatus` (not `status`)
+

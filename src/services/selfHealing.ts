@@ -12,6 +12,7 @@
  */
 
 import { db } from '../db/database';
+import { telemetryBus } from './telemetryBus';
 
 // ============================================================================
 // TYPES
@@ -75,9 +76,14 @@ class SelfHealingService {
   // Pattern recognition for predictive healing
   private failurePatterns: Map<string, number[]> = new Map();
 
+  // Long task tracking for UI responsiveness (avoids deprecated APIs)
+  private longTaskCount: number = 0;
+  private longTaskObserver: PerformanceObserver | null = null;
+
   constructor() {
     this.initializeIndicators();
     this.initializeHealingActions();
+    this.initializeLongTaskObserver();
   }
 
   // ============================================================================
@@ -198,6 +204,29 @@ class SelfHealingService {
     });
   }
 
+  private initializeLongTaskObserver(): void {
+    if (typeof PerformanceObserver === 'undefined') return;
+    
+    const supportedTypes = PerformanceObserver.supportedEntryTypes || [];
+    if (!supportedTypes.includes('longtask')) {
+      console.info('[SelfHealing] longtask not supported');
+      return;
+    }
+
+    try {
+      this.longTaskObserver = new PerformanceObserver((list) => {
+        this.longTaskCount += list.getEntries().length;
+        setTimeout(() => {
+          this.longTaskCount = Math.max(0, this.longTaskCount - 1);
+        }, 10000);
+      });
+      // Modern API: { type: 'longtask' } NOT { entryTypes: ['longtask'] }
+      this.longTaskObserver.observe({ type: 'longtask', buffered: true });
+    } catch (error) {
+      console.warn('[SelfHealing] longtask observer failed:', error);
+    }
+  }
+
   // ============================================================================
   // PUBLIC API
   // ============================================================================
@@ -209,6 +238,8 @@ class SelfHealingService {
     if (this.monitorInterval) {
       clearInterval(this.monitorInterval);
     }
+
+    this.initializeLongTaskObserver();
 
     this.monitorInterval = setInterval(() => {
       this.runHealthCheck();
@@ -225,6 +256,10 @@ class SelfHealingService {
     if (this.monitorInterval) {
       clearInterval(this.monitorInterval);
       this.monitorInterval = undefined;
+    }
+    if (this.longTaskObserver) {
+      this.longTaskObserver.disconnect();
+      this.longTaskObserver = null;
     }
     console.log('🛑 Self-healing system stopped');
     this.emit({ type: 'stopped' });
@@ -338,6 +373,18 @@ class SelfHealingService {
 
     this.incidents.push(incident);
     this.emit({ type: 'incident_reported', incident });
+
+    // Telemetry Bus (append-only): makes incidents visible to Incident Command
+    void telemetryBus.emit({
+      source: 'self_healing',
+      type,
+      severity,
+      title: `Self-healing: ${type}`,
+      summary: description,
+      payload: incident,
+      timestamp: incident.timestamp.getTime(),
+      fingerprint: ['self_healing', type, severity, description].join('|'),
+    });
 
     // Try to auto-heal if critical
     if (severity === 'critical') {
@@ -462,9 +509,9 @@ class SelfHealingService {
   }
 
   private measureUIResponsiveness(): number {
-    // Check for long tasks
-    const longTasks = performance.getEntriesByType('longtask');
-    return longTasks.length === 0 ? 100 : Math.max(0, 100 - longTasks.length * 10);
+    // Use the observer-tracked count instead of deprecated getEntriesByType
+    // Lower count = more responsive (100 = perfect, 0 = severely degraded)
+    return this.longTaskCount === 0 ? 100 : Math.max(0, 100 - this.longTaskCount * 10);
   }
 
   private measureComponentHealth(): number {
