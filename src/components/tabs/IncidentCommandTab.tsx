@@ -3,6 +3,7 @@ import { AlertTriangle, CheckCircle2, Clock, Plus, Shield, XCircle } from 'lucid
 
 import { ErrorBoundary } from '../ErrorBoundary';
 import { VerificationStatusBadge } from '../VerificationStatusBadge';
+import { VerificationTestPanel } from '../VerificationTestPanel';
 import { db } from '../../db/database';
 import type { IncidentRecord, IncidentStatus, TelemetryEventRecord, TelemetrySeverity } from '../../db/database';
 import { useDexieLiveQuery } from '../../hooks/useDexieLiveQuery';
@@ -257,6 +258,9 @@ export const IncidentCommandTab: React.FC = () => {
                 )}
               </div>
             </div>
+
+            {/* Test Panel (dev only) */}
+            <VerificationTestPanel />
           </div>
 
           {/* Middle: Selected incident */}
