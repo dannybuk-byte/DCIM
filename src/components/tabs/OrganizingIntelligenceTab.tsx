@@ -12,7 +12,7 @@
  * - Corridor Intelligence
  */
 
-import React, { useState, useMemo, useCallback, useEffect } from 'react';
+import React, { useState, useMemo, useCallback, useEffect, lazy, Suspense } from 'react';
 import { db } from '../../db/database';
 import { Facility } from '../../types';
 import {
@@ -54,12 +54,15 @@ import {
   Settings2,
   Calendar,
   Building,
+  Loader2,
 } from 'lucide-react';
 import { ContextualNLPWidget, SectionNLPBar } from '../shared/ContextualNLPWidget';
 import { NLPAction } from '../../hooks/useSectionNLP';
 import { SectionContext } from '../../ai/sectionPrompts';
 import { HelpIcon } from '../shared/InlineHelpButton';
-import { EpochAIIntelligenceTab } from './EpochAIIntelligenceTab';
+
+// Lazy-loaded to keep bundle split effective
+const EpochAIIntelligenceTab = lazy(() => import('./EpochAIIntelligenceTab').then(m => ({ default: m.EpochAIIntelligenceTab })));
 import { AIAgentHub } from '../AIAgentHub'; // NEW: Comprehensive AI Agent Dashboard
 import {
   OrganizingTarget,
@@ -2842,7 +2845,14 @@ export const OrganizingIntelligenceTab: React.FC = () => {
             ))}
           </div>
         </div>
-        <EpochAIIntelligenceTab />
+        <Suspense fallback={
+          <div className="flex items-center justify-center p-8">
+            <Loader2 className="w-6 h-6 text-blue-500 animate-spin mr-2" />
+            <span className="text-slate-500">Loading AI Infrastructure...</span>
+          </div>
+        }>
+          <EpochAIIntelligenceTab />
+        </Suspense>
       </div>
     );
   }

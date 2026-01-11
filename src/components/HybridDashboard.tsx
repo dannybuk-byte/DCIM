@@ -12,7 +12,7 @@
  * - Maximum data density
  */
 
-import React, { useState, useEffect, useMemo, useRef, useCallback, createContext, useContext } from 'react';
+import React, { useState, useEffect, useMemo, useRef, useCallback, createContext, useContext, lazy, Suspense } from 'react';
 import {
   Building2, AlertTriangle, DollarSign, Users,
   Search, ChevronDown, ChevronRight, ChevronLeft, X,
@@ -35,7 +35,10 @@ import { useDebounce } from '../hooks/useDebounce';
 import { safeArray, safeNumber, safeCurrency } from '../utils/safeData';
 import { VirtualFacilityTable } from './VirtualFacilityTable';
 import { AntifragilityDashboard } from './AntifragilityDashboard';
-import { FollowYourDataTab } from './tabs/FollowYourDataTab';
+import { TabLoadingFallback } from './shared/TabLoadingFallback';
+
+// Lazy-loaded tab (keeps bundle split effective)
+const FollowYourDataTab = lazy(() => import('./tabs/FollowYourDataTab').then(m => ({ default: m.FollowYourDataTab })));
 import { CoalitionIntelligenceTab } from './tabs/CoalitionIntelligenceTab';
 import { OrganizingIntelligenceTab } from './tabs/OrganizingIntelligenceTab';
 import { CoalitionToolsTab } from './tabs/CoalitionToolsTab';
@@ -2725,7 +2728,9 @@ export const HybridDashboard: React.FC = () => {
                     badge: 'NEW',
                     content: (
                       <ErrorBoundary tabName="Follow Your Data">
-                        <FollowYourDataTab facilities={filtered as unknown as DBFacility[]} />
+                        <Suspense fallback={<TabLoadingFallback tabName="Follow Your Data" />}>
+                          <FollowYourDataTab facilities={filtered as unknown as DBFacility[]} />
+                        </Suspense>
                       </ErrorBoundary>
                     )
                   },

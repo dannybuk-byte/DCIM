@@ -11,7 +11,7 @@
  * Inspired by: Notion, Linear, Figma command centers
  */
 
-import React, { useState, useEffect, useMemo, useCallback, createContext, useContext } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, createContext, useContext, lazy, Suspense } from 'react';
 import {
   Building2, AlertTriangle, DollarSign, Users, Search, ChevronDown, ChevronRight,
   ChevronLeft, X, Settings, Download, Bell, Menu, Globe, TrendingUp, TrendingDown,
@@ -27,9 +27,10 @@ import { Facility as DBFacility } from '../types';
 import { ErrorBoundary } from './ErrorBoundary';
 import { useDebounce } from '../hooks/useDebounce';
 import { safeArray, safeNumber, safeCurrency } from '../utils/safeData';
+import { TabLoadingFallback } from './shared/TabLoadingFallback';
 
-// Import all tab components
-import { FollowYourDataTab } from './tabs/FollowYourDataTab';
+// Lazy-loaded tab components (keeps bundle split effective)
+const FollowYourDataTab = lazy(() => import('./tabs/FollowYourDataTab').then(m => ({ default: m.FollowYourDataTab })));
 import { CoalitionIntelligenceTab } from './tabs/CoalitionIntelligenceTab';
 import { OrganizingIntelligenceTab } from './tabs/OrganizingIntelligenceTab';
 import { CoalitionToolsTab } from './tabs/CoalitionToolsTab';
@@ -1063,7 +1064,9 @@ export const CommandCenterLayout: React.FC = () => {
         return (
           <div className="p-6 h-full overflow-auto">
             <ErrorBoundary tabName="Follow Your Data">
-              <FollowYourDataTab facilities={[]} />
+              <Suspense fallback={<TabLoadingFallback tabName="Follow Your Data" />}>
+                <FollowYourDataTab facilities={[]} />
+              </Suspense>
             </ErrorBoundary>
           </div>
         );
