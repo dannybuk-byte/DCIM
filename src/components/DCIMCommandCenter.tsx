@@ -6,7 +6,7 @@
  * Now supports Mission Control layout for maximum data density
  */
 
-import { useState, useEffect, useMemo, useCallback, startTransition, useTransition, useDeferredValue, useRef } from 'react';
+import { useState, useEffect, useMemo, useCallback, startTransition, useTransition, useDeferredValue, useRef, lazy, Suspense } from 'react';
 import { db } from '../db/database';
 import { seedDatabase } from '../db/seedData';
 import { Facility, ComplianceStats } from '../types';
@@ -33,42 +33,61 @@ import {
 } from '../hooks/useAutocompleteOptions';
 import { useNLPSearchSuggestions } from '../hooks/useNLPSearchSuggestions';
 import { recordSearch } from '../db/searchHistory';
+// Loading fallbacks for lazy-loaded tabs
+import { TabLoadingFallback, MapTabSkeleton, ChartTabSkeleton, AnalysisTabSkeleton } from './shared/TabLoadingFallback';
 // Import Mission Control Layout
 import MissionControlLayout from './MissionControlLayout';
-// Import tabs directly - lazy loading causes noticeable lag (Rule 5: Conditional rendering handles performance)
+
+// ============================================================================
+// EAGER IMPORTS - Commonly accessed first, keep in main bundle
+// ============================================================================
 import OverviewTab from './tabs/OverviewTab';
-import GeographyTab from './tabs/GeographyTab';
 import ProblemsTab from './tabs/ProblemsTab';
 import EarlyWarningTab from './tabs/EarlyWarningTab';
-import { GeographicIntelTab } from './tabs/GeographicIntelTab';
+import GuidesTab from './tabs/GuidesTab';
+import IncidentCommandTab from './tabs/IncidentCommandTab';
+import { FacilityExplorer } from './FacilityExplorer';
 import { SubsidyTrackingTab } from './tabs/SubsidyTrackingTab';
 import { WorkerSafetyTab } from './tabs/WorkerSafetyTab';
 import { OSINTToolsTab } from './tabs/OSINTToolsTab';
 import ComplianceComparisonTab from './tabs/ComplianceComparisonTab';
-import ConnectographyTab from './tabs/ConnectographyTab';
-import { FacilityExplorer } from './FacilityExplorer';
-import GuidesTab from './tabs/GuidesTab';
-import AdvancedPatternAnalysisTab from './tabs/AdvancedPatternAnalysisTab'; // REPLACED: Advanced pattern analysis (replaces DCIMAnalyticsTab)
-import { PatternLabTab } from './tabs/patternLab/PatternLabTab'; // Pattern Lab v2 (Web Worker + explainability)
-import NetworkSecurityTab from './tabs/NetworkSecurityTab'; // NotebookLM-inspired
-import { PredictiveIntelligenceTab } from './tabs/PredictiveIntelligenceTab'; // Predictive Intelligence Hub
-// import { GraphDatabasePOC } from './tabs/GraphDatabasePOC'; // POC requires @kuzu/kuzu-wasm (uninstalled)
-import { ComplianceFlowTab } from './tabs/ComplianceFlowTab'; // Intent-Based Visualization
-import { AssuranceMonitorTab } from './tabs/AssuranceMonitorTab'; // Juniper Marvis-style continuous monitoring
-import { EpochAIIntelligenceTab } from './tabs/EpochAIIntelligenceTab'; // Epoch AI data centers intelligence
-import { SubsidyAccountabilityPanel } from './panels/SubsidyAccountabilityPanel'; // Good Jobs First integration
-import { OrganizerCommandCenter } from './panels/OrganizerCommandCenter'; // Labor organizing command center
-import { IntelligenceHubTab } from './tabs/IntelligenceHubTab'; // UNIFIED: All intelligence methods combined
-import { NetworkVisualizationTab } from './tabs/NetworkVisualizationTab'; // Network visualization with tree & globe
-import { PatternIntelligenceDashboard } from './PatternIntelligenceDashboard'; // NEW: Enhanced Surveillance & Pattern Recognition
-import { DeepIntelligence } from './DeepIntelligence'; // NEW: Full API data extraction
-import { PredictiveSubsidyDashboard } from './PredictiveSubsidyDashboard'; // NEW: Predictive Subsidy Intelligence
-import { RegulatoryToolkit } from './RegulatoryToolkit'; // NEW: Municipal DCIM Intelligence Toolkit
-import { FollowYourDataTab } from './tabs/FollowYourDataTab'; // NEW: Infrastructure Discovery with CAP, NPU, ILSR
-import { SanctionsMonitorTab } from './tabs/SanctionsMonitorTab'; // NEW: OFAC Sanctions Network Hygiene Enforcement
-import { SurveillanceInfrastructureTab } from './tabs/SurveillanceInfrastructureTab'; // NEW: ICE/DHS surveillance tracker
-import { SanctuaryCityTab } from './tabs/SanctuaryCityTab'; // NEW: Sanctuary City Infrastructure Accountability
-import IncidentCommandTab from './tabs/IncidentCommandTab'; // NEW: Incident Command System (ICS)
+import { GeographicIntelTab } from './tabs/GeographicIntelTab';
+
+// ============================================================================
+// LAZY IMPORTS - Heavy dependencies (maps, charts, tensorflow)
+// Load on-demand to reduce initial bundle by ~4MB
+// ============================================================================
+
+// Map-heavy tabs (MapLibre-GL ~1.5MB)
+const GeographyTab = lazy(() => import('./tabs/GeographyTab'));
+const ConnectographyTab = lazy(() => import('./tabs/ConnectographyTab'));
+const NetworkVisualizationTab = lazy(() => import('./tabs/NetworkVisualizationTab').then(m => ({ default: m.NetworkVisualizationTab })));
+
+// Chart-heavy tabs (ECharts ~1.1MB)
+const PredictiveIntelligenceTab = lazy(() => import('./tabs/PredictiveIntelligenceTab').then(m => ({ default: m.PredictiveIntelligenceTab })));
+
+// Analysis-heavy tabs (TensorFlow ~1.5MB)
+const AdvancedPatternAnalysisTab = lazy(() => import('./tabs/AdvancedPatternAnalysisTab'));
+const PatternLabTab = lazy(() => import('./tabs/patternLab/PatternLabTab').then(m => ({ default: m.PatternLabTab })));
+const IntelligenceHubTab = lazy(() => import('./tabs/IntelligenceHubTab').then(m => ({ default: m.IntelligenceHubTab })));
+const PatternIntelligenceDashboard = lazy(() => import('./PatternIntelligenceDashboard').then(m => ({ default: m.PatternIntelligenceDashboard })));
+const DeepIntelligence = lazy(() => import('./DeepIntelligence').then(m => ({ default: m.DeepIntelligence })));
+const PredictiveSubsidyDashboard = lazy(() => import('./PredictiveSubsidyDashboard').then(m => ({ default: m.PredictiveSubsidyDashboard })));
+
+// Other lazy-loaded tabs (medium weight)
+const NetworkSecurityTab = lazy(() => import('./tabs/NetworkSecurityTab'));
+const ComplianceFlowTab = lazy(() => import('./tabs/ComplianceFlowTab').then(m => ({ default: m.ComplianceFlowTab })));
+const AssuranceMonitorTab = lazy(() => import('./tabs/AssuranceMonitorTab').then(m => ({ default: m.AssuranceMonitorTab })));
+const EpochAIIntelligenceTab = lazy(() => import('./tabs/EpochAIIntelligenceTab').then(m => ({ default: m.EpochAIIntelligenceTab })));
+const FollowYourDataTab = lazy(() => import('./tabs/FollowYourDataTab').then(m => ({ default: m.FollowYourDataTab })));
+const SanctionsMonitorTab = lazy(() => import('./tabs/SanctionsMonitorTab').then(m => ({ default: m.SanctionsMonitorTab })));
+const SurveillanceInfrastructureTab = lazy(() => import('./tabs/SurveillanceInfrastructureTab').then(m => ({ default: m.SurveillanceInfrastructureTab })));
+const SanctuaryCityTab = lazy(() => import('./tabs/SanctuaryCityTab').then(m => ({ default: m.SanctuaryCityTab })));
+const RegulatoryToolkit = lazy(() => import('./RegulatoryToolkit').then(m => ({ default: m.RegulatoryToolkit })));
+
+// Eager imports for panels (lightweight)
+import { SubsidyAccountabilityPanel } from './panels/SubsidyAccountabilityPanel';
+import { OrganizerCommandCenter } from './panels/OrganizerCommandCenter';
 import { ApprovalWorkflow } from './ApprovalWorkflow'; // NEW: Multi-Agent Human-in-the-Loop Approvals (TWIML-inspired)
 import { SmartSearchNav, NavProvider, QuickAccessNav } from './AntifragileNavigation'; // NEW: Antifragile Navigation System
 import { MobileBottomNav, MobileDrawer, MobileHeader } from './mobile'; // Mobile navigation components
@@ -1198,7 +1217,9 @@ export default function DCIMCommandCenter({ onActionRequested: _onActionRequeste
 
       {activeTab === 'Geography' && (
         <ErrorBoundary>
-          <GeographyTab facilities={deferredFacilities} />
+          <Suspense fallback={<MapTabSkeleton />}>
+            <GeographyTab facilities={deferredFacilities} />
+          </Suspense>
         </ErrorBoundary>
       )}
 
@@ -1255,27 +1276,35 @@ export default function DCIMCommandCenter({ onActionRequested: _onActionRequeste
 
       {activeTab === 'Pattern Analysis' && (
         <ErrorBoundary>
-          <PatternLabTab facilities={deferredFacilities} />
+          <Suspense fallback={<AnalysisTabSkeleton />}>
+            <PatternLabTab facilities={deferredFacilities} />
+          </Suspense>
         </ErrorBoundary>
       )}
 
       {/* NEW: Pattern Lab (dedicated tab with Web Worker + explainability) */}
       {activeTab === 'Pattern Lab' && (
         <ErrorBoundary>
-          <PatternLabTab facilities={deferredFacilities} />
+          <Suspense fallback={<AnalysisTabSkeleton />}>
+            <PatternLabTab facilities={deferredFacilities} />
+          </Suspense>
         </ErrorBoundary>
       )}
 
       {/* NEW: Predictive Intelligence Hub */}
       {activeTab === 'Predictive Intel' && (
         <ErrorBoundary>
-          <PredictiveIntelligenceTab facilities={deferredFacilities} />
+          <Suspense fallback={<ChartTabSkeleton />}>
+            <PredictiveIntelligenceTab facilities={deferredFacilities} />
+          </Suspense>
         </ErrorBoundary>
       )}
 
       {activeTab === 'Network Security' && (
         <ErrorBoundary>
-          <NetworkSecurityTab facilities={deferredFacilities} />
+          <Suspense fallback={<AnalysisTabSkeleton />}>
+            <NetworkSecurityTab facilities={deferredFacilities} />
+          </Suspense>
         </ErrorBoundary>
       )}
 
@@ -1299,39 +1328,49 @@ export default function DCIMCommandCenter({ onActionRequested: _onActionRequeste
 
       {activeTab === 'Connectography' && (
         <ErrorBoundary>
-          <ConnectographyTab facilities={deferredFacilities} />
+          <Suspense fallback={<MapTabSkeleton />}>
+            <ConnectographyTab facilities={deferredFacilities} />
+          </Suspense>
         </ErrorBoundary>
       )}
 
       {activeTab === 'Intelligence' && (
         <ErrorBoundary>
-          <IntelligenceHubTab facilities={deferredFacilities} />
+          <Suspense fallback={<AnalysisTabSkeleton />}>
+            <IntelligenceHubTab facilities={deferredFacilities} />
+          </Suspense>
         </ErrorBoundary>
       )}
 
       {/* NEW: Pattern Intelligence - Enhanced Surveillance & Pattern Recognition */}
       {activeTab === 'Pattern Intelligence' && (
         <ErrorBoundary>
-          <div className="p-6 overflow-y-auto min-h-0 bg-slate-50" style={{ height: 'calc(100vh - 140px)', maxHeight: 'calc(100vh - 140px)' }}>
-            <PatternIntelligenceDashboard />
-          </div>
+          <Suspense fallback={<AnalysisTabSkeleton />}>
+            <div className="p-6 overflow-y-auto min-h-0 bg-slate-50" style={{ height: 'calc(100vh - 140px)', maxHeight: 'calc(100vh - 140px)' }}>
+              <PatternIntelligenceDashboard />
+            </div>
+          </Suspense>
         </ErrorBoundary>
       )}
 
       {/* NEW: Deep Intelligence - Full API Data Extraction */}
       {activeTab === 'Deep Intelligence' && (
         <ErrorBoundary>
-          <div className="p-6 overflow-y-auto min-h-0 bg-slate-50" style={{ height: 'calc(100vh - 140px)', maxHeight: 'calc(100vh - 140px)' }}>
-            <DeepIntelligence />
-          </div>
+          <Suspense fallback={<AnalysisTabSkeleton />}>
+            <div className="p-6 overflow-y-auto min-h-0 bg-slate-50" style={{ height: 'calc(100vh - 140px)', maxHeight: 'calc(100vh - 140px)' }}>
+              <DeepIntelligence />
+            </div>
+          </Suspense>
         </ErrorBoundary>
       )}
 
       {activeTab === 'Predictive Subsidy' && (
         <ErrorBoundary>
-          <div className="p-6 overflow-y-auto min-h-0 bg-slate-50" style={{ height: 'calc(100vh - 140px)', maxHeight: 'calc(100vh - 140px)' }}>
-            <PredictiveSubsidyDashboard />
-          </div>
+          <Suspense fallback={<ChartTabSkeleton />}>
+            <div className="p-6 overflow-y-auto min-h-0 bg-slate-50" style={{ height: 'calc(100vh - 140px)', maxHeight: 'calc(100vh - 140px)' }}>
+              <PredictiveSubsidyDashboard />
+            </div>
+          </Suspense>
         </ErrorBoundary>
       )}
 
@@ -1361,17 +1400,21 @@ export default function DCIMCommandCenter({ onActionRequested: _onActionRequeste
 
       {activeTab === 'Surveillance Infrastructure' && (
         <ErrorBoundary>
-          <div className="min-h-0 overflow-y-auto" style={{ height: 'calc(100vh - 140px)', maxHeight: 'calc(100vh - 140px)' }}>
-            <SurveillanceInfrastructureTab />
-          </div>
+          <Suspense fallback={<TabLoadingFallback tabName="Surveillance Infrastructure" />}>
+            <div className="min-h-0 overflow-y-auto" style={{ height: 'calc(100vh - 140px)', maxHeight: 'calc(100vh - 140px)' }}>
+              <SurveillanceInfrastructureTab />
+            </div>
+          </Suspense>
         </ErrorBoundary>
       )}
 
       {activeTab === 'Sanctuary City' && (
         <ErrorBoundary>
-          <div className="min-h-0 overflow-y-auto" style={{ height: 'calc(100vh - 140px)', maxHeight: 'calc(100vh - 140px)' }}>
-            <SanctuaryCityTab />
-          </div>
+          <Suspense fallback={<TabLoadingFallback tabName="Sanctuary City" />}>
+            <div className="min-h-0 overflow-y-auto" style={{ height: 'calc(100vh - 140px)', maxHeight: 'calc(100vh - 140px)' }}>
+              <SanctuaryCityTab />
+            </div>
+          </Suspense>
         </ErrorBoundary>
       )}
 
@@ -1386,47 +1429,61 @@ export default function DCIMCommandCenter({ onActionRequested: _onActionRequeste
 
       {activeTab === 'Regulatory Toolkit' && (
         <ErrorBoundary>
-          <div className="p-6 overflow-y-auto min-h-0 bg-slate-50" style={{ height: 'calc(100vh - 140px)', maxHeight: 'calc(100vh - 140px)' }}>
-            <RegulatoryToolkit />
-          </div>
+          <Suspense fallback={<TabLoadingFallback tabName="Regulatory Toolkit" />}>
+            <div className="p-6 overflow-y-auto min-h-0 bg-slate-50" style={{ height: 'calc(100vh - 140px)', maxHeight: 'calc(100vh - 140px)' }}>
+              <RegulatoryToolkit />
+            </div>
+          </Suspense>
         </ErrorBoundary>
       )}
 
       {activeTab === 'Follow Your Data' && (
         <ErrorBoundary>
-          <FollowYourDataTab facilities={deferredFacilities} />
+          <Suspense fallback={<TabLoadingFallback tabName="Follow Your Data" />}>
+            <FollowYourDataTab facilities={deferredFacilities} />
+          </Suspense>
         </ErrorBoundary>
       )}
 
       {activeTab === 'Network Map' && (
         <ErrorBoundary>
-          <NetworkVisualizationTab facilities={deferredFacilities} />
+          <Suspense fallback={<MapTabSkeleton />}>
+            <NetworkVisualizationTab facilities={deferredFacilities} />
+          </Suspense>
         </ErrorBoundary>
       )}
 
       {activeTab === 'Compliance Flow' && (
         <ErrorBoundary>
-          <ComplianceFlowTab facilities={deferredFacilities} />
+          <Suspense fallback={<ChartTabSkeleton />}>
+            <ComplianceFlowTab facilities={deferredFacilities} />
+          </Suspense>
         </ErrorBoundary>
       )}
 
       {activeTab === 'Assurance Monitor' && (
         <ErrorBoundary>
-          <AssuranceMonitorTab facilities={deferredFacilities} />
+          <Suspense fallback={<TabLoadingFallback tabName="Assurance Monitor" />}>
+            <AssuranceMonitorTab facilities={deferredFacilities} />
+          </Suspense>
         </ErrorBoundary>
       )}
 
       {/* NEW: OFAC Sanctions Monitor - Network Hygiene Enforcement */}
       {activeTab === 'Sanctions Monitor' && (
         <ErrorBoundary>
-          <SanctionsMonitorTab facilities={deferredFacilities} />
+          <Suspense fallback={<TabLoadingFallback tabName="Sanctions Monitor" />}>
+            <SanctionsMonitorTab facilities={deferredFacilities} />
+          </Suspense>
         </ErrorBoundary>
       )}
 
       {/* NEW: AI Infrastructure Intelligence - Epoch AI */}
       {activeTab === 'AI Infrastructure' && (
         <ErrorBoundary>
-          <EpochAIIntelligenceTab />
+          <Suspense fallback={<AnalysisTabSkeleton />}>
+            <EpochAIIntelligenceTab />
+          </Suspense>
         </ErrorBoundary>
       )}
 
