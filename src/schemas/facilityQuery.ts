@@ -42,8 +42,14 @@ export const SortFieldSchema = z.enum([
   'jobGap',
   'capacity',
   'openedDate',
-  'complianceStatus'
+  'complianceStatus',
+  'bgpRiskScore',
+  'routeChangeRate',
+  'latencyAnomalyScore',
+  'infrastructureAccountabilityRisk',
 ]);
+
+export const TransitDependencyLevelSchema = z.enum(['low', 'medium', 'high']);
 
 /**
  * Structured facility query schema
@@ -83,6 +89,19 @@ export const FacilityQuerySchema = z.object({
   // Date ranges
   openedAfter: z.string().optional().describe('Opened after date (ISO 8601)'),
   openedBefore: z.string().optional().describe('Opened before date (ISO 8601)'),
+
+  // Demo BGP / network-risk filters (seeded indicators; not live BGP)
+  bgpRiskMin: z.number().optional().describe('Minimum demo BGP risk score (0–100)'),
+  routeChangeRateMin: z.number().optional().describe('Minimum route-change rate (demo)'),
+  latencyAnomalyMin: z.number().optional().describe('Minimum latency anomaly score (demo)'),
+  transitDependencyLevels: z
+    .array(TransitDependencyLevelSchema)
+    .optional()
+    .describe('Transit dependency tiers to include'),
+  infrastructureRiskMin: z
+    .number()
+    .optional()
+    .describe('Minimum combined infrastructure accountability risk (demo, 0–100)'),
   
   // Sorting
   sortBy: SortFieldSchema.optional().describe('Field to sort by'),
@@ -97,6 +116,7 @@ export type ComplianceStatus = z.infer<typeof ComplianceStatusSchema>;
 export type FacilityType = z.infer<typeof FacilityTypeSchema>;
 export type SortField = z.infer<typeof SortFieldSchema>;
 export type SortDirection = z.infer<typeof SortDirectionSchema>;
+export type TransitDependencyLevel = z.infer<typeof TransitDependencyLevelSchema>;
 
 /**
  * Example queries for testing
@@ -184,42 +204,109 @@ export function isEmptyQuery(query: FacilityQuery): boolean {
  * Generate a human-readable description of the query
  */
 export function describeQuery(query: FacilityQuery): string {
-  const parts: string[] = [];
-  
-  if (query.name) parts.push(`name contains "${query.name}"`);
-  if (query.operator?.length) parts.push(`operated by ${query.operator.join(' or ')}`);
-  if (query.city) parts.push(`in ${query.city}`);
-  if (query.states?.length) parts.push(`in ${query.states.join(', ')}`);
-  if (query.complianceStatuses?.length) parts.push(`status: ${query.complianceStatuses.join(' or ')}`);
-  if (query.facilityTypes?.length) parts.push(`type: ${query.facilityTypes.join(' or ')}`);
-  
-  if (query.subsidyMin) parts.push(`subsidy ≥ $${(query.subsidyMin / 1e6).toFixed(0)}M`);
-  if (query.subsidyMax) parts.push(`subsidy ≤ $${(query.subsidyMax / 1e6).toFixed(0)}M`);
-  if (query.subsidyGapMin) parts.push(`gap ≥ $${(query.subsidyGapMin / 1e6).toFixed(0)}M`);
-  
-  if (query.jobsPromisedMin) parts.push(`promised ≥ ${query.jobsPromisedMin} jobs`);
-  if (query.jobsCreatedMax) parts.push(`created ≤ ${query.jobsCreatedMax} jobs`);
-  if (query.jobGapMin) parts.push(`job gap ≥ ${query.jobGapMin}`);
-  
-  if (query.capacityMin) parts.push(`capacity ≥ ${query.capacityMin} MW`);
-  if (query.openedAfter) parts.push(`opened after ${query.openedAfter.split('T')[0]}`);
-  if (query.openedBefore) parts.push(`opened before ${query.openedBefore.split('T')[0]}`);
-  
-  if (parts.length === 0) return 'All facilities';
-  
-  let description = 'Facilities where ' + parts.join(', ');
-  
-  if (query.sortBy) {
-    const sortLabel = query.sortBy === 'subsidyGap' ? 'subsidy gap' :
-                      query.sortBy === 'jobGap' ? 'job gap' :
-                      query.sortBy.replace(/([A-Z])/g, ' $1').toLowerCase();
-    description += ` (sorted by ${sortLabel} ${query.sortDirection === 'asc' ? '↑' : '↓'})`;
+  const appendSortAndLimit = (description: string): string => {
+    let out = description;
+    if (query.sortBy) {
+      const sortLabel =
+        query.sortBy === 'subsidyGap'
+          ? 'subsidy gap'
+          : query.sortBy === 'jobGap'
+            ? 'job gap'
+            : query.sortBy === 'bgpRiskScore'
+              ? 'BGP risk'
+              : query.sortBy === 'routeChangeRate'
+                ? 'route change rate'
+                : query.sortBy === 'latencyAnomalyScore'
+                  ? 'latency anomaly'
+                  : query.sortBy === 'infrastructureAccountabilityRisk'
+                    ? 'infrastructure accountability risk'
+                    : query.sortBy.replace(/([A-Z])/g, ' $1').toLowerCase();
+      out += ` (sorted by ${sortLabel} ${query.sortDirection === 'asc' ? '↑' : '↓'})`;
+    }
+    if (query.limit && query.limit < 1000) {
+      out += ` (max ${query.limit} results)`;
+    }
+    return out;
+  };
+
+  let head = 'Facilities';
+
+  if (query.operator?.length) {
+    head += ` operated by ${query.operator.join(' or ')}`;
   }
-  
-  if (query.limit && query.limit < 1000) {
-    description += ` (max ${query.limit} results)`;
+
+  if (query.city && query.states?.length) {
+    head += ` in ${query.city}, ${query.states.join(', ')}`;
+  } else if (query.city) {
+    head += ` in ${query.city}`;
+  } else if (query.states?.length) {
+    head += ` in ${query.states.join(', ')}`;
   }
-  
-  return description;
+
+  const withParts: string[] = [];
+
+  if (query.name) withParts.push(`name contains "${query.name}"`);
+  if (query.complianceStatuses?.length) {
+    withParts.push(`status ${query.complianceStatuses.join(' or ')}`);
+  }
+  if (query.facilityTypes?.length) {
+    withParts.push(`type ${query.facilityTypes.join(' or ')}`);
+  }
+  if (query.subsidyMin) {
+    withParts.push(`subsidy received ≥ $${(query.subsidyMin / 1e6).toFixed(0)}M`);
+  }
+  if (query.subsidyMax) {
+    withParts.push(`subsidy received ≤ $${(query.subsidyMax / 1e6).toFixed(0)}M`);
+  }
+  if (query.subsidyGapMin) {
+    withParts.push(`subsidy gap ≥ $${(query.subsidyGapMin / 1e6).toFixed(0)}M`);
+  }
+  if (query.jobsPromisedMin) {
+    withParts.push(`jobs promised ≥ ${query.jobsPromisedMin}`);
+  }
+  if (query.jobsCreatedMax) {
+    withParts.push(`jobs created ≤ ${query.jobsCreatedMax}`);
+  }
+  if (query.jobGapMin) {
+    withParts.push(`job gap ≥ ${query.jobGapMin}`);
+  }
+  if (query.capacityMin) {
+    withParts.push(`capacity ≥ ${query.capacityMin} MW`);
+  }
+  if (query.openedAfter) {
+    withParts.push(`opened after ${query.openedAfter.split('T')[0]}`);
+  }
+  if (query.openedBefore) {
+    withParts.push(`opened before ${query.openedBefore.split('T')[0]}`);
+  }
+  if (query.bgpRiskMin != null) {
+    withParts.push(`demo BGP risk ≥ ${query.bgpRiskMin}`);
+  }
+  if (query.routeChangeRateMin != null) {
+    withParts.push(`route change rate ≥ ${query.routeChangeRateMin}`);
+  }
+  if (query.latencyAnomalyMin != null) {
+    withParts.push(`latency anomaly score ≥ ${query.latencyAnomalyMin}`);
+  }
+  if (query.transitDependencyLevels?.length) {
+    withParts.push(`transit dependency: ${query.transitDependencyLevels.join(' or ')}`);
+  }
+  if (query.infrastructureRiskMin != null) {
+    withParts.push(`combined infrastructure risk ≥ ${query.infrastructureRiskMin}`);
+  }
+
+  const hasLocationOrOperator =
+    (query.operator?.length ?? 0) > 0 || !!query.city || (query.states?.length ?? 0) > 0;
+
+  if (!hasLocationOrOperator && withParts.length === 0) {
+    return appendSortAndLimit('All facilities');
+  }
+
+  let description = head;
+  if (withParts.length > 0) {
+    description += ` with ${withParts.join(', ')}`;
+  }
+
+  return appendSortAndLimit(description);
 }
 

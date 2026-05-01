@@ -1,6 +1,7 @@
 import Dexie, { Table } from 'dexie';
 import { Facility } from '../types';
 import { SourceType } from '../config/sourceTypes';
+import { computeDemoBgpFields } from '../utils/bgpDemo';
 
 // Provenance tracking interfaces
 export interface DataProvenance {
@@ -240,6 +241,63 @@ export class ComplianceDatabase extends Dexie {
       searchHistory: '++id, query, context, lastUsedAt, [context+lastUsedAt]'
     }).upgrade(async (_tx) => {
       console.log('Database upgraded to version 7: search history enabled.');
+    });
+
+    // Version 8: Index optional facility fields used by investigation templates / NLP
+    // (where/sortBy require indexed keys — no row rewrite; Dexie rebuilds indexes)
+    this.version(8).stores({
+      facilities:
+        '++id, name, type, operator, country, state, city, complianceStatus, subsidyGap, subsidyReceived, jobsPromised, jobsCreated, openedDate, capacity, lastAuditDate',
+      dataProvenance: '++id, dataPointId, facilityId, metricName, [facilityId+metricName]',
+      communityContext: 'countyFips',
+      subsidyAgreements: '++id, facilityId',
+      localSignatures: '++id, facilityId',
+      localOrganizations: '++id, countyFips, type',
+      knowledgeGaps: '++id, facilityId, [facilityId+status]',
+      engagementTracking: '++id, facilityId',
+      settings: 'key',
+      networkSecurity: '++id, facilityId, asn, rpkiStatus',
+      sources: '++id, type, addedAt, *tags, *facilityIds',
+      citations: '++id, sourceId, [entityType+entityId]',
+      researchNotes: '++id, createdAt, updatedAt, *tags, *relatedFacilities, *relatedSources, category',
+      searchHistory: '++id, query, context, lastUsedAt, [context+lastUsedAt]',
+    }).upgrade(async () => {
+      console.log(
+        'Database upgraded to version 8: facilities indexes for subsidyReceived, jobs, dates, capacity.',
+      );
+    });
+
+    // Version 9: Demo BGP / network-risk fields on facilities (browser-only, seeded)
+    this.version(9).stores({
+      facilities:
+        '++id, name, type, operator, country, state, city, complianceStatus, subsidyGap, subsidyReceived, jobsPromised, jobsCreated, openedDate, capacity, bgpRiskScore, routeChangeRate, latencyAnomalyScore, transitDependency, infrastructureAccountabilityRisk, lastAuditDate',
+      dataProvenance: '++id, dataPointId, facilityId, metricName, [facilityId+metricName]',
+      communityContext: 'countyFips',
+      subsidyAgreements: '++id, facilityId',
+      localSignatures: '++id, facilityId',
+      localOrganizations: '++id, countyFips, type',
+      knowledgeGaps: '++id, facilityId, [facilityId+status]',
+      engagementTracking: '++id, facilityId',
+      settings: 'key',
+      networkSecurity: '++id, facilityId, asn, rpkiStatus',
+      sources: '++id, type, addedAt, *tags, *facilityIds',
+      citations: '++id, sourceId, [entityType+entityId]',
+      researchNotes: '++id, createdAt, updatedAt, *tags, *relatedFacilities, *relatedSources, category',
+      searchHistory: '++id, query, context, lastUsedAt, [context+lastUsedAt]',
+    }).upgrade(async (tx) => {
+      await tx.table('facilities').toCollection().modify((f: Facility) => {
+        if (f.bgpRiskScore != null && f.infrastructureAccountabilityRisk != null) {
+          return;
+        }
+        const bgp = computeDemoBgpFields(f.id, f.subsidyGap ?? 0, f.complianceStatus);
+        f.bgpRiskScore = bgp.bgpRiskScore;
+        f.asnCount = bgp.asnCount;
+        f.routeChangeRate = bgp.routeChangeRate;
+        f.latencyAnomalyScore = bgp.latencyAnomalyScore;
+        f.transitDependency = bgp.transitDependency;
+        f.infrastructureAccountabilityRisk = bgp.infrastructureAccountabilityRisk;
+      });
+      console.log('Database upgraded to version 9: demo BGP fields backfilled on facilities.');
     });
   }
 }

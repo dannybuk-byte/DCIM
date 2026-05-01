@@ -1,5 +1,7 @@
 import { Facility } from '../types';
+import { buildPrinceWilliamClusterFacility } from '../data/princeWilliamClusterFacility';
 import { db } from './database';
+import { computeDemoBgpFields } from '../utils/bgpDemo';
 
 // Global operators with their market presence by country
 interface OperatorConfig {
@@ -1463,6 +1465,8 @@ function generateFacility(id: number): Facility {
   const facilityNumber = (id % 100) + 1;
   const name = `${operator.name} ${city} ${type} ${facilityNumber}`;
 
+  const bgp = computeDemoBgpFields(id, subsidyGap, complianceStatus);
+
   return {
     id,
     name,
@@ -1477,6 +1481,7 @@ function generateFacility(id: number): Facility {
     issues,
     latitude: coords.lat,
     longitude: coords.lng,
+    ...bgp,
   };
 }
 
@@ -1517,4 +1522,6 @@ export async function seedDatabase() {
   } else {
     console.log(`Database already seeded with ${count} facilities`);
   }
+
+  await db.facilities.put(buildPrinceWilliamClusterFacility());
 }
