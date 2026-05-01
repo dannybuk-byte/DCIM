@@ -5,6 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "signals-server": "node server/index.js",
+    "dev:with-signals": "concurrently -n vite,signals -c cyan,magenta \"npm run dev\" \"npm run signals-server\"",
     "prebuild": "bash generate-build-info.sh",
     "build": "vite build",
     "preview": "vite preview",
@@ -28,10 +30,12 @@
     "@tensorflow/tfjs": "^4.22.0",
     "@types/leaflet": "^1.9.21",
     "arima": "^0.2.5",
+    "cors": "^2.8.6",
     "cytoscape": "^3.33.1",
     "dexie": "^3.2.4",
     "echarts": "^6.0.0",
     "echarts-for-react": "^3.0.5",
+    "express": "^5.2.1",
     "flexsearch": "^0.8.212",
     "isolation-forest": "^0.0.9",
     "jspdf": "^3.0.4",
@@ -52,6 +56,7 @@
     "zod": "^4.3.4"
   },
   "devDependencies": {
+    "@testing-library/dom": "^10.4.1",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.1",
     "@types/react": "^18.2.43",
@@ -59,6 +64,7 @@
     "@types/react-window": "^1.8.8",
     "@vitejs/plugin-react": "^4.2.1",
     "autoprefixer": "^10.4.16",
+    "concurrently": "^9.2.1",
     "jsdom": "^27.4.0",
     "postcss": "^8.4.32",
     "tailwindcss": "^3.4.0",

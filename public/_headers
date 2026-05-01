@@ -1,0 +1,6 @@
+# Limit stale HTML shell after deploys (hashed /assets/* stay cacheable by Pages defaults)
+/
+  Cache-Control: no-cache
+
+/index.html
+  Cache-Control: no-cache

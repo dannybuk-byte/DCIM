@@ -1,5 +1,14 @@
 /// <reference types="vite/client" />
 
+interface ImportMetaEnv {
+  /** Optional absolute base for Disclosure Mismatch API (default: /signals-api via Vite proxy) */
+  readonly VITE_SIGNALS_API_URL?: string;
+}
+
+interface ImportMeta {
+  readonly env: ImportMetaEnv;
+}
+
 // Asset module declarations
 declare module '*.png' {
   const src: string;

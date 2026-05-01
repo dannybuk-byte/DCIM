@@ -14,7 +14,7 @@ export default defineConfig({
     setupFiles: ['./src/test/setup.ts'],
     
     // Include patterns
-    include: ['src/**/*.{test,spec}.{ts,tsx}'],
+    include: ['src/**/*.{test,spec}.{ts,tsx}', 'server/**/*.test.js'],
     
     // Exclude patterns
     exclude: [
