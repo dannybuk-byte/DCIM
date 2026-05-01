@@ -4,6 +4,10 @@ import { useNaturalLanguageSearch, useSearchSuggestions } from '../hooks/useNatu
 import { getRecentSearches } from '../utils/queryCache';
 import type { Facility } from '../types';
 
+/** Shown in the orange NL-search callout whenever a conversion warning is present (copy-only). */
+const AI_ASSISTED_SEARCH_DEMO_NOTICE =
+  'AI-assisted search is not enabled in this demo. Core data queries are fully functional.';
+
 interface NaturalLanguageSearchProps {
   onResults: (facilities: Facility[]) => void;
   onFacilityClick: (facility: Facility) => void;
@@ -170,17 +174,19 @@ export const NaturalLanguageSearch: React.FC<NaturalLanguageSearchProps> = ({
       {/* Status Messages */}
       {searchState.conversionMethod && !searchState.error && (
         <div className={`mt-3 p-3 rounded-lg border ${
-          searchState.conversionMethod === 'api' 
-            ? 'bg-[#2ed573]/10 border-[#2ed573]/30' 
+          searchState.conversionMethod === 'api'
+            ? 'bg-[#2ed573]/10 border-[#2ed573]/30'
             : searchState.conversionMethod === 'cached'
             ? 'bg-[#00d2d3]/10 border-[#00d2d3]/30'
-            : 'bg-[#ffa502]/10 border-[#ffa502]/30'
+            : searchState.warning
+            ? 'bg-[#ffa502]/10 border-[#ffa502]/30'
+            : 'bg-[#00d2d3]/10 border-[#00d2d3]/30'
         }`}>
           <div className="flex items-start gap-2">
             <Sparkles size={16} className={
               searchState.conversionMethod === 'api' ? 'text-[#2ed573]' :
               searchState.conversionMethod === 'cached' ? 'text-[#00d2d3]' :
-              'text-[#ffa502]'
+              searchState.warning ? 'text-[#ffa502]' : 'text-[#00d2d3]'
             } />
             <div className="flex-1">
               <div className="text-xs font-semibold text-white mb-1">
@@ -201,7 +207,7 @@ export const NaturalLanguageSearch: React.FC<NaturalLanguageSearchProps> = ({
         <div className="mt-3 p-3 bg-[#ffa502]/10 border border-[#ffa502]/30 rounded-lg">
           <div className="flex items-start gap-2">
             <AlertCircle size={16} className="text-[#ffa502] mt-0.5 flex-shrink-0" />
-            <p className="text-xs text-[#ffa502]">{searchState.warning}</p>
+            <p className="text-xs text-[#ffa502]">{AI_ASSISTED_SEARCH_DEMO_NOTICE}</p>
           </div>
         </div>
       )}
@@ -264,6 +270,11 @@ export const NaturalLanguageSearch: React.FC<NaturalLanguageSearchProps> = ({
       {/* Results List */}
       {searchState.results.length > 0 && !searchState.error && (
         <div className="mt-4">
+          {searchState.queryDescription ? (
+            <p className="mb-2 border-l-2 border-[#00d2d3]/40 pl-2 text-[11px] leading-snug text-gray-500">
+              Showing: {searchState.queryDescription}
+            </p>
+          ) : null}
           <div className="flex items-center justify-between mb-3">
             <h3 className="text-sm font-bold text-white">
               Results ({searchState.results.length.toLocaleString()})

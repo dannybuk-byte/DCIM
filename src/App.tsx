@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import DCIMCommandCenter from './components/DCIMCommandCenter';
 import ChatInterface from './components/ChatInterface';
 import ReportModal from './components/ReportModal';
@@ -16,8 +16,10 @@ import { ErrorBoundary } from './components/ErrorBoundary';
 import { safeDbOperation } from './utils/dbOperations';
 import { trackError } from './utils/errorTracking';
 import { ProvenanceModeProvider } from './components/shared/ProvenanceMode';
+import { Methodology } from './pages/Methodology';
 
 function App() {
+  const [demoBannerVisible, setDemoBannerVisible] = useState(true);
   const [useNewArchitecture, setUseNewArchitecture] = useState(true); // Toggle between old and new
   const [useTestVersion, setUseTestVersion] = useState(false); // Test version for debugging
   const [chatOpen, setChatOpen] = useState(false);
@@ -26,6 +28,28 @@ function App() {
   const [sourceManagerOpen, setSourceManagerOpen] = useState(false); // NotebookLM Source Manager
   const [facilities, setFacilities] = useState<Facility[]>([]);
   const [sourceManagerFacilityId, setSourceManagerFacilityId] = useState<number | null>(null);
+
+  const [routeHash, setRouteHash] = useState(
+    () => (typeof window !== 'undefined' ? window.location.hash : ''),
+  );
+
+  useEffect(() => {
+    const syncHash = () => setRouteHash(window.location.hash);
+    syncHash();
+    window.addEventListener('hashchange', syncHash);
+    return () => window.removeEventListener('hashchange', syncHash);
+  }, []);
+
+  const showMethodology = routeHash === '#methodology';
+
+  const handleExitMethodology = useCallback(() => {
+    window.history.replaceState(
+      null,
+      '',
+      `${window.location.pathname}${window.location.search}`,
+    );
+    setRouteHash('');
+  }, []);
 
   const preselectedFacility = useMemo(() => {
     if (!sourceManagerFacilityId) return undefined;
@@ -121,52 +145,88 @@ function App() {
 
   return (
     <ProvenanceModeProvider>
-      <div className="relative">
-        {useTestVersion ? (
-          <>
-            {console.log('🧪 Rendering Test Version')}
-            <MissionControlGridTest />
-          </>
-        ) : useNewArchitecture ? (
-          <>
-            {console.log('🌌 Rendering Omniscient Command Interface')}
-            <OmniscientCommandInterface />
-          </>
+      <div className="relative flex min-h-0 flex-1 flex-col">
+        {demoBannerVisible && (
+          <div
+            className="fixed left-0 right-0 top-0 z-[600] flex flex-wrap items-start gap-3 border-b border-amber-500/40 bg-amber-950/95 px-4 py-3 text-sm text-amber-100 backdrop-blur-sm"
+            role="status"
+          >
+            <span className="shrink-0 pt-0.5" aria-hidden="true">
+              🟡
+            </span>
+            <p className="min-w-0 flex-1 leading-snug">
+              Demo data loaded. The 11,992 facilities shown are seeded sample data for demonstration. To track real compliance, import verified data sources via the Settings panel.{' '}
+              <a
+                href="#methodology"
+                className="font-semibold text-amber-300 underline underline-offset-2 hover:text-amber-200"
+                onClick={(e) => {
+                  e.preventDefault();
+                  window.location.hash = '#methodology';
+                }}
+              >
+                Learn more about methodology
+              </a>
+            </p>
+            <button
+              type="button"
+              onClick={() => setDemoBannerVisible(false)}
+              className="shrink-0 rounded border border-amber-500/50 px-2 py-1 text-xs font-semibold text-amber-200 hover:bg-amber-500/20"
+              aria-label="Dismiss demo data notice"
+            >
+              Dismiss
+            </button>
+          </div>
+        )}
+        <div className={`flex min-h-0 flex-1 flex-col ${demoBannerVisible ? 'pt-24' : ''}`}>
+        {showMethodology ? (
+          <Methodology onClose={handleExitMethodology} />
         ) : (
           <>
-            {console.log('📊 Rendering Old Dashboard')}
-            <DCIMCommandCenter 
-              onActionRequested={handleDashboardAction}
-              onOpenChat={() => setChatOpen(true)}
-            />
-            <ChatInterface isOpen={chatOpen} onClose={() => setChatOpen(false)} />
-            <ReportModal
-              isOpen={reportOpen}
-              onClose={() => setReportOpen(false)}
-              facilities={facilities}
-            />
-            <NetworkTraceModal
-              isOpen={networkTraceOpen}
-              onClose={() => setNetworkTraceOpen(false)}
-            />
-            {sourceManagerOpen && (
-              <SourceManager
-                onClose={() => setSourceManagerOpen(false)}
-                preselectedFacility={preselectedFacility}
-              />
-            )}
-            
-            <DynamicActionButtons
-              facilities={facilities}
-              onGenerateReport={() => setReportOpen(true)}
-              onOpenChat={() => setChatOpen(true)}
-              isReportOpen={reportOpen}
-              isChatOpen={chatOpen}
-            />
+            {useTestVersion ? (
+              <div className="min-h-0 flex-1 overflow-y-auto">
+                {console.log('🧪 Rendering Test Version')}
+                <MissionControlGridTest />
+              </div>
+            ) : useNewArchitecture ? (
+              <OmniscientCommandInterface />
+            ) : (
+              <div className="min-h-0 flex-1 overflow-y-auto">
+                {console.log('📊 Rendering Old Dashboard')}
+                <DCIMCommandCenter 
+                  onActionRequested={handleDashboardAction}
+                  onOpenChat={() => setChatOpen(true)}
+                />
+                <ChatInterface isOpen={chatOpen} onClose={() => setChatOpen(false)} />
+                <ReportModal
+                  isOpen={reportOpen}
+                  onClose={() => setReportOpen(false)}
+                  facilities={facilities}
+                />
+                <NetworkTraceModal
+                  isOpen={networkTraceOpen}
+                  onClose={() => setNetworkTraceOpen(false)}
+                />
+                {sourceManagerOpen && (
+                  <SourceManager
+                    onClose={() => setSourceManagerOpen(false)}
+                    preselectedFacility={preselectedFacility}
+                  />
+                )}
+                
+                <DynamicActionButtons
+                  facilities={facilities}
+                  onGenerateReport={() => setReportOpen(true)}
+                  onOpenChat={() => setChatOpen(true)}
+                  isReportOpen={reportOpen}
+                  isChatOpen={chatOpen}
+                />
 
-            <NavigationHelper shortcuts={navigationShortcuts} />
+                <NavigationHelper shortcuts={navigationShortcuts} />
+              </div>
+            )}
           </>
         )}
+        </div>
       </div>
     </ProvenanceModeProvider>
   );

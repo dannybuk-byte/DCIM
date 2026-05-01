@@ -37,8 +37,11 @@ import {
   RefreshCw,
   Eye,
   EyeOff,
+  BookOpenCheck,
 } from 'lucide-react';
 import { Facility, ComplianceStats } from '../types';
+import { FacilityCredibilitySection } from './FacilityCredibilitySection';
+import { ReviewerMode } from './ReviewerMode';
 import { formatCurrency } from '../utils/formatting';
 import { StatCard } from './shared/StatCard';
 import { AutocompleteInput } from './shared/AutocompleteInput';
@@ -64,6 +67,7 @@ export const MissionControlLayout = memo(function MissionControlLayout({
   // View state
   const [centerView, setCenterView] = useState<CenterView>('table');
   const [selectedFacility, setSelectedFacility] = useState<Facility | null>(null);
+  const [reviewerModeOpen, setReviewerModeOpen] = useState(false);
   
   // Filter state
   const [filters, setFilters] = useState({
@@ -167,6 +171,15 @@ export const MissionControlLayout = memo(function MissionControlLayout({
         </div>
 
         <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setReviewerModeOpen(true)}
+            className="px-2 py-0.5 bg-slate-700 hover:bg-slate-600 text-white text-[10px] font-bold rounded flex items-center gap-1 transition-all border border-slate-600"
+            title="Reviewer Mode — one-screen facility brief"
+          >
+            <BookOpenCheck className="w-3 h-3" />
+            Reviewer Mode
+          </button>
           <button
             onClick={onRefresh}
             className="px-2 py-0.5 bg-cyan-600 hover:bg-cyan-500 text-white text-[10px] font-bold rounded flex items-center gap-1 transition-all"
@@ -454,6 +467,14 @@ export const MissionControlLayout = memo(function MissionControlLayout({
         )}
       </div>
 
+      <ReviewerMode
+        open={reviewerModeOpen}
+        onClose={() => setReviewerModeOpen(false)}
+        facility={selectedFacility}
+        facilities={filteredFacilities}
+        onSelectFacility={handleFacilityClick}
+      />
+
       {/* FOOTER */}
       <div className="bg-gray-900 border-t border-gray-800 px-2 py-1 flex items-center justify-between text-[9px] text-gray-500">
         <div className="flex items-center gap-2">
@@ -608,6 +629,8 @@ const FacilityDetailPanel = memo(function FacilityDetailPanel({
             {facility.complianceStatus}
           </span>
         </div>
+
+        <FacilityCredibilitySection facility={facility} variant="compact" />
 
         {/* Key Metrics */}
         <div className="space-y-1">

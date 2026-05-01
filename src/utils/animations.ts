@@ -119,14 +119,22 @@ export const generateParticles = (count: number): Particle[] => {
 /**
  * Animated Particle Background Hook
  */
-export const useAnimatedParticles = (count: number = 50) => {
+export const useAnimatedParticles = (count: number = 50, paused: boolean = false) => {
   const [particles, setParticles] = useState<Particle[]>(() => generateParticles(count));
   const frameRef = useRef<number>();
 
   useEffect(() => {
+    if (paused) {
+      if (frameRef.current !== undefined) {
+        cancelAnimationFrame(frameRef.current);
+        frameRef.current = undefined;
+      }
+      return;
+    }
+
     const animate = () => {
-      setParticles(prev =>
-        prev.map(p => ({
+      setParticles((prev) =>
+        prev.map((p) => ({
           ...p,
           x: (p.x + p.speedX + 100) % 100,
           y: (p.y + p.speedY + 100) % 100,
@@ -138,11 +146,11 @@ export const useAnimatedParticles = (count: number = 50) => {
     frameRef.current = requestAnimationFrame(animate);
 
     return () => {
-      if (frameRef.current) {
+      if (frameRef.current !== undefined) {
         cancelAnimationFrame(frameRef.current);
       }
     };
-  }, []);
+  }, [paused]);
 
   return particles;
 };

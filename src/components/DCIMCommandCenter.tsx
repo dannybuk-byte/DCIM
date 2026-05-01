@@ -52,12 +52,12 @@ import AdvancedPatternAnalysisTab from './tabs/AdvancedPatternAnalysisTab'; // R
 import { PatternLabTab } from './tabs/patternLab/PatternLabTab'; // Pattern Lab v2 (Web Worker + explainability)
 import NetworkSecurityTab from './tabs/NetworkSecurityTab'; // NotebookLM-inspired
 import { PredictiveIntelligenceTab } from './tabs/PredictiveIntelligenceTab'; // Predictive Intelligence Hub
-// import { GraphDatabasePOC } from './tabs/GraphDatabasePOC'; // POC requires @kuzu/kuzu-wasm (uninstalled)
 import { ComplianceFlowTab } from './tabs/ComplianceFlowTab'; // Intent-Based Visualization
 import { AssuranceMonitorTab } from './tabs/AssuranceMonitorTab'; // Juniper Marvis-style continuous monitoring
 import { IntelligenceHubTab } from './tabs/IntelligenceHubTab'; // UNIFIED: All intelligence methods combined
 import { NetworkVisualizationTab } from './tabs/NetworkVisualizationTab'; // Network visualization with tree & globe
 import EvidencePanel from './EvidencePanel'; // FRE 902(13)-(14) Evidence Integrity
+import { ReviewerMode } from './ReviewerMode';
 import { NestedFAQ } from './NestedFAQ'; // Comprehensive help documentation
 import { indexFacilities } from '../search/SearchEngine'; // FlexSearch initialization
 import { detectDashboardAction } from '../utils/dashboardActions';
@@ -502,10 +502,9 @@ export default function DCIMCommandCenter({ onActionRequested: _onActionRequeste
   
   // NEW: Mission Control Layout toggle
   const [useMissionControl, setUseMissionControl] = useState(false);
-  
-  // Debug log
-  console.log('🎯 Mission Control Mode:', useMissionControl);
-  
+  const [reviewerModeOpen, setReviewerModeOpen] = useState(false);
+  const [reviewerFacility, setReviewerFacility] = useState<Facility | null>(null);
+
   // Tab change handler with simple transition
   const handleTabChange = useCallback((tab: CommandCenterTab) => {
     startTabTransition(() => {
@@ -663,7 +662,6 @@ export default function DCIMCommandCenter({ onActionRequested: _onActionRequeste
         
         // Initialize FlexSearch index for fast searching
         if (allFacilities.length > 0) {
-          console.log('[DCIMCommandCenter] Initializing FlexSearch with', allFacilities.length, 'facilities');
           indexFacilities(allFacilities);
         }
       } catch (error) {
@@ -1209,7 +1207,9 @@ export default function DCIMCommandCenter({ onActionRequested: _onActionRequeste
 
       {activeTab === 'POC' && (
         <ErrorBoundary>
-          <GraphDatabasePOC />
+          <div className="p-6 text-sm text-gray-400 border border-gray-800 rounded-lg">
+            Graph database POC is disabled (optional @kuzu/kuzu-wasm dependency not bundled).
+          </div>
         </ErrorBoundary>
       )}
     </div>
@@ -1343,6 +1343,17 @@ export default function DCIMCommandCenter({ onActionRequested: _onActionRequeste
                 <span className="text-[10px] font-bold">
                   {useMissionControl ? 'MISSION CTRL' : 'SWITCH LAYOUT'}
                 </span>
+              </button>
+            </Tooltip>
+
+            <Tooltip content="Reviewer Mode — funder-ready facility brief">
+              <button
+                type="button"
+                onClick={() => setReviewerModeOpen(true)}
+                className="px-2 py-1 rounded flex items-center gap-1 bg-slate-700 hover:bg-slate-600 text-white transition-all"
+              >
+                <BookOpenCheck className="w-4 h-4" />
+                <span className="text-[10px] font-bold">REVIEWER</span>
               </button>
             </Tooltip>
             
@@ -1779,6 +1790,14 @@ export default function DCIMCommandCenter({ onActionRequested: _onActionRequeste
       }}>
         TEST BADGE
       </div>
+
+      <ReviewerMode
+        open={reviewerModeOpen}
+        onClose={() => setReviewerModeOpen(false)}
+        facility={reviewerFacility}
+        facilities={filteredFacilities}
+        onSelectFacility={f => setReviewerFacility(f)}
+      />
     </div>
       )}
     </>

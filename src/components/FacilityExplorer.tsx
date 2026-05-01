@@ -4,6 +4,7 @@ import { ProgressiveDisclosure, buildFacilityHierarchy, DisclosureNode } from '.
 import { db } from '../db/database';
 import { getFacilityDetails } from '../services/getFacilityDetails';
 import { ErrorBoundary } from './ErrorBoundary';
+import { FacilityCredibilitySection } from './FacilityCredibilitySection';
 
 // Static Tailwind classes (CRITICAL: No dynamic classes)
 const contentPanelClasses = 'bg-gray-800 border border-gray-700 rounded-lg p-4';
@@ -187,6 +188,10 @@ export const FacilityExplorer: React.FC<FacilityExplorerProps> = ({
             </ul>
           </div>
         )}
+
+        <div className="mt-4 pt-4 border-t border-gray-700">
+          <FacilityCredibilitySection facility={facility} variant="comfortable" />
+        </div>
       </div>
     );
   }, [facilityDetails, loadingDetails]);

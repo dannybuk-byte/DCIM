@@ -11,6 +11,8 @@ interface ParticleBackgroundProps {
   color?: string;
   opacity?: number;
   className?: string;
+  /** When true, stops rAF particle updates (e.g. while user is scrolling). */
+  paused?: boolean;
 }
 
 export const ParticleBackground: React.FC<ParticleBackgroundProps> = ({
@@ -18,8 +20,9 @@ export const ParticleBackground: React.FC<ParticleBackgroundProps> = ({
   color = '#22d3ee', // cyan-400
   opacity = 0.3,
   className = '',
+  paused = false,
 }) => {
-  const particles = useAnimatedParticles(particleCount);
+  const particles = useAnimatedParticles(particleCount, paused);
 
   return (
     <div className={`absolute inset-0 overflow-hidden pointer-events-none ${className}`}>

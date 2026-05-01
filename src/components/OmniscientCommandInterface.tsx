@@ -19,7 +19,11 @@ import {
   HelpCircle,
   Building,
   DollarSign,
-  Users
+  Users,
+  BookOpen,
+  BookOpenCheck,
+  RadioTower,
+  ShieldAlert
 } from 'lucide-react';
 import { db } from '../db/database';
 import { seedDatabase } from '../db/seedData';
@@ -33,13 +37,51 @@ import GranularDrilldown from './GranularDrilldown'; // Infinite drill-down syst
 import { DeepDiveView } from './DeepDiveView';
 import { AISettingsModal } from './AISettingsModal';
 import { NaturalLanguageSearch } from './NaturalLanguageSearch';
+import { BGPAnalysisView } from './BGPAnalysisView';
+import { DisclosureMismatchView } from './DisclosureMismatchView';
+import { ReviewerMode } from './ReviewerMode';
 import { HelpModal } from './HelpModal';
 import AnimatedCard from './AnimatedCard'; // Animated cards with hover effects
 import AnimatedProgressBar from './AnimatedProgressBar'; // Progress bars with animations
 import ParticleBackground from './ParticleBackground'; // Particle effect backgrounds
 import { useAnimatedCounter } from '../utils/animations'; // Animation utilities
 
-type ViewMode = 'omniscient' | 'intelligence' | 'hud' | 'timeline' | 'network' | 'map' | 'kanban' | 'deepdive';
+type ViewMode =
+  | 'omniscient'
+  | 'intelligence'
+  | 'hud'
+  | 'timeline'
+  | 'network'
+  | 'bgp'
+  | 'disclosure_mismatch'
+  | 'map'
+  | 'kanban'
+  | 'deepdive';
+
+/** Top bar mode tabs (Methodology button is inserted after Dashboard in the JSX). */
+const TOP_BAR_MODE_DEFS: ReadonlyArray<{
+  mode: ViewMode;
+  icon: typeof Target;
+  label: string;
+  tooltip: string;
+}> = [
+  { mode: 'omniscient', icon: Target, label: 'Dashboard', tooltip: 'See all facilities at a glance' },
+  // BGP early so it stays visible (tab row scrolls; was easy to miss between NET and MAP).
+  { mode: 'bgp', icon: RadioTower, label: 'BGP', tooltip: 'Demo BGP / network-risk indicators (seeded)' },
+  {
+    mode: 'disclosure_mismatch',
+    icon: ShieldAlert,
+    label: 'AI Labor',
+    tooltip: 'Watchdog: AI workforce claims vs WARN / legal disclosure (signals API)',
+  },
+  { mode: 'intelligence', icon: Network, label: '📊 Tracker', tooltip: 'Track companies and their infrastructure' },
+  { mode: 'deepdive', icon: Layers, label: 'Full Report', tooltip: 'Explore individual facilities in depth' },
+  { mode: 'hud', icon: Zap, label: 'Violations', tooltip: 'Focus on critical violations' },
+  { mode: 'timeline', icon: Calendar, label: 'TIME', tooltip: 'Project timeline and milestones' },
+  { mode: 'network', icon: GitBranch, label: 'NET', tooltip: 'Network connections between facilities' },
+  { mode: 'map', icon: MapPin, label: 'MAP', tooltip: 'Geographic map view by state' },
+  { mode: 'kanban', icon: Grid3x3, label: 'BOARD', tooltip: 'Kanban board by compliance status' },
+];
 
 export const OmniscientCommandInterface: React.FC = () => {
   const [viewMode, setViewMode] = useState<ViewMode>('omniscient');
@@ -57,9 +99,14 @@ export const OmniscientCommandInterface: React.FC = () => {
   const [rightPanelVisible, setRightPanelVisible] = useState(false);
   const [isIdle, setIsIdle] = useState(false);
   const [showAlertPopup, setShowAlertPopup] = useState(false);
-  
+  /** True while user is scrolling / wheeling — reduces heavy CSS + particle rAF load */
+  const [isScrollActive, setIsScrollActive] = useState(false);
+  const [reviewerModeOpen, setReviewerModeOpen] = useState(false);
+  const [reviewerFacility, setReviewerFacility] = useState<Facility | null>(null);
+
   const canvasRef = useRef<HTMLDivElement>(null);
   const idleTimerRef = useRef<NodeJS.Timeout>();
+  const scrollQuietTimerRef = useRef<ReturnType<typeof setTimeout>>();
 
   // Load facilities
   useEffect(() => {
@@ -76,6 +123,22 @@ export const OmniscientCommandInterface: React.FC = () => {
       }
     };
     loadData();
+  }, []);
+
+  // Deep-link: example.com/#bgp opens demo BGP view (after deploy with current bundle).
+  useEffect(() => {
+    const applyHash = (): void => {
+      const h = window.location.hash.toLowerCase();
+      if (h === '#bgp') {
+        setViewMode('bgp');
+      }
+      if (h === '#signals' || h === '#disclosure-mismatch') {
+        setViewMode('disclosure_mismatch');
+      }
+    };
+    applyHash();
+    window.addEventListener('hashchange', applyHash);
+    return () => window.removeEventListener('hashchange', applyHash);
   }, []);
 
   // Keyboard shortcuts
@@ -140,6 +203,41 @@ export const OmniscientCommandInterface: React.FC = () => {
     };
   }, [isFullscreen]);
 
+  useEffect(() => {
+    const markScroll = () => {
+      setIsScrollActive(true);
+      if (scrollQuietTimerRef.current !== undefined) {
+        clearTimeout(scrollQuietTimerRef.current);
+      }
+      scrollQuietTimerRef.current = setTimeout(() => {
+        setIsScrollActive(false);
+      }, 220);
+    };
+
+    const rootEl = document.getElementById('root');
+    rootEl?.addEventListener('scroll', markScroll, { passive: true });
+    window.addEventListener('scroll', markScroll, { passive: true });
+    document.addEventListener('wheel', markScroll, { capture: true, passive: true });
+    document.addEventListener('touchmove', markScroll, { capture: true, passive: true });
+
+    return () => {
+      rootEl?.removeEventListener('scroll', markScroll);
+      window.removeEventListener('scroll', markScroll);
+      document.removeEventListener('wheel', markScroll, { capture: true });
+      document.removeEventListener('touchmove', markScroll, { capture: true });
+      if (scrollQuietTimerRef.current !== undefined) {
+        clearTimeout(scrollQuietTimerRef.current);
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    document.documentElement.classList.toggle('dcim-is-scrolling', isScrollActive);
+    return () => {
+      document.documentElement.classList.remove('dcim-is-scrolling');
+    };
+  }, [isScrollActive]);
+
   // Calculate stats
   const stats = useMemo(() => {
     const total = facilities.length;
@@ -159,14 +257,17 @@ export const OmniscientCommandInterface: React.FC = () => {
   }, [facilities]);
 
   return (
-    <div className="h-screen w-screen bg-black text-white overflow-hidden relative">
+    <div className="relative flex h-full min-h-0 w-full flex-1 flex-col overflow-hidden bg-black text-white">
       {/* BACKGROUND: Animated Grid */}
       <div className="absolute inset-0 opacity-10">
-        <div className="absolute inset-0" style={{
-          backgroundImage: 'linear-gradient(#00d2d3 1px, transparent 1px), linear-gradient(90deg, #00d2d3 1px, transparent 1px)',
-          backgroundSize: '50px 50px',
-          animation: 'gridScroll 20s linear infinite'
-        }} />
+        <div
+          className="absolute inset-0 omni-bg-grid-animated"
+          style={{
+            backgroundImage:
+              'linear-gradient(#00d2d3 1px, transparent 1px), linear-gradient(90deg, #00d2d3 1px, transparent 1px)',
+            backgroundSize: '50px 50px',
+          }}
+        />
       </div>
 
       {/* TOP: Compact Bar (Smart Panel) */}
@@ -181,51 +282,90 @@ export const OmniscientCommandInterface: React.FC = () => {
               : 'linear-gradient(180deg, rgba(0,0,0,0.90) 0%, transparent 100%)'
           }}
         >
-          {/* Compact Bar (Always Visible) */}
-          <div className="h-12 flex items-center justify-between px-6 border-b border-[#00d2d3]/20">
-            <div className="flex items-center gap-4">
+          {/* Compact Bar (Always Visible) — center tabs use horizontal scroll so nothing clips under overflow-hidden */}
+          <div className="flex h-12 items-center gap-2 border-b border-[#00d2d3]/20 px-4 sm:px-6">
+            <div className="flex shrink-0 items-center gap-3">
               {/* Branding */}
-              <div className="text-sm font-bold tracking-wider text-[#00d2d3]">
+              <div className="text-xs font-bold tracking-wider text-[#00d2d3] sm:text-sm">
                 DATA CENTER ACCOUNTABILITY
               </div>
 
               {/* Live Indicator */}
               <div className="flex items-center gap-1.5 text-[10px] text-[#00d2d3]">
-                <div className="w-1.5 h-1.5 rounded-full bg-[#00d2d3] animate-pulse" />
+                <div className="w-1.5 h-1.5 shrink-0 rounded-full bg-[#00d2d3] animate-pulse" />
                 LIVE
+              </div>
+              <div
+                className="shrink-0 rounded border border-emerald-500/70 bg-emerald-950/50 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wide text-emerald-300"
+                title="Temporary build marker — remove after deploy verification"
+              >
+                Build: Reviewer Mode Enabled
               </div>
             </div>
 
-            {/* Mode Buttons (Always Visible) */}
-            <div className="flex items-center gap-1.5">
-              {[
-                { mode: 'omniscient' as ViewMode, icon: Target, label: 'Dashboard', tooltip: 'See all facilities at a glance' },
-                { mode: 'intelligence' as ViewMode, icon: Network, label: '📊 Tracker', tooltip: 'Track companies and their infrastructure' },
-                { mode: 'deepdive' as ViewMode, icon: Layers, label: 'Full Report', tooltip: 'Explore individual facilities in depth' },
-                { mode: 'hud' as ViewMode, icon: Zap, label: 'Violations', tooltip: 'Focus on critical violations' },
-                { mode: 'timeline' as ViewMode, icon: Calendar, label: 'TIME', tooltip: 'Project timeline and milestones' },
-                { mode: 'network' as ViewMode, icon: GitBranch, label: 'NET', tooltip: 'Network connections between facilities' },
-                { mode: 'map' as ViewMode, icon: MapPin, label: 'MAP', tooltip: 'Geographic map view by state' },
-                { mode: 'kanban' as ViewMode, icon: Grid3x3, label: 'BOARD', tooltip: 'Kanban board by compliance status' }
-              ].map(({ mode, icon: Icon, label, tooltip }) => (
+            {/* Mode tabs + Methodology: single row + overflow-x-auto (wrapping was clipped by h-12 + parent overflow-hidden) */}
+            <div className="flex min-w-0 flex-1 justify-center">
+              <div className="inline-flex max-w-full flex-nowrap items-center gap-1.5 overflow-x-auto overscroll-x-contain py-1 [scrollbar-width:thin]">
+                {TOP_BAR_MODE_DEFS.slice(0, 1).map(({ mode, icon: Icon, label, tooltip }) => (
+                  <button
+                    key={mode}
+                    type="button"
+                    onClick={() => setViewMode(mode)}
+                    title={tooltip}
+                    className={`shrink-0 px-2.5 py-1 rounded-sm text-[10px] font-bold transition-all ${
+                      viewMode === mode 
+                        ? 'bg-[#00d2d3] text-black shadow-[0_0_15px_#00d2d3]' 
+                        : 'bg-white/10 text-[#00d2d3] hover:bg-white/20'
+                    }`}
+                  >
+                    <Icon size={12} className="mr-1 inline align-text-bottom" />
+                    {label}
+                  </button>
+                ))}
                 <button
-                  key={mode}
-                  onClick={() => setViewMode(mode)}
-                  title={tooltip}
-                  className={`px-2.5 py-1 rounded-sm text-[10px] font-bold transition-all ${
-                    viewMode === mode 
-                      ? 'bg-[#00d2d3] text-black shadow-[0_0_15px_#00d2d3]' 
-                      : 'bg-white/10 text-[#00d2d3] hover:bg-white/20'
-                  }`}
+                  type="button"
+                  onClick={() => {
+                    window.location.hash = '#methodology';
+                  }}
+                  title="Methodology, data sources, and limitations"
+                  className="shrink-0 px-2.5 py-1 rounded-sm text-[10px] font-bold transition-all bg-amber-500/25 text-amber-100 border border-amber-500/60 hover:bg-amber-500/35"
                 >
-                  <Icon size={12} className="inline mr-1" />
-                  {label}
+                  <BookOpen size={12} className="mr-1 inline align-text-bottom" />
+                  Methodology
                 </button>
-              ))}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setReviewerFacility(selectedFacility);
+                    setReviewerModeOpen(true);
+                  }}
+                  title="Reviewer Mode — facility brief (temporary nav hook)"
+                  className="shrink-0 px-2.5 py-1 rounded-sm text-[10px] font-bold transition-all bg-violet-600/30 text-violet-100 border border-violet-500/70 hover:bg-violet-600/45"
+                >
+                  <BookOpenCheck size={12} className="mr-1 inline align-text-bottom" />
+                  REVIEWER MODE
+                </button>
+                {TOP_BAR_MODE_DEFS.slice(1).map(({ mode, icon: Icon, label, tooltip }) => (
+                  <button
+                    key={mode}
+                    type="button"
+                    onClick={() => setViewMode(mode)}
+                    title={tooltip}
+                    className={`shrink-0 px-2.5 py-1 rounded-sm text-[10px] font-bold transition-all ${
+                      viewMode === mode 
+                        ? 'bg-[#00d2d3] text-black shadow-[0_0_15px_#00d2d3]' 
+                        : 'bg-white/10 text-[#00d2d3] hover:bg-white/20'
+                    }`}
+                  >
+                    <Icon size={12} className="mr-1 inline align-text-bottom" />
+                    {label}
+                  </button>
+                ))}
+              </div>
             </div>
 
             {/* Mini Stats (Always Visible) */}
-            <div className="flex items-center gap-4 text-[10px]">
+            <div className="flex shrink-0 flex-wrap items-center justify-end gap-2 text-[10px] sm:gap-4">
               <div className="text-center" title="Total data center facilities tracked">
                 <div className="text-[#00d2d3] font-bold">{stats.total.toLocaleString()}</div>
                 <div className="text-gray-500">TRACKED</div>
@@ -286,27 +426,59 @@ export const OmniscientCommandInterface: React.FC = () => {
             <div className="h-20 px-6 py-3 border-b border-[#00d2d3]/20 animate-slideDown">
               <div className="flex items-center justify-between h-full">
                 {/* Mode Buttons */}
-                <div className="flex items-center gap-2">
-                  {[
-                    { mode: 'omniscient' as ViewMode, icon: Target, label: 'Dashboard' },
-                    { mode: 'intelligence' as ViewMode, icon: Network, label: '📊 Tracker' },
-                    { mode: 'deepdive' as ViewMode, icon: Layers, label: 'Full Report' },
-                    { mode: 'hud' as ViewMode, icon: Zap, label: 'Violations' },
-                    { mode: 'timeline' as ViewMode, icon: Calendar, label: 'TIME' },
-                    { mode: 'network' as ViewMode, icon: GitBranch, label: 'NET' },
-                    { mode: 'map' as ViewMode, icon: MapPin, label: 'MAP' },
-                    { mode: 'kanban' as ViewMode, icon: Grid3x3, label: 'BOARD' }
-                  ].map(({ mode, icon: Icon, label }) => (
+                <div className="flex max-w-full flex-nowrap items-center gap-2 overflow-x-auto py-0.5 [scrollbar-width:thin]">
+                  {TOP_BAR_MODE_DEFS.slice(0, 1).map(({ mode, icon: Icon, label, tooltip }) => (
                     <button
                       key={mode}
+                      type="button"
                       onClick={() => setViewMode(mode)}
-                      className={`px-3 py-1.5 rounded-sm text-xs font-bold transition-all ${
+                      title={tooltip}
+                      className={`shrink-0 px-3 py-1.5 rounded-sm text-xs font-bold transition-all ${
                         viewMode === mode 
                           ? 'bg-[#00d2d3] text-black shadow-[0_0_20px_#00d2d3]' 
                           : 'bg-white/10 text-[#00d2d3] hover:bg-white/20'
                       }`}
                     >
-                      <Icon size={14} className="inline mr-1" />
+                      <Icon size={14} className="mr-1 inline" />
+                      {label}
+                    </button>
+                  ))}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      window.location.hash = '#methodology';
+                    }}
+                    title="Methodology, data sources, and limitations"
+                    className="shrink-0 px-3 py-1.5 rounded-sm text-xs font-bold transition-all bg-amber-500/25 text-amber-100 border border-amber-500/60 hover:bg-amber-500/35"
+                  >
+                    <BookOpen size={14} className="mr-1 inline align-text-bottom" />
+                    Methodology
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setReviewerFacility(selectedFacility);
+                      setReviewerModeOpen(true);
+                    }}
+                    title="Reviewer Mode — facility brief (temporary nav hook)"
+                    className="shrink-0 px-3 py-1.5 rounded-sm text-xs font-bold transition-all bg-violet-600/30 text-violet-100 border border-violet-500/70 hover:bg-violet-600/45"
+                  >
+                    <BookOpenCheck size={14} className="mr-1 inline align-text-bottom" />
+                    REVIEWER MODE
+                  </button>
+                  {TOP_BAR_MODE_DEFS.slice(1).map(({ mode, icon: Icon, label, tooltip }) => (
+                    <button
+                      key={mode}
+                      type="button"
+                      onClick={() => setViewMode(mode)}
+                      title={tooltip}
+                      className={`shrink-0 px-3 py-1.5 rounded-sm text-xs font-bold transition-all ${
+                        viewMode === mode 
+                          ? 'bg-[#00d2d3] text-black shadow-[0_0_20px_#00d2d3]' 
+                          : 'bg-white/10 text-[#00d2d3] hover:bg-white/20'
+                      }`}
+                    >
+                      <Icon size={14} className="mr-1 inline" />
                       {label}
                     </button>
                   ))}
@@ -428,13 +600,15 @@ export const OmniscientCommandInterface: React.FC = () => {
       )}
 
       {/* CENTER: Main Visualization Area */}
-      <div className={`absolute overflow-y-auto transition-all duration-300 ${
-        isFullscreen 
-          ? 'inset-0' 
-          : topBarExpanded
-          ? 'top-32 left-0 right-0 bottom-0'
-          : 'top-12 left-0 right-0 bottom-0'
-      }`}>
+      <div
+        className={`omni-main-stage absolute min-h-0 overflow-y-auto transition-all duration-300 ${
+          isFullscreen 
+            ? 'inset-0' 
+            : topBarExpanded
+            ? 'top-32 left-0 right-0 bottom-0'
+            : 'top-12 left-0 right-0 bottom-0'
+        }`}
+      >
         {/* Edge Hover Hints (First Time) */}
         {!isFullscreen && !topBarExpanded && !leftPanelVisible && !rightPanelVisible && (
           <div className="absolute inset-0 pointer-events-none z-10">
@@ -483,7 +657,15 @@ export const OmniscientCommandInterface: React.FC = () => {
           </div>
         )}
 
-        {viewMode === 'omniscient' && <OmniscientView facilities={facilities} onSelect={setSelectedFacility} isFullscreen={isFullscreen} />}
+        {viewMode === 'omniscient' && (
+          <OmniscientView
+            facilities={facilities}
+            onSelect={setSelectedFacility}
+            isFullscreen={isFullscreen}
+            suspendHeavyMotion={isScrollActive}
+            onNavigateToMode={setViewMode}
+          />
+        )}
         {viewMode === 'intelligence' && (
           <div className={`${isFullscreen ? 'p-4' : 'p-6'} space-y-6`}>
             <div className="mb-6">
@@ -543,6 +725,12 @@ export const OmniscientCommandInterface: React.FC = () => {
         {viewMode === 'hud' && <HUDView facilities={facilities} onSelect={setSelectedFacility} isFullscreen={isFullscreen} />}
         {viewMode === 'timeline' && <TimelineView facilities={facilities} onSelect={setSelectedFacility} isFullscreen={isFullscreen} />}
         {viewMode === 'network' && <NetworkView facilities={facilities} onSelect={setSelectedFacility} isFullscreen={isFullscreen} />}
+        {viewMode === 'bgp' && (
+          <BGPAnalysisView facilities={facilities} onSelect={setSelectedFacility} isFullscreen={isFullscreen} />
+        )}
+        {viewMode === 'disclosure_mismatch' && (
+          <DisclosureMismatchView isFullscreen={isFullscreen} />
+        )}
         {viewMode === 'map' && <MapView facilities={facilities} onSelect={setSelectedFacility} isFullscreen={isFullscreen} />}
         {viewMode === 'kanban' && <KanbanView facilities={facilities} onSelect={setSelectedFacility} isFullscreen={isFullscreen} />}
       </div>
@@ -650,6 +838,14 @@ export const OmniscientCommandInterface: React.FC = () => {
         onClose={() => setShowAISettings(false)} 
       />
 
+      <ReviewerMode
+        open={reviewerModeOpen}
+        onClose={() => setReviewerModeOpen(false)}
+        facility={reviewerFacility}
+        facilities={facilities}
+        onSelectFacility={setReviewerFacility}
+      />
+
       {/* Help Modal */}
       <HelpModal
         isOpen={showHelp}
@@ -657,10 +853,6 @@ export const OmniscientCommandInterface: React.FC = () => {
       />
 
       <style>{`
-        @keyframes gridScroll {
-          0% { transform: translate(0, 0); }
-          100% { transform: translate(50px, 50px); }
-        }
         @keyframes slideInRight {
           from { transform: translateX(100%); opacity: 0; }
           to { transform: translateX(0); opacity: 1; }
@@ -675,7 +867,19 @@ export const OmniscientCommandInterface: React.FC = () => {
 };
 
 // OMNISCIENT VIEW: Everything at once
-const OmniscientView: React.FC<{ facilities: Facility[]; onSelect: (f: Facility) => void; isFullscreen?: boolean }> = ({ facilities, onSelect, isFullscreen = false }) => {
+const OmniscientView: React.FC<{
+  facilities: Facility[];
+  onSelect: (f: Facility) => void;
+  isFullscreen?: boolean;
+  suspendHeavyMotion?: boolean;
+  onNavigateToMode?: (mode: ViewMode) => void;
+}> = ({
+  facilities,
+  onSelect,
+  isFullscreen = false,
+  suspendHeavyMotion = false,
+  onNavigateToMode,
+}) => {
   const [filteredFacilities, setFilteredFacilities] = useState<Facility[]>(facilities);
   const [showSearch, setShowSearch] = useState(true);
   
@@ -698,24 +902,37 @@ const OmniscientView: React.FC<{ facilities: Facility[]; onSelect: (f: Facility)
   }, [displayFacilities]);
   
   return (
-    <div className={`h-full ${isFullscreen ? 'p-4' : 'p-8'} overflow-auto`}>
+    <div className={`min-h-0 h-full ${isFullscreen ? 'p-4' : 'p-8'} overflow-x-hidden overflow-y-visible`}>
       {/* Natural Language Search */}
       {!isFullscreen && (
         <div className="mb-6">
-          <div className="flex items-center justify-between mb-3">
+          <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
             <h2 className="text-lg font-bold text-white flex items-center gap-2">
               <Sparkles size={20} className="text-[#ffa502]" />
               Natural Language Search
             </h2>
-            <button
-              onClick={() => {
-                setShowSearch(!showSearch);
-                if (!showSearch) setFilteredFacilities(facilities);
-              }}
-              className="text-xs text-gray-400 hover:text-white transition-colors"
-            >
-              {showSearch ? 'Hide' : 'Show'}
-            </button>
+            <div className="flex flex-wrap items-center gap-2">
+              {onNavigateToMode ? (
+                <button
+                  type="button"
+                  onClick={() => onNavigateToMode('bgp')}
+                  title="Demo BGP / network-risk view"
+                  className="shrink-0 rounded border border-[#00d2d3]/50 bg-[#00d2d3]/10 px-2.5 py-1 text-[10px] font-bold text-[#00d2d3] hover:bg-[#00d2d3]/20"
+                >
+                  BGP
+                </button>
+              ) : null}
+              <button
+                type="button"
+                onClick={() => {
+                  setShowSearch(!showSearch);
+                  if (!showSearch) setFilteredFacilities(facilities);
+                }}
+                className="text-xs text-gray-400 hover:text-white transition-colors"
+              >
+                {showSearch ? 'Hide' : 'Show'}
+              </button>
+            </div>
           </div>
           
           {showSearch && (
@@ -797,7 +1014,7 @@ const OmniscientView: React.FC<{ facilities: Facility[]; onSelect: (f: Facility)
             key={facility.id}
             onClick={() => onSelect(facility)}
             className={`
-              relative overflow-hidden
+              omni-facility-card relative overflow-hidden
               bg-gradient-to-br from-white/5 to-white/10 
               border border-[#00d2d3]/20 rounded-lg ${isFullscreen ? 'p-2' : 'p-4'} 
               hover:from-white/10 hover:to-white/15 
@@ -811,13 +1028,13 @@ const OmniscientView: React.FC<{ facilities: Facility[]; onSelect: (f: Facility)
             style={{ animationDelay: `${index * 30}ms` }}
           >
             {/* Particle background on hover */}
-            <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-              <ParticleBackground particleCount={10} opacity={0.2} />
+            <div className="omni-facility-overlay absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
+              <ParticleBackground particleCount={10} opacity={0.2} paused={suspendHeavyMotion} />
             </div>
 
             {/* Shimmer effect on hover */}
             <div
-              className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+              className="omni-facility-overlay omni-card-shimmer absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100"
               style={{
                 background: `linear-gradient(90deg, transparent, rgba(0,210,211,0.1), transparent)`,
                 backgroundSize: '200% 100%',
@@ -997,7 +1214,7 @@ const TimelineView: React.FC<{ facilities: Facility[]; onSelect: (f: Facility) =
   const facilitiesPerYear = isFullscreen ? 30 : 10;
   
   return (
-    <div className={`h-full overflow-auto ${isFullscreen ? 'p-4' : 'p-8'}`}>
+    <div className={`min-h-0 h-full overflow-x-hidden overflow-y-visible ${isFullscreen ? 'p-4' : 'p-8'}`}>
       <div className="space-y-6">
         {years.map(year => (
           <div key={year} className="relative">
@@ -1055,7 +1272,7 @@ const NetworkView: React.FC<{ facilities: Facility[]; onSelect: (f: Facility) =>
   }, [facilities, isFullscreen]);
 
   return (
-    <div className={`h-full overflow-auto ${isFullscreen ? 'p-4' : 'p-8'}`}>
+    <div className={`min-h-0 h-full overflow-x-hidden overflow-y-visible ${isFullscreen ? 'p-4' : 'p-8'}`}>
       <div className="flex flex-wrap gap-6 items-center justify-center">
         {operatorClusters.map(({ operator, facilities: clusterFacs, count }, i) => {
           const radius = Math.min(Math.sqrt(count) * (isFullscreen ? 12 : 15) + 20, isFullscreen ? 100 : 120);
@@ -1228,7 +1445,7 @@ const MapView: React.FC<{ facilities: Facility[]; onSelect: (f: Facility) => voi
   };
 
   return (
-    <div className={`h-full overflow-auto ${isFullscreen ? 'p-4' : 'p-8'}`}>
+    <div className={`min-h-0 h-full overflow-x-hidden overflow-y-visible ${isFullscreen ? 'p-4' : 'p-8'}`}>
       {/* Pseudo US Map */}
       <div className={`relative w-full ${isFullscreen ? 'h-[800px]' : 'h-[600px]'} bg-[#0a0e17] rounded-lg border border-[#00d2d3]/20`}>
         {/* Grid lines for reference */}
@@ -1400,7 +1617,7 @@ const KanbanView: React.FC<{ facilities: Facility[]; onSelect: (f: Facility) => 
   const limit = isFullscreen ? 100 : 50;
 
   return (
-    <div className={`h-full ${isFullscreen ? 'p-4' : 'p-8'} overflow-auto`}>
+    <div className={`min-h-0 h-full ${isFullscreen ? 'p-4' : 'p-8'} overflow-x-hidden overflow-y-visible`}>
       <div className={`flex gap-${isFullscreen ? '2' : '4'} h-full`}>
         {Object.entries(columns).map(([status, items]) => (
           <div key={status} className="flex-1 min-w-[200px]">

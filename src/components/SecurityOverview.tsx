@@ -21,6 +21,7 @@ import {
 } from '../utils/securityPosture';
 import { getRiskLevelInfo, formatForOrganizers, getContextualHelp } from '../utils/plainLanguage'; // NEW: Plain language utilities
 import type { Facility } from '../types';
+import { ReviewerMode } from './ReviewerMode';
 
 interface SecurityOverviewProps {
   facilities: Facility[];
@@ -29,6 +30,7 @@ interface SecurityOverviewProps {
 
 export const SecurityOverview: React.FC<SecurityOverviewProps> = React.memo(({ facilities, className = '' }) => {
   const [showHelp, setShowHelp] = React.useState(false);
+  const [debugReviewerFacility, setDebugReviewerFacility] = React.useState<Facility | null>(null);
 
   // Calculate all security postures (memoized)
   const postures = useMemo(() => {
@@ -104,6 +106,20 @@ export const SecurityOverview: React.FC<SecurityOverviewProps> = React.memo(({ f
             </div>
           </div>
         )}
+      </div>
+
+      <div className="rounded-lg border-2 border-amber-500/60 bg-amber-950/25 p-4 space-y-3">
+        <p className="text-xs font-bold uppercase tracking-wide text-amber-400">
+          DEBUG: REVIEWER MODE FORCED RENDER
+        </p>
+        <ReviewerMode
+          open={true}
+          onClose={() => {}}
+          facility={debugReviewerFacility}
+          facilities={facilities}
+          onSelectFacility={setDebugReviewerFacility}
+          layout="inline"
+        />
       </div>
 
       {/* Header Stats */}
