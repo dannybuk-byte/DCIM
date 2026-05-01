@@ -16,7 +16,8 @@ import {
   DollarSign,
   Users,
   Target,
-  Activity
+  Activity,
+  RadioTower
 } from 'lucide-react';
 
 export interface InvestigationTemplate {
@@ -211,8 +212,113 @@ export const INVESTIGATION_TEMPLATES: InvestigationTemplate[] = [
         )
         .toArray();
     }
-  }
+  },
+
+  // Demo BGP / network-risk (seeded fields only — no live ingestion)
+  {
+    id: 'bgp-highest-risk-providers',
+    name: 'Highest BGP Risk Providers',
+    description: 'Facilities under operators with the highest average demo BGP risk',
+    icon: RadioTower,
+    category: 'analysis',
+    requiresFacility: false,
+    execute: async () => {
+      const all = await db.facilities.toArray();
+      const agg = new Map<string, { sum: number; n: number }>();
+      for (const f of all) {
+        const op = f.operator || 'Unknown';
+        const row = agg.get(op) || { sum: 0, n: 0 };
+        row.sum += f.bgpRiskScore ?? 0;
+        row.n += 1;
+        agg.set(op, row);
+      }
+      const topOps = [...agg.entries()]
+        .map(([operator, { sum, n }]) => ({ operator, avg: sum / Math.max(1, n) }))
+        .sort((a, b) => b.avg - a.avg)
+        .slice(0, 15)
+        .map(r => r.operator);
+      const allow = new Set(topOps);
+      return all
+        .filter(f => allow.has(f.operator))
+        .sort((a, b) => (b.bgpRiskScore ?? 0) - (a.bgpRiskScore ?? 0))
+        .slice(0, 100);
+    },
+  },
+  {
+    id: 'bgp-frequent-route-changes',
+    name: 'Facilities With Frequent Route Changes',
+    description: 'Highest demo route-change rates (routing instability proxy)',
+    icon: RadioTower,
+    category: 'tracking',
+    requiresFacility: false,
+    execute: async () => {
+      return await db.facilities.orderBy('routeChangeRate').reverse().limit(60).toArray();
+    },
+  },
+  {
+    id: 'bgp-high-transit-dependency',
+    name: 'High Transit Dependency Facilities',
+    description: 'Demo transit dependency marked high',
+    icon: RadioTower,
+    category: 'tracking',
+    requiresFacility: false,
+    execute: async () => {
+      const rows = await db.facilities.where('transitDependency').equals('high').toArray();
+      return rows
+        .sort((a, b) => (b.bgpRiskScore ?? 0) - (a.bgpRiskScore ?? 0))
+        .slice(0, 60);
+    },
+  },
+  {
+    id: 'bgp-latency-anomaly-hotspots',
+    name: 'Latency Anomaly Hotspots',
+    description: 'Highest demo latency anomaly scores',
+    icon: RadioTower,
+    category: 'analysis',
+    requiresFacility: false,
+    execute: async () => {
+      return await db.facilities.orderBy('latencyAnomalyScore').reverse().limit(60).toArray();
+    },
+  },
+  {
+    id: 'bgp-combined-compliance-routing-risk',
+    name: 'Combined Compliance + Routing Risk',
+    description: 'Highest infrastructure accountability risk (compliance + BGP + subsidy gap)',
+    icon: RadioTower,
+    category: 'analysis',
+    requiresFacility: false,
+    execute: async () => {
+      return await db.facilities
+        .orderBy('infrastructureAccountabilityRisk')
+        .reverse()
+        .limit(60)
+        .toArray();
+    },
+  },
 ];
+
+/** Short labels for "Showing:" above investigation results (fallback: template.description). */
+const INVESTIGATION_SHOWING_LABELS: Record<string, string> = {
+  'worst-offenders': 'Facilities with the largest subsidy shortfalls',
+  'recent-additions': 'Recently opened facilities',
+  'complete-failures': 'Facilities with severe job shortfalls',
+  'highest-subsidies': 'Facilities receiving the largest subsidies',
+  'major-employers': 'Facilities with major job promises',
+  'gap-per-capita': 'Facilities with the worst gap per job created',
+  'recent-non-compliant': 'Recently opened non-compliant facilities',
+  'regional-comparison': 'Facilities in the same state as the selected site',
+  'operator-track-record': 'Facilities operated by the same operator',
+  'similar-scale': 'Facilities at a similar capacity scale',
+  'bgp-highest-risk-providers': 'Operators with the highest demo BGP risk exposure',
+  'bgp-frequent-route-changes': 'Facilities with the most frequent demo route changes',
+  'bgp-high-transit-dependency': 'Facilities with high transit dependency (demo)',
+  'bgp-latency-anomaly-hotspots': 'Facilities with the strongest latency anomaly signals (demo)',
+  'bgp-combined-compliance-routing-risk': 'Combined compliance, BGP, and subsidy-gap accountability risk',
+};
+
+export function getInvestigationShowingLabel(template: InvestigationTemplate): string {
+  return INVESTIGATION_SHOWING_LABELS[template.id] ?? template.description;
+}
 
 /**
  * Get templates by category

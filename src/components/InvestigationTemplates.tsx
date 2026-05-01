@@ -7,6 +7,7 @@ import {
   getFacilityTemplates,
   executeTemplate,
   generateResultSummary,
+  getInvestigationShowingLabel,
   type InvestigationTemplate
 } from '../utils/investigationTemplates';
 
@@ -52,6 +53,9 @@ export const InvestigationTemplates: React.FC<InvestigationTemplatesProps> = ({
     <div className="investigation-templates bg-[#0d1219] rounded-lg border border-[#00d2d3]/20">
       {/* Header */}
       <div className="p-4 border-b border-[#00d2d3]/20">
+        <p className="mb-2 border-l-2 border-[#00d2d3]/40 pl-2 text-[11px] leading-snug text-gray-500">
+          Start here: Choose a question below to explore data center compliance.
+        </p>
         <div className="flex items-center gap-2">
           <Target size={20} className="text-[#00d2d3]" />
           <h3 className="text-sm font-bold text-white">Quick Investigations</h3>
@@ -233,6 +237,12 @@ export const InvestigationResults: React.FC<InvestigationResultsProps> = ({
             <X size={20} />
           </button>
         </div>
+      </div>
+
+      <div className="px-4 pt-2 pb-1">
+        <p className="border-l-2 border-[#00d2d3]/40 pl-2 text-[11px] leading-snug text-gray-500">
+          Showing: {getInvestigationShowingLabel(template)}
+        </p>
       </div>
 
       {/* Results List */}

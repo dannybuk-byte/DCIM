@@ -116,7 +116,35 @@ export async function executeQuery(query: FacilityQuery): Promise<Facility[]> {
           return false;
         }
       }
-      
+
+      if (query.bgpRiskMin !== undefined && (facility.bgpRiskScore ?? 0) < query.bgpRiskMin) {
+        return false;
+      }
+      if (
+        query.routeChangeRateMin !== undefined &&
+        (facility.routeChangeRate ?? 0) < query.routeChangeRateMin
+      ) {
+        return false;
+      }
+      if (
+        query.latencyAnomalyMin !== undefined &&
+        (facility.latencyAnomalyScore ?? 0) < query.latencyAnomalyMin
+      ) {
+        return false;
+      }
+      if (query.transitDependencyLevels && query.transitDependencyLevels.length > 0) {
+        const td = facility.transitDependency ?? 'low';
+        if (!query.transitDependencyLevels.includes(td)) {
+          return false;
+        }
+      }
+      if (
+        query.infrastructureRiskMin !== undefined &&
+        (facility.infrastructureAccountabilityRisk ?? 0) < query.infrastructureRiskMin
+      ) {
+        return false;
+      }
+
       return true;
     });
     

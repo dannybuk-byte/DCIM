@@ -20,11 +20,15 @@ export async function convertNLToQuery(
   const config = loadAIConfig();
   
   if (!config || !config.enabled || !config.apiKey) {
-    throw new Error('AI features not configured. Please add your API key in Settings.');
+    throw new Error(
+      'AI-assisted search is not enabled in this demo. Core data queries are fully functional.'
+    );
   }
-  
+
   if (config.provider !== 'openai') {
-    throw new Error('Natural language search currently only supports OpenAI. Please configure OpenAI in Settings.');
+    throw new Error(
+      'Natural language search needs OpenAI right now. Switch provider to OpenAI in AI Settings or use keyword search.'
+    );
   }
   
   // Initialize OpenAI client
@@ -127,10 +131,17 @@ export function convertNLToQueryKeywords(naturalLanguage: string): FacilityQuery
     query.operator = foundOperators;
   }
   
-  // Extract compliance status
+  // Extract compliance status (avoid treating "BGP risk" / "routing risk" as compliance At Risk)
   if (lower.includes('non-compliant') || lower.includes('noncompliant') || lower.includes('failing')) {
     query.complianceStatuses = ['Non-Compliant'];
-  } else if (lower.includes('at risk') || lower.includes('risk')) {
+  } else if (
+    lower.includes('at risk') ||
+    (lower.includes('risk') &&
+      !lower.includes('bgp') &&
+      !lower.includes('routing') &&
+      !lower.includes('latency') &&
+      !lower.includes('network dependency'))
+  ) {
     query.complianceStatuses = ['At Risk'];
   } else if (lower.includes('compliant')) {
     query.complianceStatuses = ['Compliant'];
@@ -209,23 +220,94 @@ export function convertNLToQueryKeywords(naturalLanguage: string): FacilityQuery
       query.openedBefore = `${year}-12-31`;
     }
   }
-  
-  // Default sorting
-  if (query.complianceStatuses || query.subsidyGapMin || query.subsidyMin) {
-    query.sortBy = 'subsidyGap';
+
+  // Demo BGP / routing keywords (seeded indicators only)
+  const mentionsCombined =
+    (lower.includes('compliance') &&
+      (lower.includes('routing') || lower.includes('bgp'))) ||
+    lower.includes('compliance risk plus routing') ||
+    lower.includes('compliance and routing');
+
+  const mentionsBgp =
+    lower.includes('bgp') ||
+    lower.includes('border gateway') ||
+    (!mentionsCombined &&
+      (lower.includes('routing risk') ||
+        (lower.includes('routing') && lower.includes('network risk'))));
+
+  const mentionsUnstableRouting =
+    lower.includes('unstable routing') ||
+    lower.includes('routing instability') ||
+    lower.includes('unstable paths') ||
+    lower.includes('unstable path') ||
+    lower.includes('frequent route') ||
+    lower.includes('route changes') ||
+    lower.includes('route churn');
+
+  const mentionsTransitDep =
+    lower.includes('transit dependency') ||
+    lower.includes('external network dependency') ||
+    lower.includes('external dependency') ||
+    (lower.includes('network dependency') && lower.includes('external'));
+
+  const mentionsLatencyAnomaly =
+    lower.includes('latency anomaly') ||
+    lower.includes('latency anomalies');
+
+  if (mentionsCombined) {
+    query.infrastructureRiskMin = 48;
+    query.sortBy = 'infrastructureAccountabilityRisk';
     query.sortDirection = 'desc';
-  } else if (query.jobsCreatedMax) {
-    query.sortBy = 'jobsCreated';
-    query.sortDirection = 'asc';
-  } else {
-    query.sortBy = 'name';
-    query.sortDirection = 'asc';
+  } else if (mentionsUnstableRouting) {
+    query.routeChangeRateMin = 4;
+    query.sortBy = 'routeChangeRate';
+    query.sortDirection = 'desc';
+  } else if (mentionsTransitDep) {
+    query.transitDependencyLevels = ['high', 'medium'];
+    query.sortBy = 'bgpRiskScore';
+    query.sortDirection = 'desc';
+  } else if (mentionsLatencyAnomaly) {
+    query.latencyAnomalyMin = 55;
+    query.sortBy = 'latencyAnomalyScore';
+    query.sortDirection = 'desc';
+  } else if (mentionsBgp) {
+    query.bgpRiskMin = 45;
+    query.sortBy = 'bgpRiskScore';
+    query.sortDirection = 'desc';
+  }
+
+  // Default sorting
+  if (!query.sortBy) {
+    if (query.complianceStatuses || query.subsidyGapMin || query.subsidyMin) {
+      query.sortBy = 'subsidyGap';
+      query.sortDirection = 'desc';
+    } else if (query.jobsCreatedMax) {
+      query.sortBy = 'jobsCreated';
+      query.sortDirection = 'asc';
+    } else {
+      query.sortBy = 'name';
+      query.sortDirection = 'asc';
+    }
   }
   
   // Default limit
   query.limit = 100;
   
   return query;
+}
+
+/**
+ * When keyword fallback succeeds, omit noisy warnings for expected no-key / wrong-provider cases.
+ */
+function isBenignKeywordFallbackReason(message: string): boolean {
+  return (
+    message.includes('AI-assisted search is not enabled') ||
+    message.includes('AI is not configured') ||
+    message.includes('AI features not configured') ||
+    message.includes('Add your OpenAI API key') ||
+    message.includes('add your API key') ||
+    message.includes('needs OpenAI right now')
+  );
 }
 
 /**
@@ -240,14 +322,16 @@ export async function convertNLToQueryWithFallback(
     return { query, method: 'api' };
   } catch (error) {
     console.warn('API conversion failed, using keyword matching:', error);
-    
+
+    const errMsg = error instanceof Error ? error.message : 'API conversion failed';
+
     // Try keyword fallback
     try {
       const query = convertNLToQueryKeywords(naturalLanguage);
-      return { 
-        query, 
+      return {
+        query,
         method: 'keywords',
-        error: error instanceof Error ? error.message : 'API conversion failed'
+        error: isBenignKeywordFallbackReason(errMsg) ? undefined : errMsg,
       };
     } catch (fallbackError) {
       // Both failed - return empty query
@@ -283,7 +367,22 @@ export function normalizeQuery(query: FacilityQuery): FacilityQuery {
   
   // Set default sorting if not specified and has filters
   if (!query.sortBy) {
-    if (query.subsidyGapMin || query.complianceStatuses) {
+    if (query.infrastructureRiskMin != null) {
+      query.sortBy = 'infrastructureAccountabilityRisk';
+      query.sortDirection = 'desc';
+    } else if (query.latencyAnomalyMin != null) {
+      query.sortBy = 'latencyAnomalyScore';
+      query.sortDirection = 'desc';
+    } else if (query.routeChangeRateMin != null) {
+      query.sortBy = 'routeChangeRate';
+      query.sortDirection = 'desc';
+    } else if (query.transitDependencyLevels && query.transitDependencyLevels.length > 0) {
+      query.sortBy = 'bgpRiskScore';
+      query.sortDirection = 'desc';
+    } else if (query.bgpRiskMin != null) {
+      query.sortBy = 'bgpRiskScore';
+      query.sortDirection = 'desc';
+    } else if (query.subsidyGapMin || query.complianceStatuses) {
       query.sortBy = 'subsidyGap';
       query.sortDirection = 'desc';
     } else if (query.subsidyMin) {
