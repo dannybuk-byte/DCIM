@@ -47,6 +47,11 @@ describe('calculateStats', () => {
       atRisk: 0,
       unknown: 0,
       totalSubsidyGap: 0,
+      avgDaysSinceAudit: 0,
+      maxSubsidyGap: 0,
+      medianSubsidyGap: 0,
+      overdueAudits: 0,
+      totalIssues: 0,
     });
   });
 

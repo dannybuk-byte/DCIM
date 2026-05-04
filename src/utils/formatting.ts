@@ -1,10 +1,18 @@
 // Shared formatting utilities
 
 export function formatCurrency(amount: number): string {
-  if (amount >= 1_000_000_000) return `$${(amount / 1_000_000_000).toFixed(2)}B`;
-  if (amount >= 1_000_000) return `$${(amount / 1_000_000).toFixed(2)}M`;
-  if (amount >= 1_000) return `$${(amount / 1_000).toFixed(1)}K`;
-  return `$${amount.toLocaleString()}`;
+  const sign = amount < 0 ? '-' : '';
+  const abs = Math.abs(amount);
+
+  const trim = (n: number, digits: number) => {
+    return Number(n.toFixed(digits)).toString();
+  };
+
+  if (abs >= 1_000_000_000) return `${sign}$${trim(abs / 1_000_000_000, 2)}B`;
+  if (abs >= 1_000_000) return `${sign}$${trim(abs / 1_000_000, 2)}M`;
+  if (abs >= 1_000) return `${sign}$${trim(abs / 1_000, 1)}K`;
+
+  return `${sign}$${abs.toLocaleString()}`;
 }
 
 export function formatDate(dateString: string): string {
