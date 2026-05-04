@@ -3,6 +3,7 @@
  * Combines multiple ML and statistical techniques for infrastructure monitoring
  */
 
+import type { Facility } from '../types';
 import { dcimDb } from '../db/dcimDatabase';
 import {
   detectStatisticalAnomalies,
@@ -96,6 +97,25 @@ export interface AnalysisResult {
   };
   capacityExhaustion?: Date;
   spikes?: Array<{ index: number; value: number }>;
+}
+
+/** Facility-level isolation scores for unified intelligence (subsidy-gap feature). */
+export interface IsolationForestFacilityOutlier {
+  id: number;
+  name: string;
+  score: number;
+}
+
+export interface IsolationForestFacilityResult {
+  outliers: IsolationForestFacilityOutlier[];
+}
+
+/** Aggregate series forecast for dashboards (uses `arima` when available). */
+export interface ArimaSeriesForecast {
+  trend: 'increasing' | 'stable' | 'decreasing';
+  confidence: number;
+  /** NaN when the forecast is undefined (empty input or fewer than 3 finite values). Callers must Number.isNaN-check before display. */
+  nextValue: number;
 }
 
 export class DCIMAnalyzer {
@@ -287,6 +307,99 @@ export class DCIMAnalyzer {
   /**
    * Create LSTM autoencoder for advanced anomaly detection (optional, resource-intensive)
    */
+  /**
+   * Run isolation-forest scoring on facility subsidy gaps; returns facilities above the
+   * anomaly threshold (scores > 0.6), aligned with pattern-analysis thresholds.
+   */
+  async isolationForest(facilities: Facility[]): Promise<IsolationForestFacilityResult> {
+    const withFiniteGap = facilities.filter((f) => Number.isFinite(f.subsidyGap));
+    if (withFiniteGap.length < 4) {
+      return { outliers: [] };
+    }
+    const values = facilities.map((f) => f.subsidyGap).filter(Number.isFinite);
+    try {
+      const IsolationForestClass = await loadIsolationForest();
+      const subsamplingSize = Math.min(256, Math.max(4, values.length));
+      const forest = new IsolationForestClass({
+        numberOfTrees: 100,
+        subsamplingSize,
+      });
+      const data2D = values.map((v) => [v]);
+      forest.fit(data2D);
+      const scores: number[] = forest.scores();
+      const outliers: IsolationForestFacilityOutlier[] = [];
+      withFiniteGap.forEach((facility, i) => {
+        const score = scores[i];
+        if (typeof score === 'number' && Number.isFinite(score) && score > 0.6) {
+          outliers.push({
+            id: facility.id,
+            name: facility.name,
+            score,
+          });
+        }
+      });
+      return { outliers };
+    } catch {
+      return { outliers: [] };
+    }
+  }
+
+  /**
+   * ARIMA-backed one-step outlook on a numeric series (e.g. per-facility subsidy gaps).
+   * Falls back to a simple two-regime mean comparison when the library is unavailable.
+   */
+  async arima(series: number[]): Promise<ArimaSeriesForecast> {
+    const values = series.filter((v) => Number.isFinite(v));
+    if (values.length === 0) {
+      return { trend: 'stable', confidence: 0, nextValue: NaN };
+    }
+    if (values.length < 3) {
+      return { trend: 'stable', confidence: 0.2, nextValue: 0 };
+    }
+    const last = values[values.length - 1] ?? 0;
+    const baseline = last !== 0 ? Math.abs(last) : 1;
+
+    try {
+      if (values.length >= 5) {
+        const ARIMAClass = await loadARIMA();
+        const model = new ARIMAClass({ auto: true, method: 0 }).train(values);
+        const predicted = model.predict(1);
+        const raw = Array.isArray(predicted) ? predicted[0] : predicted;
+        const fv = Array.isArray(raw) ? raw[0] : raw;
+        if (typeof fv === 'number' && Number.isFinite(fv)) {
+          const deltaPct = ((fv - last) / baseline) * 100;
+          const trend: ArimaSeriesForecast['trend'] =
+            deltaPct > 1 ? 'increasing' : deltaPct < -1 ? 'decreasing' : 'stable';
+          return {
+            trend,
+            confidence: Math.min(0.95, 0.5 + values.length / 100),
+            nextValue: deltaPct,
+          };
+        }
+      }
+    } catch {
+      // Fallback below
+    }
+
+    const mid = Math.floor(values.length / 2);
+    const firstSlice = values.slice(0, Math.max(1, mid));
+    const secondSlice = values.slice(mid);
+    const firstMean = firstSlice.reduce((a, b) => a + b, 0) / firstSlice.length;
+    const secondMean =
+      secondSlice.length > 0
+        ? secondSlice.reduce((a, b) => a + b, 0) / secondSlice.length
+        : firstMean;
+    const denom = firstMean !== 0 ? Math.abs(firstMean) : 1;
+    const deltaPct = ((secondMean - firstMean) / denom) * 100;
+    const trend: ArimaSeriesForecast['trend'] =
+      deltaPct > 1 ? 'increasing' : deltaPct < -1 ? 'decreasing' : 'stable';
+    return {
+      trend,
+      confidence: 0.45,
+      nextValue: deltaPct,
+    };
+  }
+
   async createAutoencoder(windowSize: number): Promise<any> {
     try {
       const tfLib = await loadTensorFlow();

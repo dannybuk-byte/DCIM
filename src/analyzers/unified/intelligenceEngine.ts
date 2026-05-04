@@ -362,8 +362,12 @@ export class UnifiedIntelligenceEngine {
     
     // Run ARIMA forecasting on key metrics
     const subsidyGaps = facilities.map(f => f.subsidyGap);
-    const forecast = dcimAnalyzer.arima(subsidyGaps);
-    
+    const forecast = await dcimAnalyzer.arima(subsidyGaps);
+    // No finite subsidy-gap observations: do not emit a forecast finding (NaN is "not reported" signal).
+    if (forecast.confidence === 0 && Number.isNaN(forecast.nextValue)) {
+      return findings;
+    }
+
     // Check if trend is increasing
     if (forecast.trend === 'increasing') {
       findings.push({
