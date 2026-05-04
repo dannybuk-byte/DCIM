@@ -331,7 +331,7 @@ export const DeckGLOverlay = memo(function DeckGLOverlay({
 
     const deck = new Deck({
       parent: containerRef.current,
-      style: { position: 'absolute', top: 0, left: 0, pointerEvents: 'none' },
+      style: { position: 'absolute', top: '0', left: '0', pointerEvents: 'none' },
       viewState,
       layers,
       controller: false, // MapLibre handles controls
