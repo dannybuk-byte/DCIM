@@ -73,6 +73,17 @@ export interface Facility {
    * Auto-set when snapshot builder synthesizes missing rows.
    */
   credibilityIsDemo?: boolean;
+
+  // Extended analytics / UI fields
+  provider?: string;
+  jobsCurrent?: number;
+  complianceScore?: number;
+  safetyRisk?: number;
+  daysSinceLastAudit?: number;
+  isolationForest?: number;
+  providerRisk?: number;
+
+  [key: string]: any;
 }
 
 /** Evidence citation row for credibility scoring (not live ingestion). */
