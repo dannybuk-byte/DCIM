@@ -14,7 +14,6 @@
 import type { Facility } from '../../types';
 import { dcimAnalyzer } from '../../utils/dcimAnalyzer';
 import { complianceAssuranceEngine } from '../assurance/complianceAssuranceEngine';
-import type { DriftAlert } from '../assurance/complianceAssuranceEngine';
 
 // ============================================================================
 // UNIFIED TYPES
@@ -32,7 +31,8 @@ export interface IntelligenceFinding {
   // Content
   title: string;
   description: string;
-  affectedFacilities: string[];
+  /** Facility primary keys (`Facility.id`) and/or legacy string keys from graph nodes. */
+  affectedFacilities: Array<string | number>;
   
   // Analysis
   detectionMethod: 'statistical' | 'graph' | 'assurance' | 'ml-forecasting';
@@ -401,7 +401,7 @@ export class UnifiedIntelligenceEngine {
     const correlations: IntelligenceFinding[] = [];
     
     // Group findings by facility
-    const facilityFindings = new Map<string, IntelligenceFinding[]>();
+    const facilityFindings = new Map<string | number, IntelligenceFinding[]>();
     findings.forEach(f => {
       f.affectedFacilities.forEach(facilityId => {
         if (!facilityFindings.has(facilityId)) {

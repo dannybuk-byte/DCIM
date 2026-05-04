@@ -20,7 +20,8 @@ import type { Facility } from '../../types';
  * Compliance Intent: What was promised in subsidy agreements
  */
 export interface ComplianceIntent {
-  facilityId: string;
+  /** Matches `Facility.id` (numeric primary key). */
+  facilityId: number;
   operator: string;
   state: string;
   
@@ -44,7 +45,7 @@ export interface ComplianceIntent {
  * Assurance Check Result
  */
 export interface AssuranceResult {
-  facilityId: string;
+  facilityId: number;
   timestamp: Date;
   status: 'COMPLIANT' | 'DRIFTING' | 'VIOLATED' | 'UNKNOWN';
   confidence: number; // 0-1
@@ -74,7 +75,7 @@ export interface AssuranceCheck {
  */
 export interface DriftAlert {
   id: string;
-  facilityId: string;
+  facilityId: number;
   operator: string;
   severity: 'info' | 'warning' | 'critical';
   type: 'JOBS_SHORTFALL' | 'AUDIT_OVERDUE' | 'COMPLIANCE_DROP' | 'INVESTMENT_MISSING';
@@ -90,8 +91,8 @@ export interface DriftAlert {
 // ============================================================================
 
 export class ComplianceAssuranceEngine {
-  private intents: Map<string, ComplianceIntent> = new Map();
-  private historicalResults: Map<string, AssuranceResult[]> = new Map();
+  private intents: Map<number, ComplianceIntent> = new Map();
+  private historicalResults: Map<number, AssuranceResult[]> = new Map();
   
   /**
    * Register a compliance intent for a facility
@@ -239,7 +240,12 @@ export class ComplianceAssuranceEngine {
     if (query.includes('failed job') || query.includes('job promise')) {
       return facilities.filter(f => {
         const intent = this.intents.get(f.id);
-        return intent && f.jobsCreated < intent.jobsPromised * 0.5; // <50% of promised
+        const jobs = f.jobsCreated;
+        return (
+          intent !== undefined &&
+          jobs !== undefined &&
+          jobs < intent.jobsPromised * 0.5
+        ); // <50% of promised; omit facilities with no jobs-reported field
       });
     }
     
@@ -255,9 +261,14 @@ export class ComplianceAssuranceEngine {
       const subsidyThreshold = match ? parseInt(match[1]) * 1000000 : 100000000;
       const jobsThreshold = match ? parseInt(match[2]) : 50;
       
-      return facilities.filter(f => 
-        f.subsidyGap > subsidyThreshold && f.jobsCreated < jobsThreshold
-      );
+      return facilities.filter(f => {
+        const jobs = f.jobsCreated;
+        return (
+          jobs !== undefined &&
+          f.subsidyGap > subsidyThreshold &&
+          jobs < jobsThreshold
+        );
+      });
     }
     
     // Default: return all non-compliant
@@ -269,14 +280,20 @@ export class ComplianceAssuranceEngine {
   // ============================================================================
   
   private checkJobsIntent(facility: Facility, intent: ComplianceIntent): AssuranceCheck {
-    const deviation = ((intent.jobsPromised - facility.jobsCreated) / intent.jobsPromised) * 100;
-    
+    const jobsCreated = facility.jobsCreated;
+    const deviation =
+      jobsCreated === undefined
+        ? Number.NaN
+        : ((intent.jobsPromised - jobsCreated) / intent.jobsPromised) * 100;
+
     return {
       category: 'jobs',
       metric: 'Job Creation',
       expected: intent.jobsPromised,
-      actual: facility.jobsCreated,
-      passed: facility.jobsCreated >= intent.jobsPromised * 0.9, // 90% threshold
+      /** When missing on the row, surface as non-numeric so dashboards do not imply a measured zero. */
+      actual: jobsCreated === undefined ? 'Not reported' : jobsCreated,
+      passed:
+        jobsCreated !== undefined && jobsCreated >= intent.jobsPromised * 0.9, // 90% threshold
       deviation,
     };
   }
@@ -395,7 +412,7 @@ export class ComplianceAssuranceEngine {
     return 'stable';
   }
   
-  private storeResult(facilityId: string, result: AssuranceResult): void {
+  private storeResult(facilityId: number, result: AssuranceResult): void {
     if (!this.historicalResults.has(facilityId)) {
       this.historicalResults.set(facilityId, []);
     }

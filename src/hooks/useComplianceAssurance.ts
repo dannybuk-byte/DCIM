@@ -15,7 +15,7 @@ import {
 } from '../analyzers/assurance/complianceAssuranceEngine';
 
 export interface AssuranceState {
-  results: Map<string, AssuranceResult>;
+  results: Map<number, AssuranceResult>;
   alerts: DriftAlert[];
   totalViolations: number;
   totalDrifting: number;
@@ -46,7 +46,7 @@ export function useComplianceAssurance(facilities: Facility[]) {
     setLoading(true);
     
     try {
-      const results = new Map<string, AssuranceResult>();
+      const results = new Map<number, AssuranceResult>();
       let violations = 0;
       let drifting = 0;
       
@@ -103,8 +103,8 @@ export function useComplianceAssurance(facilities: Facility[]) {
    * Get assurance result for specific facility
    */
   const getResult = useCallback(
-    (facilityId: string): AssuranceResult | null => {
-      return state.results.get(facilityId) || null;
+    (facilityId: number): AssuranceResult | null => {
+      return state.results.get(facilityId) ?? null;
     },
     [state.results]
   );
