@@ -1,0 +1,104 @@
+================================================================================
+DCIM TYPESCRIPT STABILIZATION - DAY 3 HANDOFF (PLAIN TEXT - COPY FROM HERE)
+================================================================================
+If .md files look blank in Cursor: you may be stuck in Markdown Preview. Use:
+  Command Palette -> "Markdown: Open Source"   OR   "Reopen Editor With" -> Text Editor
+This file is .txt so it should always show as normal text.
+
+--------------------------------------------------------------------------------
+Purpose: Resume Day 3 (branch stabilization/2026-05) without re-deriving context.
+Audience: Next agent (Claude, etc.).
+Human gate: Daniel reviews and commits; agents propose diffs unless told otherwise.
+
+Re-verify on pickup: npx tsc --noEmit (error count) and npx vitest run
+Snapshot below dated 2026-05-04.
+
+--------------------------------------------------------------------------------
+MISSION
+--------------------------------------------------------------------------------
+- Drive npx tsc --noEmit errors down by >=60% from Day 3 start (~125) toward <=40.
+  Remaining errors: document in docs/dev/TS-ALLOWLIST.md (T5; file may not exist yet).
+- No new features. Type fixes and minimal supporting type-shape changes only.
+- No any, no @ts-ignore, no blanket String(x)/Number(x) coercion to silence errors.
+  (Aligning facilityId with Facility.id as number is correcting the model, not coercion.)
+
+--------------------------------------------------------------------------------
+TERMINOLOGY (BINDING)
+--------------------------------------------------------------------------------
+Use: non-compliance / under-compliance / subsidy gap     Never: fraud
+Use: rightsholders                                      Never: stakeholders
+Use: 11,992 facilities across 118 providers, edge-inclusive
+      Never shorten, round, or paraphrase that count.
+
+If existing code violates the above: separate commit from type work; flag for Daniel.
+
+--------------------------------------------------------------------------------
+VERIFIED SNAPSHOT (2026-05-04)
+--------------------------------------------------------------------------------
+Branch:     stabilization/2026-05 (was ahead 1 vs origin at handoff time)
+tsc:        ~81 errors
+vitest:     54 tests passed
+Tag ref:    stabilization-d2-tests-green
+
+Working tree (may include unrelated edits):
+  T2 files: src/analyzers/assurance/complianceAssuranceEngine.ts
+            src/hooks/useComplianceAssurance.ts
+            src/analyzers/unified/intelligenceEngine.ts
+  Also:     .gitignore, public/commit-hash.txt
+  Untracked: docs/DCIM_Execution_Checklist.md, docs/handoffs/
+
+Action for Daniel: commit T2 as one or two commits; revert unrelated files if accidental.
+
+--------------------------------------------------------------------------------
+TRANCHES
+--------------------------------------------------------------------------------
+T1  Facility type completion (TS2339)     PARTIAL
+T2  complianceAssuranceEngine cluster      IN WORKING TREE (numeric facilityId,
+    optional jobsCreated, hook Map types, IntelligenceFinding.affectedFacilities)
+T3  Cross-analyzer / shared mismatches     NEXT
+T4  POC quarantine (POCTab, wasm, etc.)    PENDING
+T5  TS-ALLOWLIST.md                         PENDING
+
+After each tranche: tsc + vitest; propose commit; wait for Daniel.
+
+--------------------------------------------------------------------------------
+T2 SUMMARY
+--------------------------------------------------------------------------------
+1. Facility.id is number. Assurance maps and facilityId fields use number.
+2. jobsCreated optional. Explicit undefined checks in queries; job check uses NaN
+   deviation, passed false, actual 'Not reported' when missing.
+3. useComplianceAssurance: Map<number, AssuranceResult>, getResult(number).
+4. intelligenceEngine: affectedFacilities is Array<string|number>. Remaining 3
+   errors in that file: DCIMAnalyzer isolationForest/arima, implicit any on outlier.
+
+--------------------------------------------------------------------------------
+ERROR HEAT MAP (~81 ERRORS, TOP FILES)
+--------------------------------------------------------------------------------
+DeckGLOverlay.tsx (14)
+GranularDrilldown.tsx (7)
+DCIMCommandCenter.tsx (5)
+securityPosture.ts (4)
+GlobeView.tsx (4)
+PhotorealisticGisView.tsx, NavigationSidebar.tsx, POCTab.tsx, intelligenceEngine.ts (3 each)
+Plus scattered 1-2 per file: App.tsx, EvidencePanel, predictive/engine, hooks, utils, tests.
+
+--------------------------------------------------------------------------------
+PROJECT RULES
+--------------------------------------------------------------------------------
+IndexedDB via Dexie only (no localStorage/sessionStorage for app state).
+Tailwind: static utility classes only.
+React: prefer no raw HTML form elements where project rule applies.
+useEffect: include cleanup where applicable.
+See AGENTS.md and .cursor/rules/.
+
+--------------------------------------------------------------------------------
+NEXT STEPS FOR NEXT AGENT
+--------------------------------------------------------------------------------
+1. Confirm T2-only files committed; clean stray .gitignore / commit-hash if unintended.
+2. T3: one cluster at a time (e.g. DCIMAnalyzer + intelligenceEngine, or DCIMCommandCenter).
+3. Re-run tsc and vitest; report error count delta.
+4. Near <=40 errors: add TS-ALLOWLIST.md.
+
+================================================================================
+END HANDOFF
+================================================================================

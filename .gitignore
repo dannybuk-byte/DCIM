@@ -6,3 +6,7 @@ dist/
 *.log
 .DS_Store
 DCIM Compliance App/
+
+# scratch / build artifacts
+ts-errors.txt
+public/commit-hash.txt
