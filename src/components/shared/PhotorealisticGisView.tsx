@@ -268,17 +268,19 @@ export const PhotorealisticGisView = memo(function PhotorealisticGisView({
   const [draftVertices, setDraftVertices] = useState<LngLat[]>([]);
   const [cursorLngLat, setCursorLngLat] = useState<LngLat | null>(null);
   const [snapToFacility, setSnapToFacility] = useState(true);
-  const [selectedFacility, setSelectedFacility] = useState<{
-    id?: string;
+  /** Map / deck / ATAK selection; coords omitted when unknown (never zero-filled). */
+  type GisSelectedFacility = {
+    id?: string | number;
     name: string;
     type?: string;
     operator?: string;
     status?: string;
     city?: string;
     state?: string;
-    lat: number;
-    lng: number;
-  } | null>(null);
+    lat?: number;
+    lng?: number;
+  };
+  const [selectedFacility, setSelectedFacility] = useState<GisSelectedFacility | null>(null);
   const [constructionOpen, setConstructionOpen] = useState(false);
   const [constructionOverlaySceneId, setConstructionOverlaySceneId] = useState<string | null>(null);
   const [constructionOverlayOpacity, setConstructionOverlayOpacity] = useState(0.75);
@@ -1407,6 +1409,7 @@ export const PhotorealisticGisView = memo(function PhotorealisticGisView({
         if (!feature) return;
         const p = feature.properties || {};
         const coords = feature.geometry.coordinates.slice();
+        if (!Number.isFinite(coords[0]) || !Number.isFinite(coords[1])) return;
 
         const name = p.name || 'Facility';
         const operator = p.operator || 'Unknown';
@@ -1736,6 +1739,7 @@ export const PhotorealisticGisView = memo(function PhotorealisticGisView({
       const coords = f?.geometry?.coordinates;
       if (!coords || coords.length < 2) return;
       const [lng, lat] = coords;
+      if (!Number.isFinite(lng) || !Number.isFinite(lat)) return;
 
       // Lift into selection when possible
       const props = (f?.properties || {}) as any;
@@ -2861,7 +2865,7 @@ export const PhotorealisticGisView = memo(function PhotorealisticGisView({
   const atakPointsWithIds = useMemo(() => attachIdsToPoints(atakPoints), [atakPoints]);
 
   const addWaypointForFacility = useCallback(
-    (facility: { id?: string; name: string; type?: string; operator?: string; status?: string; city?: string; state?: string; lat: number; lng: number }) => {
+    (facility: { id?: string | number; name: string; type?: string; operator?: string; status?: string; city?: string; state?: string; lat: number; lng: number }) => {
       const facilityId = facility.id ? String(facility.id) : '';
       setAtakPoints((prev) => {
         if (facilityId) {
@@ -2937,9 +2941,12 @@ export const PhotorealisticGisView = memo(function PhotorealisticGisView({
 
   const zoomToSelectedFacility = useCallback(() => {
     if (!selectedFacility) return;
+    const lat = selectedFacility.lat;
+    const lng = selectedFacility.lng;
+    if (!Number.isFinite(lat) || !Number.isFinite(lng)) return;
     setBasemap('satellite');
     const map: any = mapRef.current;
-    map?.easeTo?.({ center: [selectedFacility.lng, selectedFacility.lat], zoom: Math.max(map?.getZoom?.() || 0, 16), duration: 700 });
+    map?.easeTo?.({ center: [lng, lat], zoom: Math.max(map?.getZoom?.() || 0, 16), duration: 700 });
   }, [selectedFacility]);
 
   const zoomToAtakPoint = useCallback(
@@ -2955,9 +2962,13 @@ export const PhotorealisticGisView = memo(function PhotorealisticGisView({
   const openSelectedFacilityImagery = useCallback(
     (tab: 'map' | 'streetview') => {
       if (!selectedFacility) return;
+      const lat = selectedFacility.lat;
+      const lng = selectedFacility.lng;
+      if (lat === undefined || lng === undefined) return;
+      if (!Number.isFinite(lat) || !Number.isFinite(lng)) return;
       const nextLocation: GooglePaneLocation = {
-        lat: selectedFacility.lat,
-        lng: selectedFacility.lng,
+        lat,
+        lng,
         title: selectedFacility.name,
         subtitle: `${selectedFacility.operator || 'Unknown'} • ${selectedFacility.city || ''}${selectedFacility.city && selectedFacility.state ? ', ' : ''}${selectedFacility.state || ''} • ${selectedFacility.status || 'Unknown'}`
       };
@@ -2970,7 +2981,15 @@ export const PhotorealisticGisView = memo(function PhotorealisticGisView({
 
   const snapSelectedFacility = useCallback(() => {
     if (!selectedFacility) return;
-    addWaypointForFacility(selectedFacility);
+    const lat = selectedFacility.lat;
+    const lng = selectedFacility.lng;
+    if (lat === undefined || lng === undefined) return;
+    if (!Number.isFinite(lat) || !Number.isFinite(lng)) return;
+    addWaypointForFacility({
+      ...selectedFacility,
+      lat,
+      lng,
+    });
   }, [addWaypointForFacility, selectedFacility]);
 
   const clearAtakOverlay = useCallback(() => {
@@ -3032,17 +3051,20 @@ export const PhotorealisticGisView = memo(function PhotorealisticGisView({
             radiusScale={deckRadiusScale}
             elevationScale={deckElevationScale}
             containerRef={deckContainerRef}
-            onFacilityClick={(f) => setSelectedFacility({
-              id: f.id,
-              name: f.name,
-              type: f.type,
-              operator: f.operator,
-              status: f.complianceStatus,
-              city: f.city,
-              state: f.state,
-              lat: f.latitude,
-              lng: f.longitude
-            })}
+            onFacilityClick={(f) => {
+              if (!Number.isFinite(f.latitude) || !Number.isFinite(f.longitude)) return;
+              setSelectedFacility({
+                id: f.id,
+                name: f.name,
+                type: f.type,
+                operator: f.operator,
+                status: f.complianceStatus,
+                city: f.city,
+                state: f.state,
+                lat: f.latitude,
+                lng: f.longitude,
+              });
+            }}
           />
           <DeckGLControlPanel
             mode={deckMode}
@@ -3528,11 +3550,23 @@ export const PhotorealisticGisView = memo(function PhotorealisticGisView({
         <ConstructionProgressModal
           isOpen={constructionOpen}
           onClose={() => setConstructionOpen(false)}
-          facility={
-            selectedFacility
-              ? { id: selectedFacility.id, name: selectedFacility.name, type: selectedFacility.type, lat: selectedFacility.lat, lng: selectedFacility.lng }
-              : null
-          }
+          facility={(() => {
+            if (!selectedFacility) return null;
+            const lat = selectedFacility.lat;
+            const lng = selectedFacility.lng;
+            if (lat === undefined || lng === undefined) return null;
+            if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
+            return {
+              id:
+                selectedFacility.id !== undefined && selectedFacility.id !== null
+                  ? String(selectedFacility.id)
+                  : undefined,
+              name: selectedFacility.name,
+              type: selectedFacility.type,
+              lat,
+              lng,
+            };
+          })()}
           overlaySceneId={constructionOverlaySceneId}
           overlayOpacity={constructionOverlayOpacity}
           onSetOverlay={(sceneId) => {

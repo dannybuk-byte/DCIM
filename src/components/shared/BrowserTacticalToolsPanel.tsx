@@ -108,7 +108,16 @@ export const BrowserTacticalToolsPanel = memo(function BrowserTacticalToolsPanel
   onModeChange: (m: TacticalMode) => void;
   snapToFacility: boolean;
   onToggleSnapToFacility: () => void;
-  selectedFacility: { id?: string; name: string; operator?: string; status?: string; city?: string; state?: string; lat: number; lng: number } | null;
+  selectedFacility: {
+    id?: string | number;
+    name: string;
+    operator?: string;
+    status?: string;
+    city?: string;
+    state?: string;
+    lat?: number;
+    lng?: number;
+  } | null;
   onSnapSelectedFacility: () => void;
   onZoomSelectedFacility: () => void;
   onOpenSelectedFacilityMap: () => void;
@@ -128,6 +137,21 @@ export const BrowserTacticalToolsPanel = memo(function BrowserTacticalToolsPanel
     if (!cursor) return '—';
     return `${cursor.lat.toFixed(6)}, ${cursor.lng.toFixed(6)}`;
   }, [cursor]);
+
+  const selectedHasCoords =
+    selectedFacility != null &&
+    Number.isFinite(selectedFacility.lat) &&
+    Number.isFinite(selectedFacility.lng);
+
+  const selectedCoordsLabel = useMemo(() => {
+    if (!selectedFacility) return 'Location unknown';
+    const la = selectedFacility.lat;
+    const ln = selectedFacility.lng;
+    if (la === undefined || ln === undefined || !Number.isFinite(la) || !Number.isFinite(ln)) {
+      return 'Location unknown';
+    }
+    return `${la.toFixed(6)}, ${ln.toFixed(6)}`;
+  }, [selectedFacility]);
 
   const parentRef = useRef<HTMLDivElement | null>(null);
   const virtualizer = useVirtualizer({
@@ -203,46 +227,51 @@ export const BrowserTacticalToolsPanel = memo(function BrowserTacticalToolsPanel
             <button
               type="button"
               onClick={onZoomSelectedFacility}
-              className="px-2 py-1 rounded text-[11px] border border-gray-800 bg-gray-900 text-gray-200 hover:bg-gray-800"
-              title="Zoom satellite map to this facility"
+              disabled={!selectedHasCoords}
+              className="px-2 py-1 rounded text-[11px] border border-gray-800 bg-gray-900 text-gray-200 hover:bg-gray-800 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-gray-900"
+              title={selectedHasCoords ? 'Zoom satellite map to this facility' : 'Needs coordinates'}
             >
               Zoom satellite
             </button>
             <button
               type="button"
               onClick={onOpenSelectedFacilityMap}
-              className="px-2 py-1 rounded text-[11px] border border-gray-800 bg-gray-900 text-gray-200 hover:bg-gray-800"
-              title="Open imagery/map pane for this facility"
+              disabled={!selectedHasCoords}
+              className="px-2 py-1 rounded text-[11px] border border-gray-800 bg-gray-900 text-gray-200 hover:bg-gray-800 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-gray-900"
+              title={selectedHasCoords ? 'Open imagery/map pane for this facility' : 'Needs coordinates'}
             >
               Imagery
             </button>
             <button
               type="button"
               onClick={onOpenSelectedFacilityStreetView}
-              className="px-2 py-1 rounded text-[11px] border border-gray-800 bg-gray-900 text-gray-200 hover:bg-gray-800"
-              title="Open Street View pane for this facility"
+              disabled={!selectedHasCoords}
+              className="px-2 py-1 rounded text-[11px] border border-gray-800 bg-gray-900 text-gray-200 hover:bg-gray-800 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-gray-900"
+              title={selectedHasCoords ? 'Open Street View pane for this facility' : 'Needs coordinates'}
             >
               Street View
             </button>
             <button
               type="button"
               onClick={onOpenConstructionProgress}
-              className="px-2 py-1 rounded text-[11px] border border-cyan-500/50 bg-cyan-500/10 text-cyan-200 hover:bg-cyan-500/20"
-              title="Open near-real-time construction imagery timeline"
+              disabled={!selectedHasCoords}
+              className="px-2 py-1 rounded text-[11px] border border-cyan-500/50 bg-cyan-500/10 text-cyan-200 hover:bg-cyan-500/20 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-cyan-500/10"
+              title={selectedHasCoords ? 'Open near-real-time construction imagery timeline' : 'Needs coordinates'}
             >
               Construction
             </button>
             <button
               type="button"
               onClick={onSnapSelectedFacility}
-              className="px-2 py-1 rounded text-[11px] border border-cyan-500/50 bg-cyan-500/10 text-cyan-200 hover:bg-cyan-500/20"
-              title="Create a waypoint at the selected facility"
+              disabled={!selectedHasCoords}
+              className="px-2 py-1 rounded text-[11px] border border-cyan-500/50 bg-cyan-500/10 text-cyan-200 hover:bg-cyan-500/20 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-cyan-500/10"
+              title={selectedHasCoords ? 'Create a waypoint at the selected facility' : 'Needs coordinates'}
             >
               Snap waypoint
             </button>
           </div>
-          <div className="text-[11px] text-gray-500 font-mono truncate" title={`${selectedFacility.lat}, ${selectedFacility.lng}`}>
-            {selectedFacility.lat.toFixed(6)}, {selectedFacility.lng.toFixed(6)}
+          <div className="text-[11px] text-gray-500 font-mono truncate" title={selectedCoordsLabel}>
+            {selectedCoordsLabel}
           </div>
         </div>
       )}
