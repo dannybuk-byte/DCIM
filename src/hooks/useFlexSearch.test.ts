@@ -16,10 +16,10 @@ describe('useFlexSearch', () => {
     vi.useRealTimers();
   });
 
-  it('should initialize with default state', () => {
+  it('indexes synchronously on mount', () => {
     const { result } = renderHook(() => useFlexSearch(mockFacilities));
     
-    expect(result.current.isIndexed).toBe(false);
+    expect(result.current.isIndexed).toBe(true);
     expect(result.current.isSearching).toBe(false);
     expect(result.current.results).toHaveLength(0);
     expect(result.current.query).toBe('');
