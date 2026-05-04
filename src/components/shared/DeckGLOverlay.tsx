@@ -12,11 +12,20 @@
  */
 
 import { memo, useCallback, useMemo, useState, useEffect } from 'react';
-import { Deck } from '@deck.gl/core';
+import { Deck, Layer } from '@deck.gl/core';
 import { ScatterplotLayer, ArcLayer, TextLayer, IconLayer, LineLayer } from '@deck.gl/layers';
 import { HexagonLayer, HeatmapLayer, ScreenGridLayer } from '@deck.gl/aggregation-layers';
 import type { Facility } from '../../types';
 import { Layers, Hexagon, Circle, ArrowUpRight, Grid3x3, Thermometer, Zap } from 'lucide-react';
+
+/** Facility row with geocoded position (no fake defaults). */
+type WithCoords<T> = T & { latitude: number; longitude: number };
+
+function hasCoords<T extends { latitude?: number; longitude?: number }>(
+  d: T
+): d is WithCoords<T> {
+  return Number.isFinite(d.latitude) && Number.isFinite(d.longitude);
+}
 
 // Compliance status colors matching the dark theme
 const STATUS_COLORS: Record<string, [number, number, number, number]> = {
@@ -68,36 +77,52 @@ interface FlowConnection {
   weight: number;
 }
 
+type FlowConnectionWithCoords = {
+  source: WithCoords<Facility>;
+  target: WithCoords<Facility>;
+  weight: number;
+};
+
+function flowHasRenderableCoords(fc: FlowConnection): fc is FlowConnectionWithCoords {
+  return hasCoords(fc.source) && hasCoords(fc.target);
+}
+
 // Generate synthetic flow connections between facilities
 function generateFlows(facilities: Facility[], maxConnections = 500): FlowConnection[] {
   const flows: FlowConnection[] = [];
-  const nonCompliant = facilities.filter(f => f.complianceStatus === 'Non-Compliant');
-  const atRisk = facilities.filter(f => f.complianceStatus === 'At Risk');
-  const compliant = facilities.filter(f => f.complianceStatus === 'Compliant');
-  
+  const nonCompliant = facilities
+    .filter((f) => f.complianceStatus === 'Non-Compliant')
+    .filter(hasCoords);
+  const atRisk = facilities
+    .filter((f) => f.complianceStatus === 'At Risk')
+    .filter(hasCoords);
+  const compliant = facilities
+    .filter((f) => f.complianceStatus === 'Compliant')
+    .filter(hasCoords);
+
   // Connect non-compliant to nearby at-risk (showing spread risk)
   for (const nc of nonCompliant.slice(0, 50)) {
     const nearbyAtRisk = atRisk
-      .filter(ar => {
+      .filter((ar) => {
         const dist = Math.hypot(nc.latitude - ar.latitude, nc.longitude - ar.longitude);
         return dist < 5; // Within ~5 degrees
       })
       .slice(0, 3);
-    
+
     for (const ar of nearbyAtRisk) {
       flows.push({ source: nc, target: ar, weight: Math.random() * 100 + 50 });
     }
   }
-  
+
   // Connect compliant facilities (showing healthy network)
   for (let i = 0; i < Math.min(100, compliant.length); i++) {
     const src = compliant[i];
     const tgt = compliant[(i + 1) % compliant.length];
-    if (src && tgt) {
+    if (src && tgt && hasCoords(src) && hasCoords(tgt)) {
       flows.push({ source: src, target: tgt, weight: Math.random() * 30 + 10 });
     }
   }
-  
+
   return flows.slice(0, maxConnections);
 }
 
@@ -117,11 +142,21 @@ export const DeckGLOverlay = memo(function DeckGLOverlay({
   const [deckInstance, setDeckInstance] = useState<Deck | null>(null);
   const [hoveredFacility, setHoveredFacility] = useState<Facility | null>(null);
 
+  const facilitiesWithCoords = useMemo(
+    () => facilities.filter(hasCoords),
+    [facilities]
+  );
+
   // Generate flow connections
   const flows = useMemo(() => {
     if (!showFlows && mode !== 'arcs' && mode !== 'combined') return [];
     return generateFlows(facilities);
   }, [facilities, showFlows, mode]);
+
+  const flowsWithCoords = useMemo(
+    () => flows.filter(flowHasRenderableCoords),
+    [flows]
+  );
 
   // Get metric value for sizing/coloring
   const getMetricValue = useCallback((f: Facility): number => {
@@ -134,9 +169,9 @@ export const DeckGLOverlay = memo(function DeckGLOverlay({
   }, [metricField]);
 
   // Scatterplot layer - individual facilities with glow
-  const scatterLayer = useMemo(() => new ScatterplotLayer<Facility>({
+  const scatterLayer = useMemo(() => new ScatterplotLayer<WithCoords<Facility>>({
     id: 'facilities-scatter',
-    data: facilities,
+    data: facilitiesWithCoords,
     pickable: true,
     opacity,
     stroked: true,
@@ -146,7 +181,7 @@ export const DeckGLOverlay = memo(function DeckGLOverlay({
     radiusMaxPixels: 40,
     lineWidthMinPixels: 1,
     lineWidthMaxPixels: 3,
-    getPosition: (d) => [d.longitude, d.latitude],
+    getPosition: (d: WithCoords<Facility>) => [d.longitude, d.latitude],
     getRadius: (d) => Math.sqrt(getMetricValue(d)) * 0.5 + 5,
     getFillColor: (d) => STATUS_COLORS[d.complianceStatus] || STATUS_COLORS.Unknown,
     getLineColor: (d) => GLOW_COLORS[d.complianceStatus] || GLOW_COLORS.Unknown,
@@ -157,15 +192,15 @@ export const DeckGLOverlay = memo(function DeckGLOverlay({
       onFacilityHover?.(object || null);
     },
     updateTriggers: {
-      getFillColor: [facilities],
+      getFillColor: [facilitiesWithCoords],
       getRadius: [metricField],
     },
-  }), [facilities, opacity, radiusScale, metricField, getMetricValue, onFacilityClick, onFacilityHover]);
+  }), [facilitiesWithCoords, opacity, radiusScale, metricField, getMetricValue, onFacilityClick, onFacilityHover]);
 
   // Glow halo layer (behind scatter)
-  const glowLayer = useMemo(() => new ScatterplotLayer<Facility>({
+  const glowLayer = useMemo(() => new ScatterplotLayer<WithCoords<Facility>>({
     id: 'facilities-glow',
-    data: facilities,
+    data: facilitiesWithCoords,
     pickable: false,
     opacity: 0.3,
     stroked: false,
@@ -173,19 +208,19 @@ export const DeckGLOverlay = memo(function DeckGLOverlay({
     radiusScale: radiusScale * 80,
     radiusMinPixels: 8,
     radiusMaxPixels: 60,
-    getPosition: (d) => [d.longitude, d.latitude],
+    getPosition: (d: WithCoords<Facility>) => [d.longitude, d.latitude],
     getRadius: (d) => Math.sqrt(getMetricValue(d)) * 0.8 + 10,
     getFillColor: (d) => GLOW_COLORS[d.complianceStatus] || GLOW_COLORS.Unknown,
     updateTriggers: {
-      getFillColor: [facilities],
+      getFillColor: [facilitiesWithCoords],
       getRadius: [metricField],
     },
-  }), [facilities, radiusScale, metricField, getMetricValue]);
+  }), [facilitiesWithCoords, radiusScale, metricField, getMetricValue]);
 
   // Hexagon aggregation layer
-  const hexagonLayer = useMemo(() => new HexagonLayer<Facility>({
+  const hexagonLayer = useMemo(() => new HexagonLayer<WithCoords<Facility>>({
     id: 'facilities-hexbin',
-    data: facilities,
+    data: facilitiesWithCoords,
     pickable: true,
     extruded: true,
     radius: 50000, // 50km hexagons
@@ -193,7 +228,7 @@ export const DeckGLOverlay = memo(function DeckGLOverlay({
     elevationRange: [0, 3000],
     coverage: 0.9,
     upperPercentile: 100,
-    getPosition: (d) => [d.longitude, d.latitude],
+    getPosition: (d: WithCoords<Facility>) => [d.longitude, d.latitude],
     getElevationWeight: (d) => getMetricValue(d),
     getColorWeight: (d) => d.complianceStatus === 'Non-Compliant' ? 100 : 
                           d.complianceStatus === 'At Risk' ? 50 : 10,
@@ -211,14 +246,14 @@ export const DeckGLOverlay = memo(function DeckGLOverlay({
       shininess: 32,
       specularColor: [51, 51, 51],
     },
-  }), [facilities, elevationScale, getMetricValue]);
+  }), [facilitiesWithCoords, elevationScale, getMetricValue]);
 
   // Heatmap layer - continuous density
-  const heatmapLayer = useMemo(() => new HeatmapLayer<Facility>({
+  const heatmapLayer = useMemo(() => new HeatmapLayer<WithCoords<Facility>>({
     id: 'facilities-heatmap',
-    data: facilities,
+    data: facilitiesWithCoords,
     pickable: false,
-    getPosition: (d) => [d.longitude, d.latitude],
+    getPosition: (d: WithCoords<Facility>) => [d.longitude, d.latitude],
     getWeight: (d) => getMetricValue(d) + 1,
     radiusPixels: 60,
     intensity: 1,
@@ -230,16 +265,16 @@ export const DeckGLOverlay = memo(function DeckGLOverlay({
       [255, 165, 2, 200],
       [255, 71, 87, 255],
     ],
-  }), [facilities, getMetricValue]);
+  }), [facilitiesWithCoords, getMetricValue]);
 
   // Screen grid layer - pixel-based binning
-  const screenGridLayer = useMemo(() => new ScreenGridLayer<Facility>({
+  const screenGridLayer = useMemo(() => new ScreenGridLayer<WithCoords<Facility>>({
     id: 'facilities-screengrid',
-    data: facilities,
+    data: facilitiesWithCoords,
     pickable: true,
     opacity: 0.7,
     cellSizePixels: 20,
-    getPosition: (d) => [d.longitude, d.latitude],
+    getPosition: (d: WithCoords<Facility>) => [d.longitude, d.latitude],
     getWeight: (d) => getMetricValue(d) + 1,
     colorRange: [
       [0, 25, 0, 40],
@@ -250,30 +285,31 @@ export const DeckGLOverlay = memo(function DeckGLOverlay({
       [255, 0, 0, 255],
     ],
     gpuAggregation: true,
-  }), [facilities, getMetricValue]);
+  }), [facilitiesWithCoords, getMetricValue]);
 
   // Arc layer - flow connections
-  const arcLayer = useMemo(() => new ArcLayer<FlowConnection>({
+  const arcLayer = useMemo(() => new ArcLayer<FlowConnectionWithCoords>({
     id: 'flow-arcs',
-    data: flows,
+    data: flowsWithCoords,
     pickable: true,
     getWidth: (d) => Math.sqrt(d.weight) * 0.5 + 1,
-    getSourcePosition: (d) => [d.source.longitude, d.source.latitude],
-    getTargetPosition: (d) => [d.target.longitude, d.target.latitude],
+    getSourcePosition: (d: FlowConnectionWithCoords) => [d.source.longitude, d.source.latitude],
+    getTargetPosition: (d: FlowConnectionWithCoords) => [d.target.longitude, d.target.latitude],
     getSourceColor: (d) => STATUS_COLORS[d.source.complianceStatus] || STATUS_COLORS.Unknown,
     getTargetColor: (d) => STATUS_COLORS[d.target.complianceStatus] || STATUS_COLORS.Unknown,
     getHeight: 0.3,
     greatCircle: true,
-  }), [flows]);
+  }), [flowsWithCoords]);
 
   // Text labels for hovered facility
   const textLayer = useMemo(() => {
-    if (!hoveredFacility) return null;
-    return new TextLayer<Facility>({
+    if (!hoveredFacility || !hasCoords(hoveredFacility)) return null;
+    const labeled: WithCoords<Facility> = hoveredFacility;
+    return new TextLayer<WithCoords<Facility>>({
       id: 'facility-label',
-      data: [hoveredFacility],
+      data: [labeled],
       pickable: false,
-      getPosition: (d) => [d.longitude, d.latitude],
+      getPosition: (d: WithCoords<Facility>) => [d.longitude, d.latitude],
       getText: (d) => `${d.name}\n$${(d.subsidyGap / 1e6).toFixed(1)}M gap`,
       getSize: 14,
       getColor: [232, 238, 246, 255],
@@ -291,7 +327,7 @@ export const DeckGLOverlay = memo(function DeckGLOverlay({
 
   // Compose layers based on mode
   const layers = useMemo(() => {
-    const result: any[] = [];
+    const result: Layer[] = [];
     
     switch (mode) {
       case 'scatter':
@@ -436,7 +472,12 @@ export const DeckGLControlPanel = memo(function DeckGLControlPanel({
         <label className="text-[10px] text-[#5a6d8a] uppercase">Metric</label>
         <select
           value={metricField}
-          onChange={(e) => onMetricFieldChange(e.target.value as any)}
+          onChange={(e) => {
+            const v = e.target.value;
+            if (v === 'subsidyGap' || v === 'issuesCount' || v === 'safetyRisk') {
+              onMetricFieldChange(v);
+            }
+          }}
           className="w-full mt-0.5 bg-[#1e293b] text-[#e8eef6] text-xs rounded px-2 py-1 border border-[#2d3748] focus:border-cyan-500 outline-none"
         >
           {metrics.map(m => (
