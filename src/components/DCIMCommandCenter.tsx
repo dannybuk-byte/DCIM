@@ -1197,13 +1197,7 @@ export default function DCIMCommandCenter({ onActionRequested: _onActionRequeste
         </ErrorBoundary>
       )}
 
-      {/* POC tab disabled - requires @kuzu/kuzu-wasm
-      {activeTab === 'POC' && (
-        <ErrorBoundary>
-          <GraphDatabasePOC />
-        </ErrorBoundary>
-      )}
-      */}
+      {/* Graph DB POC sources: src/_quarantine/ (excluded from tsc; not bundled). */}
 
       {activeTab === 'POC' && (
         <ErrorBoundary>
