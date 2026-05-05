@@ -48,6 +48,17 @@ interface GranularDrilldownProps {
 export const GranularDrilldown: React.FC<GranularDrilldownProps> = ({ facility, className = '' }) => {
   const [expanded, setExpanded] = useState<Set<string>>(new Set(['overview']));
 
+  // coord-as-missing-data: null when lat/lng absent or non-finite (never zero-filled).
+  const la = facility.latitude;
+  const ln = facility.longitude;
+  const geoCoords =
+    la !== undefined &&
+    ln !== undefined &&
+    Number.isFinite(la) &&
+    Number.isFinite(ln)
+      ? { lat: la, lng: ln }
+      : null;
+
   const toggleExpand = (id: string) => {
     setExpanded(prev => {
       const next = new Set(prev);
@@ -172,9 +183,15 @@ export const GranularDrilldown: React.FC<GranularDrilldownProps> = ({ facility, 
           >
             <div className="space-y-2 mt-2">
               <DetailRow label="Facility Type" value={facility.type} />
-              <DetailRow label="Provider" value={facility.provider} />
-              <DetailRow label="Latitude" value={facility.latitude.toFixed(6)} />
-              <DetailRow label="Longitude" value={facility.longitude.toFixed(6)} />
+              <DetailRow label="Provider" value={facility.provider ?? 'Unknown'} />
+              <DetailRow
+                label="Latitude"
+                value={geoCoords ? geoCoords.lat.toFixed(6) : 'Location unknown'}
+              />
+              <DetailRow
+                label="Longitude"
+                value={geoCoords ? geoCoords.lng.toFixed(6) : 'Location unknown'}
+              />
 
               {/* Level 3: Geographic Details */}
               <DrilldownSection
@@ -190,7 +207,12 @@ export const GranularDrilldown: React.FC<GranularDrilldownProps> = ({ facility, 
                   <DetailRow label="City" value={facility.city} />
                   <DetailRow label="Postal Code" value={facility.postalCode || 'N/A'} />
                   <DetailRow label="Metro Area" value={facility.metroCode || 'N/A'} />
-                  <DetailRow label="Coordinates" value={`${facility.latitude}, ${facility.longitude}`} />
+                  <DetailRow
+                    label="Coordinates"
+                    value={
+                      geoCoords ? `${geoCoords.lat}, ${geoCoords.lng}` : 'Location unknown'
+                    }
+                  />
                   
                   {/* Level 4: Coordinate System Details */}
                   <DrilldownSection
@@ -203,15 +225,29 @@ export const GranularDrilldown: React.FC<GranularDrilldownProps> = ({ facility, 
                     <div className="space-y-2 mt-2">
                       <DetailRow label="Format" value="Decimal Degrees (DD)" />
                       <DetailRow label="Datum" value="WGS84" />
-                      <DetailRow label="Latitude (N)" value={`${facility.latitude.toFixed(8)}°`} />
-                      <DetailRow label="Longitude (W)" value={`${facility.longitude.toFixed(8)}°`} />
-                      <DetailRow 
-                        label="DMS Lat" 
-                        value={convertToDMS(facility.latitude, true)}
+                      <DetailRow
+                        label="Latitude (N)"
+                        value={
+                          geoCoords ? `${geoCoords.lat.toFixed(8)}°` : 'Location unknown'
+                        }
                       />
-                      <DetailRow 
-                        label="DMS Lng" 
-                        value={convertToDMS(facility.longitude, false)}
+                      <DetailRow
+                        label="Longitude (W)"
+                        value={
+                          geoCoords ? `${geoCoords.lng.toFixed(8)}°` : 'Location unknown'
+                        }
+                      />
+                      <DetailRow
+                        label="DMS Lat"
+                        value={
+                          geoCoords ? convertToDMS(geoCoords.lat, true) : 'Location unknown'
+                        }
+                      />
+                      <DetailRow
+                        label="DMS Lng"
+                        value={
+                          geoCoords ? convertToDMS(geoCoords.lng, false) : 'Location unknown'
+                        }
                       />
                     </div>
                   </DrilldownSection>
