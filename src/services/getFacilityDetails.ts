@@ -101,10 +101,30 @@ export async function getFacilityDetails(facility: Facility): Promise<FacilityDe
     dataSources.set('epaEchoId', 'Estimated');
   }
 
-  // Extract SEC filing reference if available (from old service)
+  // Extract SEC filing reference if available (live submissions via worker proxy)
   let secFilingRef: string | null = null;
-  if (osintData.secFilings?.data && typeof osintData.secFilings.data === 'object' && 'filings' in osintData.secFilings.data && Array.isArray(osintData.secFilings.data.filings) && osintData.secFilings.data.filings.length > 0) {
-    secFilingRef = `SEC-${new Date().getFullYear()}-${facility.id % 10000}`;
+  const secData = osintData.secFilings?.data as
+    | {
+        filings?: unknown[];
+        recentFilingSummary?: string;
+      }
+    | undefined;
+  if (
+    secData &&
+    typeof secData === 'object' &&
+    Array.isArray(secData.filings) &&
+    secData.filings.length > 0
+  ) {
+    const summary =
+      typeof secData.recentFilingSummary === 'string' && secData.recentFilingSummary.trim()
+        ? secData.recentFilingSummary.trim()
+        : null;
+    const first = secData.filings[0] as { type?: string; date?: string; url?: string };
+    secFilingRef =
+      summary ||
+      (first?.type && first?.date
+        ? `SEC EDGAR — ${first.type} (${first.date})${first.url ? ` — ${first.url}` : ''}`
+        : `SEC-${new Date().getFullYear()}-${facility.id % 10000}`);
     dataSources.set('secFilingRef', 'SEC_EDGAR');
   }
   

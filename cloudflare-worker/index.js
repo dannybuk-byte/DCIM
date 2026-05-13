@@ -233,8 +233,10 @@ async function handleSecProxy(request, path) {
   try {
     const response = await fetch(url, {
       headers: {
-        'User-Agent': 'DCIM-CommandCenter contact@example.com',
-        'Accept': 'application/json',
+        // SEC EDGAR fair-access: descriptive UA with contact/affiliation (10 req/s per policy)
+        'User-Agent':
+          'DCIM-ComplianceDashboard/1.0 (https://github.com/dannybuk-byte/DCIM; labor-infrastructure-research)',
+        Accept: 'application/json',
       },
     });
     

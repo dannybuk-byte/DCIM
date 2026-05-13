@@ -37,7 +37,7 @@ import GranularDrilldown from './GranularDrilldown'; // Infinite drill-down syst
 import { DeepDiveView } from './DeepDiveView';
 import { AISettingsModal } from './AISettingsModal';
 import { NaturalLanguageSearch } from './NaturalLanguageSearch';
-import { BGPAnalysisView } from './BGPAnalysisView';
+import { BGPMonitorPanel } from './BGPMonitorPanel';
 import { DisclosureMismatchView } from './DisclosureMismatchView';
 import { ReviewerMode } from './ReviewerMode';
 import { HelpModal } from './HelpModal';
@@ -67,7 +67,7 @@ const TOP_BAR_MODE_DEFS: ReadonlyArray<{
 }> = [
   { mode: 'omniscient', icon: Target, label: 'Dashboard', tooltip: 'See all facilities at a glance' },
   // BGP early so it stays visible (tab row scrolls; was easy to miss between NET and MAP).
-  { mode: 'bgp', icon: RadioTower, label: 'BGP', tooltip: 'Demo BGP / network-risk indicators (seeded)' },
+  { mode: 'bgp', icon: RadioTower, label: 'BGP', tooltip: 'Live global BGP (RIPE RIS) — routing announcements' },
   {
     mode: 'disclosure_mismatch',
     icon: ShieldAlert,
@@ -125,7 +125,7 @@ export const OmniscientCommandInterface: React.FC = () => {
     loadData();
   }, []);
 
-  // Deep-link: example.com/#bgp opens demo BGP view (after deploy with current bundle).
+  // Deep-link: example.com/#bgp opens live RIPE RIS BGP monitor (after deploy with current bundle).
   useEffect(() => {
     const applyHash = (): void => {
       const h = window.location.hash.toLowerCase();
@@ -726,7 +726,21 @@ export const OmniscientCommandInterface: React.FC = () => {
         {viewMode === 'timeline' && <TimelineView facilities={facilities} onSelect={setSelectedFacility} isFullscreen={isFullscreen} />}
         {viewMode === 'network' && <NetworkView facilities={facilities} onSelect={setSelectedFacility} isFullscreen={isFullscreen} />}
         {viewMode === 'bgp' && (
-          <BGPAnalysisView facilities={facilities} onSelect={setSelectedFacility} isFullscreen={isFullscreen} />
+          <div
+            className={`min-h-0 h-full flex flex-col overflow-hidden bg-[#0a0f14] ${
+              isFullscreen ? 'p-4' : 'p-4 md:p-6'
+            }`}
+          >
+            <div className="shrink-0 border-b border-gray-800 pb-3 mb-3">
+              <p className="text-xs text-gray-300 leading-relaxed">
+                Live BGP via RIPE RIS Live (<code className="text-[10px] text-cyan-300/90">wss://ris-live.ripe.net/v1/ws/</code>
+                ). Global routing updates stream here; first announcements typically appear within seconds after connect.
+              </p>
+            </div>
+            <div className="min-h-0 flex-1 overflow-auto">
+              <BGPMonitorPanel autoConnect />
+            </div>
+          </div>
         )}
         {viewMode === 'disclosure_mismatch' && (
           <DisclosureMismatchView isFullscreen={isFullscreen} />
@@ -916,7 +930,7 @@ const OmniscientView: React.FC<{
                 <button
                   type="button"
                   onClick={() => onNavigateToMode('bgp')}
-                  title="Demo BGP / network-risk view"
+                  title="Live BGP (RIPE RIS) — global routing updates"
                   className="shrink-0 rounded border border-[#00d2d3]/50 bg-[#00d2d3]/10 px-2.5 py-1 text-[10px] font-bold text-[#00d2d3] hover:bg-[#00d2d3]/20"
                 >
                   BGP

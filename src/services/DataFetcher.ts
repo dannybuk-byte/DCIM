@@ -57,6 +57,81 @@ const CACHE_TTL = {
   default: 24 * 60 * 60 * 1000, // 1 day
 };
 
+/** Cloudflare worker (or custom origin) exposing GET /api/sec/* → https://data.sec.gov/* */
+function secEdgarProxyBase(): string {
+  const raw = import.meta.env.VITE_SEC_EDGAR_PROXY_URL;
+  if (raw && String(raw).trim()) return String(raw).replace(/\/$/, '');
+  return 'https://dcim-dashboard.dannybuk.workers.dev';
+}
+
+function padCikDigits(digits: string): string {
+  const n = digits.replace(/\D/g, '');
+  if (!n) return '';
+  return n.padStart(10, '0');
+}
+
+function resolveEdgarCik(operatorName: string, explicitCik?: string | null): string | null {
+  const ex = explicitCik?.trim();
+  if (ex) return padCikDigits(ex);
+  const op = (operatorName || '').trim();
+  if (!op) return null;
+  if (/^\d{1,12}$/.test(op)) return padCikDigits(op);
+  const lower = op.toLowerCase();
+  const hints: [RegExp, string][] = [
+    [/goldman\s*sachs|^gs$/i, '0000886982'],
+    [/amazon|^aws$|amazon\.com/i, '0001018724'],
+    [/morgan\s*stanley/i, '0000895421'],
+    [/meta\b|facebook/i, '0001326801'],
+    [/\bgoogle\b|\balphabet\b/i, '0001652044'],
+    [/microsoft/i, '0000789019'],
+  ];
+  for (const [re, cik] of hints) {
+    if (re.test(op) || re.test(lower)) return cik;
+  }
+  return null;
+}
+
+type SecFilingRow = {
+  type: string;
+  date: string;
+  url: string;
+  description?: string;
+  accessionNumber?: string;
+};
+
+function filingsFromCompanySubmissions(json: Record<string, unknown>): SecFilingRow[] {
+  const filingsObj = json?.filings as { recent?: Record<string, string[]> } | undefined;
+  const rec = filingsObj?.recent;
+  if (!rec || !Array.isArray(rec.form)) return [];
+  const forms = rec.form;
+  const allow = new Set(['10-K', '10-Q', '8-K', '20-F', '40-F']);
+  const cikRaw = String(json.cik ?? '').replace(/\D/g, '') || '0';
+  const out: SecFilingRow[] = [];
+  for (let i = 0; i < forms.length; i++) {
+    const form = forms[i];
+    if (!form || !allow.has(form)) continue;
+    const filingDate = rec.filingDate?.[i];
+    const accessionNumber = rec.accessionNumber?.[i];
+    const primaryDocument = rec.primaryDocument?.[i];
+    const primaryDocDescription = rec.primaryDocDescription?.[i];
+    if (!filingDate) continue;
+    const accN = typeof accessionNumber === 'string' ? accessionNumber.replace(/-/g, '') : '';
+    const url =
+      accN && primaryDocument
+        ? `https://www.sec.gov/Archives/edgar/data/${cikRaw}/${accN}/${primaryDocument}`
+        : `https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=${padCikDigits(cikRaw)}&type=${encodeURIComponent(form)}`;
+    out.push({
+      type: form,
+      date: filingDate,
+      url,
+      description: typeof primaryDocDescription === 'string' ? primaryDocDescription : undefined,
+      accessionNumber,
+    });
+  }
+  out.sort((a, b) => b.date.localeCompare(a.date));
+  return out.slice(0, 30);
+}
+
 class DataFetcher {
   constructor() {
     // API keys and baseUrl can be added here when needed
@@ -145,34 +220,66 @@ class DataFetcher {
     }
   }
 
-  // SEC EDGAR API - Get company filings
-  async fetchSECFilings(facilityId: number, operatorName: string) {
-    void operatorName;
-    const cacheKey = `sec_${facilityId}_${operatorName}`;
+  // SEC EDGAR API — company submissions via Cloudflare /api/sec proxy (browser-safe)
+  async fetchSECFilings(facilityId: number, operatorName: string, explicitCik?: string | null) {
+    const cacheKey = `sec_v2_${facilityId}_${operatorName}_${explicitCik ?? 'none'}`;
     const cached = await this.getCached(cacheKey);
     if (cached) return { data: cached, provenance: (await cacheDb.cache.get(cacheKey))?.provenance };
 
-    try {
-      // SEC EDGAR Company Ticker CIK lookup (simplified - would need proper CIK lookup)
-      const searchUrl = `https://www.sec.gov/cgi-bin/browse-edgar?company=${encodeURIComponent(operatorName)}&owner=exclude&action=getcompany`;
-      
-      // Note: SEC API requires proper headers and rate limiting
-      // This is a placeholder - actual implementation would need proper SEC API integration
+    const cik10 = resolveEdgarCik(operatorName, explicitCik);
+    if (!cik10) {
       const data = {
-        filings: [],
-        note: 'SEC EDGAR integration requires proper authentication and CIK lookup',
+        filings: [] as SecFilingRow[],
+        note: 'No CIK resolved for this operator. Add facility.secCik or extend operator→CIK hints in DataFetcher.',
+      };
+      const provenance: DataProvenance = {
+        source: 'SEC_EDGAR',
+        fetchedAt: new Date().toISOString(),
+        url: operatorName,
+        reference: `SEC EDGAR (no CIK for operator: ${operatorName})`,
+        verified: false,
+      };
+      await this.setCache(cacheKey, facilityId, 'sec', data, provenance, CACHE_TTL.SEC_EDGAR);
+      return { data, provenance };
+    }
+
+    const proxyBase = secEdgarProxyBase();
+    const path = `submissions/CIK${cik10}.json`;
+    const fetchUrl = `${proxyBase}/api/sec/${path}`;
+
+    try {
+      const response = await fetch(fetchUrl, { headers: { Accept: 'application/json' } });
+      if (!response.ok) {
+        throw new Error(`SEC proxy HTTP ${response.status}`);
+      }
+      const json = (await response.json()) as Record<string, unknown>;
+      const filings = filingsFromCompanySubmissions(json);
+      const name = typeof json.name === 'string' ? json.name : operatorName;
+      const first10k = filings.find(f => f.type === '10-K');
+      const recentFilingSummary = first10k
+        ? `${name} — ${first10k.type} (${first10k.date}): review Item 1A / MD&A for AI & workforce risk narratives — ${first10k.url}`
+        : filings[0]
+          ? `${name} — ${filings[0].type} (${filings[0].date}) — ${filings[0].url}`
+          : `${name} — no recent 10-K / 10-Q / 8-K rows in submissions index`;
+
+      const data = {
+        filings,
+        companyName: name,
+        cik: cik10,
+        recentFilingSummary,
+        ...(filings.length ? {} : { note: 'Submissions JSON returned no periodic filing rows in the parsed window.' }),
       };
 
       const provenance: DataProvenance = {
         source: 'SEC_EDGAR',
         fetchedAt: new Date().toISOString(),
-        url: searchUrl,
-        reference: `SEC EDGAR Company Search: ${operatorName}`,
+        url: fetchUrl,
+        reference: `SEC company submissions CIK${cik10}`,
         verified: true,
       };
 
       await this.setCache(cacheKey, facilityId, 'sec', data, provenance, CACHE_TTL.SEC_EDGAR);
-      
+
       return { data, provenance };
     } catch (error) {
       console.error('SEC EDGAR fetch error:', error);
@@ -355,7 +462,7 @@ class DataFetcher {
   async fetchAllFacilityData(facilityId: number, facility: any) {
     const [peeringDB, secFilings, epaEcho, osha, subsidy, cloudflare, crtsh] = await Promise.allSettled([
       this.fetchPeeringDBData(facilityId, facility.name),
-      this.fetchSECFilings(facilityId, facility.operator),
+      this.fetchSECFilings(facilityId, facility.operator, facility.secCik),
       this.fetchEPAECHOData(facilityId, facility.name, facility.city, facility.state),
       this.fetchOSHAData(facilityId, facility.name, facility.state),
       this.fetchSubsidyData(facilityId, facility.operator, facility.state),

@@ -8,7 +8,14 @@ interface BGPStats {
   anomalyCount: number;
 }
 
-export const BGPMonitorPanel: React.FC = React.memo(() => {
+export interface BGPMonitorPanelProps {
+  /** When true, connect to RIPE RIS Live on mount (P2 default surface). */
+  autoConnect?: boolean;
+}
+
+export const BGPMonitorPanel: React.FC<BGPMonitorPanelProps> = React.memo(function BGPMonitorPanel({
+  autoConnect = false,
+}) {
   const [isActive, setIsActive] = useState(false);
   const [connectionStatus, setConnectionStatus] = useState<'connected' | 'connecting' | 'disconnected' | 'offline'>('disconnected');
   const [updates, setUpdates] = useState<BGPUpdate[]>([]);
@@ -97,6 +104,13 @@ export const BGPMonitorPanel: React.FC = React.memo(() => {
       bgpMonitor.disconnect();
     };
   }, []);
+
+  // P2: live BGP is the default surface when embedded from Omniscient (RIPE RIS).
+  useEffect(() => {
+    if (!autoConnect) return;
+    bgpMonitor.connect();
+    setIsActive(true);
+  }, [autoConnect]);
 
   const getStatusColor = () => {
     switch (connectionStatus) {

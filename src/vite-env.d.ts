@@ -3,6 +3,8 @@
 interface ImportMetaEnv {
   /** Optional absolute base for Disclosure Mismatch API (default: /signals-api via Vite proxy) */
   readonly VITE_SIGNALS_API_URL?: string;
+  /** Optional origin for SEC EDGAR proxy (GET /api/sec/*). Default: deployed dcim-dashboard worker. */
+  readonly VITE_SEC_EDGAR_PROXY_URL?: string;
 }
 
 interface ImportMeta {
