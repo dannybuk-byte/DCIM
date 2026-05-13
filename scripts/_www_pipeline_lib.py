@@ -21,7 +21,7 @@ SEC_UA = (
 )
 
 DEFAULT_SEC_PROXY = os.environ.get(
-    "WWW_SEC_PROXY_BASE", "https://dcim-dashboard.dannybuk.workers.dev"
+    "WWW_SEC_PROXY_BASE", "https://dcim-api-worker.dannybuk.workers.dev"
 ).rstrip("/")
 
 PARSING_CONFIDENCE = ("clean", "heuristic", "approximate", "failed")
@@ -72,6 +72,23 @@ class SecClient:
             raise RuntimeError(f"SEC proxy returned non-JSON for {url}: {data.get('content_type')}")
         return data
 
+    def get_files_json(self, files_path: str) -> dict[str, Any]:
+        """GET www.sec.gov/files/... via worker /api/sec/files/... (JSON or proxy-wrapped errors)."""
+        self._throttle()
+        files_path = files_path.lstrip("/")
+        url = f"{self.proxy_base}/api/sec/files/{files_path}"
+        req = urllib.request.Request(
+            url,
+            headers={"Accept": "application/json", "User-Agent": SEC_UA},
+            method="GET",
+        )
+        with urllib.request.urlopen(req, timeout=120) as resp:
+            raw = resp.read()
+        data = json.loads(raw.decode("utf-8"))
+        if isinstance(data, dict) and data.get("_sec_proxy_non_json"):
+            raise RuntimeError(f"SEC proxy returned non-JSON for {url}: {data.get('content_type')}")
+        return data
+
     def get_archives_text(self, archives_path: str) -> str:
         """GET www.sec.gov/Archives/edgar/... via worker /api/sec/archives/..."""
         self._throttle()
@@ -95,7 +112,7 @@ def fetch_company_tickers_json(client: SecClient, cache_path: str | None) -> dic
     if cache_path and os.path.isfile(cache_path):
         with open(cache_path, encoding="utf-8") as f:
             return json.load(f)
-    data = client.get_json("files/company_tickers.json")
+    data = client.get_files_json("company_tickers.json")
     if cache_path:
         os.makedirs(os.path.dirname(cache_path) or ".", exist_ok=True)
         with open(cache_path, "w", encoding="utf-8") as f:

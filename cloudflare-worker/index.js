@@ -262,6 +262,46 @@ async function handleSecProxy(request, path) {
 }
 
 /**
+ * SEC www.sec.gov/files/* proxy (e.g. company_tickers.json)
+ * GET /api/sec/files/{path} → https://www.sec.gov/files/{path}
+ * Same SEC_EDGAR_UA and non-JSON defensive wrapping as handleSecProxy.
+ */
+async function handleSecFilesProxy(request, path) {
+  const rest = path.replace(/^\/api\/sec\/files\/?/, '');
+  if (!rest || rest.includes('..')) {
+    return corsResponse({ error: 'Invalid files path' }, 400);
+  }
+  const url = `https://www.sec.gov/files/${rest}`;
+
+  try {
+    const response = await fetch(url, {
+      headers: {
+        'User-Agent': SEC_EDGAR_UA,
+        Accept: 'application/json',
+      },
+    });
+
+    const ct = response.headers.get('content-type') || '';
+    if (ct.includes('application/json')) {
+      const data = await response.json();
+      return corsResponse(data, response.status);
+    }
+
+    const text = await response.text();
+    return corsResponse(
+      {
+        _sec_proxy_non_json: true,
+        content_type: ct,
+        body: text,
+      },
+      response.status,
+    );
+  } catch (error) {
+    return corsResponse({ error: error.message }, 500);
+  }
+}
+
+/**
  * SEC EDGAR Archives proxy (www.sec.gov — filing HTML/XML)
  * GET /api/sec/archives/* → https://www.sec.gov/Archives/edgar/*
  * Used by offline Python pipelines; same fair-access User-Agent as data.sec.gov.
@@ -429,6 +469,11 @@ export default {
       // SEC EDGAR filing archives (HTML) — must be registered before /api/sec/ prefix match
       if (path.startsWith('/api/sec/archives/')) {
         return handleSecArchivesProxy(request, path);
+      }
+
+      // SEC www.sec.gov/files/* (e.g. company_tickers.json) — before data.sec.gov /api/sec/ catch-all
+      if (path.startsWith('/api/sec/files/')) {
+        return handleSecFilesProxy(request, path);
       }
 
       // SEC EDGAR data.sec.gov JSON

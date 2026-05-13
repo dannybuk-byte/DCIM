@@ -61,7 +61,7 @@ const CACHE_TTL = {
 function secEdgarProxyBase(): string {
   const raw = import.meta.env.VITE_SEC_EDGAR_PROXY_URL;
   if (raw && String(raw).trim()) return String(raw).replace(/\/$/, '');
-  return 'https://dcim-dashboard.dannybuk.workers.dev';
+  return 'https://dcim-api-worker.dannybuk.workers.dev';
 }
 
 function padCikDigits(digits: string): string {
