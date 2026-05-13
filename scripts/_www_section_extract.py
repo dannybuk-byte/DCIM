@@ -7,13 +7,14 @@ from __future__ import annotations
 
 import re
 import urllib.parse
+from typing import Dict, Union
 
 try:
     from bs4 import BeautifulSoup
 except ImportError as e:
     BeautifulSoup = None  # type: ignore
 
-ItemSection = dict[str, str | dict[str, str]]
+ItemSection = Dict[str, Union[str, Dict[str, str]]]
 
 
 def html_to_visible_text(html: str) -> str:

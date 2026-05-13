@@ -4,6 +4,7 @@ Shared helpers for WWW tier-(i) case-card extraction (deterministic only).
 
 from __future__ import annotations
 
+import errno
 import hashlib
 import json
 import os
@@ -14,6 +15,11 @@ import urllib.parse
 import urllib.request
 from dataclasses import dataclass, field
 from typing import Any, Iterable
+
+try:
+    from ssl import SSLCertVerificationError, SSLError
+except ImportError:  # pragma: no cover
+    SSLCertVerificationError = SSLError = OSError  # type: ignore[misc, assignment]
 
 SEC_UA = (
     "DCIM-ComplianceDashboard/1.0 "
@@ -42,10 +48,26 @@ def accession_no_dashes(accession: str) -> str:
     return re.sub(r"\D", "", accession)
 
 
+def _transient_request_failure(exc: BaseException) -> bool:
+    if isinstance(exc, urllib.error.HTTPError):
+        return 500 <= int(exc.code) < 600
+    if isinstance(exc, urllib.error.URLError):
+        reason = exc.reason
+        if isinstance(reason, (TimeoutError, OSError, SSLError, SSLCertVerificationError)):
+            return True
+    if isinstance(exc, (TimeoutError, BrokenPipeError, ConnectionResetError, ConnectionAbortedError)):
+        return True
+    if isinstance(exc, OSError):
+        err = getattr(exc, "errno", None)
+        if err is not None and err in {errno.EAI_AGAIN, errno.ECONNRESET, errno.ETIMEDOUT, errno.EPIPE}:
+            return True
+    return False
+
+
 @dataclass
 class SecClient:
     proxy_base: str = DEFAULT_SEC_PROXY
-    min_interval_sec: float = 0.12
+    min_interval_sec: float = 1.0
     _last_fetch: float = field(default=0.0, repr=False)
 
     def _throttle(self) -> None:
@@ -55,9 +77,34 @@ class SecClient:
             time.sleep(wait)
         self._last_fetch = time.monotonic()
 
+    def _urlopen_read(self, req: urllib.request.Request, timeout: float) -> bytes:
+        """GET with up to 3 exponential-backoff retries on transient errors (not 403)."""
+        last_exc: BaseException | None = None
+        for attempt in range(4):
+            if attempt > 0:
+                delay = min(8.0, 0.5 * (2 ** (attempt - 1)))
+                time.sleep(delay)
+            self._throttle()
+            try:
+                with urllib.request.urlopen(req, timeout=timeout) as resp:
+                    return resp.read()
+            except urllib.error.HTTPError as e:
+                if int(e.code) == 403:
+                    raise
+                if _transient_request_failure(e) and attempt < 3:
+                    last_exc = e
+                    continue
+                raise
+            except Exception as e:
+                if _transient_request_failure(e) and attempt < 3:
+                    last_exc = e
+                    continue
+                raise
+        assert last_exc is not None
+        raise last_exc
+
     def get_json(self, sec_path: str) -> dict[str, Any]:
         """GET data.sec.gov path after host, e.g. submissions/CIK0001018724.json"""
-        self._throttle()
         sec_path = sec_path.lstrip("/")
         url = f"{self.proxy_base}/api/sec/{sec_path}"
         req = urllib.request.Request(
@@ -65,16 +112,17 @@ class SecClient:
             headers={"Accept": "application/json", "User-Agent": SEC_UA},
             method="GET",
         )
-        with urllib.request.urlopen(req, timeout=120) as resp:
-            raw = resp.read()
-        data = json.loads(raw.decode("utf-8"))
+        raw = self._urlopen_read(req, 120.0)
+        try:
+            data = json.loads(raw.decode("utf-8"))
+        except json.JSONDecodeError as e:
+            raise RuntimeError(f"SEC proxy returned invalid JSON for {url}: {e}") from e
         if isinstance(data, dict) and data.get("_sec_proxy_non_json"):
             raise RuntimeError(f"SEC proxy returned non-JSON for {url}: {data.get('content_type')}")
         return data
 
     def get_files_json(self, files_path: str) -> dict[str, Any]:
         """GET www.sec.gov/files/... via worker /api/sec/files/... (JSON or proxy-wrapped errors)."""
-        self._throttle()
         files_path = files_path.lstrip("/")
         url = f"{self.proxy_base}/api/sec/files/{files_path}"
         req = urllib.request.Request(
@@ -82,16 +130,17 @@ class SecClient:
             headers={"Accept": "application/json", "User-Agent": SEC_UA},
             method="GET",
         )
-        with urllib.request.urlopen(req, timeout=120) as resp:
-            raw = resp.read()
-        data = json.loads(raw.decode("utf-8"))
+        raw = self._urlopen_read(req, 120.0)
+        try:
+            data = json.loads(raw.decode("utf-8"))
+        except json.JSONDecodeError as e:
+            raise RuntimeError(f"SEC proxy returned invalid JSON for {url}: {e}") from e
         if isinstance(data, dict) and data.get("_sec_proxy_non_json"):
             raise RuntimeError(f"SEC proxy returned non-JSON for {url}: {data.get('content_type')}")
         return data
 
     def get_archives_text(self, archives_path: str) -> str:
         """GET www.sec.gov/Archives/edgar/... via worker /api/sec/archives/..."""
-        self._throttle()
         archives_path = archives_path.lstrip("/")
         if archives_path.startswith("Archives/edgar/"):
             archives_path = archives_path[len("Archives/edgar/") :]
@@ -104,8 +153,8 @@ class SecClient:
             },
             method="GET",
         )
-        with urllib.request.urlopen(req, timeout=180) as resp:
-            return resp.read().decode("utf-8", errors="replace")
+        raw = self._urlopen_read(req, 180.0)
+        return raw.decode("utf-8", errors="replace")
 
 
 def fetch_company_tickers_json(client: SecClient, cache_path: str | None) -> dict[str, Any]:

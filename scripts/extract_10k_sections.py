@@ -129,6 +129,8 @@ def main() -> int:
                 }
             )
             continue
+
+        for filing in picks:
             acc = filing["accession_number"]
             prim = filing["primary_document"]
             arch = _archives_path(cik10, acc, prim)
