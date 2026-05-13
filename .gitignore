@@ -10,3 +10,4 @@ DCIM Compliance App/
 # scratch / build artifacts
 ts-errors.txt
 public/commit-hash.txt
+www_pipeline_out/

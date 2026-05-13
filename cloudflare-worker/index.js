@@ -222,26 +222,73 @@ async function handleEpaProxy(request, path) {
   }
 }
 
+const SEC_EDGAR_UA =
+  'DCIM-ComplianceDashboard/1.0 (https://github.com/dannybuk-byte/DCIM; labor-infrastructure-research)';
+
 /**
- * SEC EDGAR API Proxy
+ * SEC EDGAR API Proxy (data.sec.gov — JSON bulk data)
  * GET /api/sec/*
  */
 async function handleSecProxy(request, path) {
   const secPath = path.replace('/api/sec/', '');
   const url = `https://data.sec.gov/${secPath}`;
-  
+
   try {
     const response = await fetch(url, {
       headers: {
-        // SEC EDGAR fair-access: descriptive UA with contact/affiliation (10 req/s per policy)
-        'User-Agent':
-          'DCIM-ComplianceDashboard/1.0 (https://github.com/dannybuk-byte/DCIM; labor-infrastructure-research)',
+        'User-Agent': SEC_EDGAR_UA,
         Accept: 'application/json',
       },
     });
-    
-    const data = await response.json();
-    return corsResponse(data, response.status);
+
+    const ct = response.headers.get('content-type') || '';
+    if (ct.includes('application/json')) {
+      const data = await response.json();
+      return corsResponse(data, response.status);
+    }
+
+    const text = await response.text();
+    return corsResponse(
+      {
+        _sec_proxy_non_json: true,
+        content_type: ct,
+        body: text,
+      },
+      response.status,
+    );
+  } catch (error) {
+    return corsResponse({ error: error.message }, 500);
+  }
+}
+
+/**
+ * SEC EDGAR Archives proxy (www.sec.gov — filing HTML/XML)
+ * GET /api/sec/archives/* → https://www.sec.gov/Archives/edgar/*
+ * Used by offline Python pipelines; same fair-access User-Agent as data.sec.gov.
+ */
+async function handleSecArchivesProxy(request, path) {
+  const rest = path.replace(/^\/api\/sec\/archives\/?/, '');
+  if (!rest || rest.includes('..')) {
+    return corsResponse({ error: 'Invalid archives path' }, 400);
+  }
+  const url = `https://www.sec.gov/Archives/edgar/${rest}`;
+
+  try {
+    const response = await fetch(url, {
+      headers: {
+        'User-Agent': SEC_EDGAR_UA,
+        Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+      },
+    });
+
+    const text = await response.text();
+    return new Response(text, {
+      status: response.status,
+      headers: {
+        'Content-Type': 'text/plain; charset=utf-8',
+        ...CORS_HEADERS,
+      },
+    });
   } catch (error) {
     return corsResponse({ error: error.message }, 500);
   }
@@ -379,7 +426,12 @@ export default {
         return handleEpaProxy(request, path);
       }
 
-      // SEC EDGAR proxy
+      // SEC EDGAR filing archives (HTML) — must be registered before /api/sec/ prefix match
+      if (path.startsWith('/api/sec/archives/')) {
+        return handleSecArchivesProxy(request, path);
+      }
+
+      // SEC EDGAR data.sec.gov JSON
       if (path.startsWith('/api/sec/')) {
         return handleSecProxy(request, path);
       }

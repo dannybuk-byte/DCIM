@@ -1,0 +1,9 @@
+warn_employer,warn_date,warn_stated_cause,warn_url,jobs_affected
+Goldman Sachs Group Inc.,2025-08-12,Reorganization / consolidation,https://example.com/warn/gs-ny,320
+Amazon.com Inc.,2025-09-01,Operational realignment,https://example.com/warn/amzn-ny,150
+Morgan Stanley,2025-08-14,Reorganization,https://example.com/warn/ms-nj,180
+Meta Platforms Inc.,2025-07-08,Site consolidation,https://example.com/warn/meta-ca,420
+Microsoft Corporation,2025-09-01,Facility restructuring,https://example.com/warn/msft-wa,95
+Salesforce Inc.,2025-07-22,Cost alignment,https://example.com/warn/crm-sf,260
+Alphabet Inc.,2025-07-28,Office consolidation,https://example.com/warn/goog-ny,210
+INTERNATIONAL BUSINESS MACHINES CORP,2025-06-01,Workforce optimization program,https://example.com/warn/ibm-ny,400

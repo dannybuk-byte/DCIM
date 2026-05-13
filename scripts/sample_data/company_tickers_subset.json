@@ -1,0 +1,10 @@
+{
+  "0": { "cik_str": "0000886982", "ticker": "GS", "title": "GOLDMAN SACHS GROUP INC" },
+  "1": { "cik_str": "0001018724", "ticker": "AMZN", "title": "AMAZON COM INC" },
+  "2": { "cik_str": "0000895421", "ticker": "MS", "title": "MORGAN STANLEY" },
+  "3": { "cik_str": "0001326801", "ticker": "META", "title": "Meta Platforms, Inc." },
+  "4": { "cik_str": "0000789019", "ticker": "MSFT", "title": "MICROSOFT CORP" },
+  "5": { "cik_str": "0001108524", "ticker": "CRM", "title": "Salesforce, Inc." },
+  "6": { "cik_str": "0001652044", "ticker": "GOOGL", "title": "Alphabet Inc." },
+  "7": { "cik_str": "0000051143", "ticker": "IBM", "title": "INTERNATIONAL BUSINESS MACHINES CORP" }
+}

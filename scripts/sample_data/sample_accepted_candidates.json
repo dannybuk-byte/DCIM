@@ -1,0 +1,22 @@
+[
+  {
+    "company_id": "goldman_sachs_www_tier_i",
+    "company_name": "Goldman Sachs Group Inc.",
+    "sector": "Financial Services",
+    "period_start": "2024-01-01",
+    "period_end": "2025-12-31",
+    "candidate_id": "REPLACE_WITH_REAL_ID",
+    "retrieval_stream": "explicit_ai",
+    "parsing_confidence": "heuristic",
+    "locator": { "section": "item_1a", "paragraph_index": 0 },
+    "paragraph_text": "REPLACE with accepted paragraph text from candidates.json",
+    "filing_date": "2025-02-26",
+    "sec_filing_url": "https://www.sec.gov/Archives/edgar/data/886982/000119312525047317/d827193d10k.htm",
+    "warn_filing_reference": {
+      "warn_employer": "Goldman Sachs Group Inc.",
+      "warn_date": "2025-08-12",
+      "cik": "0000886982"
+    },
+    "warrant_note": "[W-REPLACE] Source-warrant chain: Daniel hand-authored; tier (i) retrieval only — no automated causal attribution."
+  }
+]
