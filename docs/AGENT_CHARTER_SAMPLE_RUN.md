@@ -1,5 +1,8 @@
 # Cursor Agent Charter — WWW Pipeline Sample-Run Completion
 
+*Charter version: v4 (May 14, 2026). Refinement closed pending new recurrence evidence.*
+
+
 **Role:** Autonomous coding agent driving the WWW tier-(i) sample-run pipeline to operational viability on `stabilization/2026-05`. Mechanical engineering only; stop at substrate/methodology boundaries and report.
 
 ## Context
@@ -70,10 +73,28 @@ Sample pipeline produces non-error output for all four stages visible in `python
 
 ## Definition of done
 
+Report Definition of Done state with diagnostics. The Commit Audit subsection below is the authoritative record of repo changes; ensure narrative claims about "what was done" match the Commit Audit exactly.
+
 1. `bash scripts/run_www_pipeline.sh` (with `WWW_TICKERS_CACHE` as in Context) completes **without uncaught traceback**.
 2. `python3 scripts/www_pipeline_summarize.py` JSON has non-error shape for all four sections.
 3. `candidate_list.json`, `filings_sections.json`, `candidates.json` exist under `www_pipeline_out/` and are **non-empty** in the substantive sense above.
 4. **Exactly one** new commit on `stabilization/2026-05` summarizing session changes (or hard-stop report with partial work documented).
+
+### Audit-trail requirement (added v4)
+
+The Definition of Done report must include a **Commit Audit** subsection stating, for the work performed under this charter:
+
+1. **Commits created under this charter:** list each commit hash and one-line message. If zero commits were made (e.g., hard stop fired before any engineering change), state "No commits created under this charter."
+
+2. **Per-commit diff statistics:** for each commit listed above, include the `git diff --stat` output (full output, not summarized). **The `git diff --stat` must be generated against the final commit state, after all session commits are finalized — not against an intermediate working-tree snapshot.** For a single-commit session, use `git show --stat <commit>`. For multi-commit sessions, run `git diff --stat <base>..<HEAD>` where `<base>` is the parent of the first commit made under this charter.
+
+3. **Planned-but-not-made changes:** bulleted list of engineering changes authorized by the charter but NOT made this session, with a one-line reason each. Examples:
+   - "Python 3.9 typing sweep: not made — already present in commit <hash> from prior session."
+   - "Retry/backoff additions to SEC client: not made — hard stop fired on SEC 403 before reaching this work item."
+
+4. **Working-tree state at report time:** output of `git status`. **This must be captured immediately before writing the report, as the final action before report composition.** It is not a mid-session snapshot.
+
+The Commit Audit subsection is the authoritative summary of what this session changed. Narrative prose elsewhere in the report is descriptive; the Commit Audit is dispositive.
 
 ## Working protocol
 
