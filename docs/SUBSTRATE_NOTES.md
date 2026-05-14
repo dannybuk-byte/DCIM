@@ -33,3 +33,21 @@ Reusable pattern for future charter-class artifacts: production-run scaling char
   (d) issuer investor-relations sites as a parallel retrieval path for pre-validated issuer lists (caveat: SEC EDGAR remains canonical for discovery and citation; IR sites are retrieval workaround only).
 
 **Status:** Open architectural decision. Not blocking sample-run validation (which can use local cached filings). Blocking production-scale pipeline runs.
+
+---
+
+## 2026-05-14 — SEC fetch architecture decision: localhost-direct as primary
+
+**Decision:** Localhost-direct fetches from `www.sec.gov`, on-demand runtime (8am-10pm working hours), no VM, no Cloudflare Worker proxy in the request path. Throttled client-side at sub-1 req/s default, hard ceiling at SEC's published 10 req/s.
+
+**Stack ordering considered:** B (localhost-direct) > D (IR-site fallback) > A (dedicated Worker egress IP). B selected as sole primary path; D and A deferred.
+
+**Why B over A:** A doesn't fix the failure mode that took the pipeline offline. The shared Worker IP got blocked because SEC's enforcement caught the request pattern, not because the IP was shared per se. A dedicated Worker IP can land on the same persistent block list on its own merits. B avoids the Worker-egress reputation problem entirely; SEC enforcement against a single residential IP making sub-1 req/s within published guidance is well-precedented to be rare.
+
+**Why on-demand rather than VM-autonomous:** Pipeline cadence is reconciliation work (WARN ↔ SEC contradiction detection), not real-time alerting. Sub-day latency not required. On-demand laptop runs during working hours match actual usage pattern; VM provisioning was deferred as solving a problem we don't have.
+
+**Why D deferred:** With interactive runs, "B failed for issuer X, retry tomorrow or fetch manually" is acceptable human-in-the-loop response. Per-issuer scrapers only justify their maintenance burden once specific issuer-level failures become frequent enough to automate around.
+
+**Why A held in reserve:** Future option if on-demand becomes binding constraint and a leased VM is unacceptable for cost/ops/data-residency reasons not yet surfaced. Two product details still need verification before A is deployable: whether Cloudflare's dedicated-egress-IP product covers Workers specifically, and required plan tier.
+
+**Status:** Decision made; implementation pending under Block 3. Rate-limit numbers (sub-1 req/s default, 10 req/s ceiling) inherited from prior substrate-notes observation and should be re-verified against current SEC EDGAR fair-access policy before Block 3 implementation lands.
