@@ -103,3 +103,4 @@ This entry's enumeration of analytical lenses is explicitly non-exhaustive. User
 **Implication for the preceding 2026-05-14 analytical-lens entry:** That entry's contents were triaged before recording. NPU and Computational Antitrust are user-confirmed (with source links) and Claude-memory-adjacent (the ChatGPT briefing's "NPU framework" mention prompted the user to surface the full reference). Other items from the same pooling session were either confirmed against Claude memory (the four-layer architecture, the warrant tags, the named empirical sources) or identified by the user as out-of-scope (NY/OK incorporation discussions) and dropped.
 
 **Status:** Pattern upgrade documented. Triage step is now part of cross-LLM pooling working protocol.
+---
