@@ -17,6 +17,7 @@ import {
   fetchCompanyDetail,
   type AxisBreakdown,
   type CompanyScoresRow,
+  type CorpusProvenance,
   type DisclosureSource,
   type RobustnessSummary,
   type ThresholdParams,
@@ -926,6 +927,7 @@ export const DisclosureMismatchView: React.FC<DisclosureMismatchViewProps> = ({
   isFullscreen = false,
 }) => {
   const [rows, setRows] = useState<CompanyScoresRow[]>([]);
+  const [corpusProvenance, setCorpusProvenance] = useState<CorpusProvenance | null>(null);
   const [disclaimers, setDisclaimers] = useState<string[]>([]);
   const [robustnessSummary, setRobustnessSummary] = useState<RobustnessSummary | null>(null);
   const [thresholdParams, setThresholdParams] = useState<ThresholdParams | null>(null);
@@ -970,6 +972,7 @@ export const DisclosureMismatchView: React.FC<DisclosureMismatchViewProps> = ({
         confidenceThreshold,
       });
       setDisclaimers(data.disclaimers);
+      setCorpusProvenance(data.corpus_provenance);
       setRows(data.companies);
       setRobustnessSummary(data.robustness_summary ?? null);
       setThresholdParams(data.threshold_params ?? null);
@@ -980,6 +983,7 @@ export const DisclosureMismatchView: React.FC<DisclosureMismatchViewProps> = ({
       });
     } catch (e) {
       if ((e as Error).name === 'AbortError') return;
+      setCorpusProvenance(null);
       setError(
         (e as Error).message ||
           'Signals API unreachable. Run `npm run signals-server` with `npm run dev`, or `npm run dev:with-signals`.',
@@ -1192,6 +1196,43 @@ export const DisclosureMismatchView: React.FC<DisclosureMismatchViewProps> = ({
             </a>
           </div>
         </div>
+
+        {!loading && !error && corpusProvenance ? (
+          <div
+            className="rounded-md border border-amber-900/40 bg-amber-950/25 px-3 py-2 text-[11px] text-amber-100/90 leading-relaxed"
+            role="status"
+            aria-label="Signals corpus provenance"
+          >
+            <span className="font-bold text-amber-200">Corpus source: </span>
+            <span className="font-mono text-amber-100">{corpusProvenance.corpus_mode}</span>
+            <span className="text-zinc-500"> · </span>
+            {corpusProvenance.corpus_mode === 'seeded' ? (
+              <span>
+                Built-in seed ({corpusProvenance.active_company_count} employers)
+                {corpusProvenance.fallback_reason ? (
+                  <span className="text-zinc-500"> — {corpusProvenance.fallback_reason}</span>
+                ) : null}
+              </span>
+            ) : (
+              <span className="font-mono break-all text-amber-50/90">
+                {corpusProvenance.artifact_path ?? '—'}
+              </span>
+            )}
+            <span className="text-zinc-500"> · </span>
+            <span className="font-mono text-zinc-400">
+              active={corpusProvenance.active_company_count} · baseline_seed=
+              {corpusProvenance.seed_baseline_company_count}
+            </span>
+            {corpusProvenance.corpus_mode === 'mixed' &&
+            (corpusProvenance.seed_appended_ids?.length ||
+              corpusProvenance.seed_skipped_duplicate_ids?.length) ? (
+              <span className="block mt-1 text-[10px] text-zinc-500 font-mono">
+                appended_ids: {(corpusProvenance.seed_appended_ids ?? []).join(', ') || '—'} · skipped_dup:{' '}
+                {(corpusProvenance.seed_skipped_duplicate_ids ?? []).join(', ') || '—'}
+              </span>
+            ) : null}
+          </div>
+        ) : null}
 
         {!loading && !error ? (
           <>

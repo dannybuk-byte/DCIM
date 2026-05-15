@@ -108,8 +108,23 @@ export interface RobustnessSummary {
   cross_case_consistency: Record<string, unknown>;
 }
 
+/** DME corpus origin — surfaced on API + export for non-developer provenance. */
+export interface CorpusProvenance {
+  corpus_mode: 'seeded' | 'pipeline' | 'mixed';
+  artifact_path: string | null;
+  artifact_mtime_iso: string | null;
+  active_company_count: number;
+  seed_baseline_company_count: number;
+  fallback_reason?: string;
+  pipeline_company_ids?: string[];
+  pipeline_company_count?: number;
+  seed_appended_ids?: string[];
+  seed_skipped_duplicate_ids?: string[];
+}
+
 export interface CompaniesListResponse {
   disclaimers: string[];
+  corpus_provenance: CorpusProvenance;
   period_query: { from: string | null; to: string | null } | null;
   threshold_params?: ThresholdParams;
   robustness_summary?: RobustnessSummary;
@@ -118,6 +133,7 @@ export interface CompaniesListResponse {
 
 export interface CompanyDetailResponse {
   disclaimers: string[];
+  corpus_provenance: CorpusProvenance;
   period_query: { from: string | null; to: string | null } | null;
   threshold_params?: ThresholdParams;
   company: {

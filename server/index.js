@@ -4,6 +4,7 @@
 import express from 'express';
 import cors from 'cors';
 import { SEED_COMPANIES, DISCLAIMER_LINES } from './mockDataset.js';
+import { loadActiveCorpus, buildCorpusProvenancePayload } from './corpusLoader.js';
 import { filterSourcesByPeriod, scoreCompanyForPeriod } from './scoringEngine.js';
 import {
   DEFAULT_CONFIDENCE_THRESHOLD,
@@ -11,6 +12,10 @@ import {
   buildRobustnessExportMeta,
   enrichRowWithThresholdFields,
 } from './robustnessEngine.js';
+
+const CORPUS = loadActiveCorpus({ seedCompanies: SEED_COMPANIES });
+const ACTIVE_COMPANIES = CORPUS.activeCompanies;
+const CORPUS_PROVENANCE = buildCorpusProvenancePayload(CORPUS, SEED_COMPANIES.length);
 
 const PORT = Number(process.env.SIGNALS_PORT || process.env.PORT || 8787);
 const REFERENCE_DATE = process.env.SIGNALS_REFERENCE_DATE
@@ -102,13 +107,13 @@ function exportSignalRecord(company, periodQuery, thresholdCtx) {
 }
 
 function exportPayload(periodQuery, thresholdCtx) {
-  const listRows = sortListRows(SEED_COMPANIES.map(c => listRow(c, periodQuery)));
+  const listRows = sortListRows(ACTIVE_COMPANIES.map(c => listRow(c, periodQuery)));
   const enrichedRows = listRows.map(r =>
     enrichRowWithThresholdFields(r, thresholdCtx.mismatchBounded, thresholdCtx.confidenceMin),
   );
   const robustness = buildRobustnessExportMeta(
     enrichedRows,
-    SEED_COMPANIES,
+    ACTIVE_COMPANIES,
     REFERENCE_DATE,
     periodQuery,
     thresholdCtx.mismatchBounded,
@@ -119,12 +124,13 @@ function exportPayload(periodQuery, thresholdCtx) {
     schema_version: 'v1',
     generated_at: new Date().toISOString(),
     disclaimers: DISCLAIMER_LINES,
+    corpus_provenance: CORPUS_PROVENANCE,
     threshold_used: robustness.threshold_used,
     flagged_count_at_threshold: robustness.flagged_count_at_threshold,
     sensitivity_analysis: robustness.sensitivity_analysis,
     pattern_stability: robustness.pattern_stability,
     cross_case_consistency: robustness.cross_case_consistency,
-    signals: SEED_COMPANIES.map(c => exportSignalRecord(c, periodQuery, thresholdCtx)),
+    signals: ACTIVE_COMPANIES.map(c => exportSignalRecord(c, periodQuery, thresholdCtx)),
   };
 }
 
@@ -137,17 +143,22 @@ function sortListRows(rows) {
 }
 
 app.get('/health', (_req, res) => {
-  res.json({ ok: true, service: 'disclosure-mismatch-engine', schema_version: 'v1' });
+  res.json({
+    ok: true,
+    service: 'disclosure-mismatch-engine',
+    schema_version: 'v1',
+    corpus_provenance: CORPUS_PROVENANCE,
+  });
 });
 
 app.get('/companies', (req, res) => {
   const pq = parsePeriodQuery(req);
   const th = parseThresholdQuery(req);
-  const rows = sortListRows(SEED_COMPANIES.map(c => listRow(c, pq)));
+  const rows = sortListRows(ACTIVE_COMPANIES.map(c => listRow(c, pq)));
   const enriched = rows.map(r => enrichRowWithThresholdFields(r, th.mismatchBounded, th.confidenceMin));
   const robustness = buildRobustnessExportMeta(
     enriched,
-    SEED_COMPANIES,
+    ACTIVE_COMPANIES,
     REFERENCE_DATE,
     pq,
     th.mismatchBounded,
@@ -155,6 +166,7 @@ app.get('/companies', (req, res) => {
   );
   res.json({
     disclaimers: DISCLAIMER_LINES,
+    corpus_provenance: CORPUS_PROVENANCE,
     period_query: pq,
     threshold_params: {
       bounded_mismatch_minimum: th.mismatchBounded,
@@ -172,9 +184,13 @@ app.get('/companies', (req, res) => {
 
 app.get('/companies/:id', (req, res) => {
   const pq = parsePeriodQuery(req);
-  const company = SEED_COMPANIES.find(c => c.id === req.params.id);
+  const company = ACTIVE_COMPANIES.find(c => c.id === req.params.id);
   if (!company) {
-    res.status(404).json({ error: 'company_not_found', id: req.params.id });
+    res.status(404).json({
+      error: 'company_not_found',
+      id: req.params.id,
+      corpus_provenance: CORPUS_PROVENANCE,
+    });
     return;
   }
   const scored = scoreCompanyForPeriod(company, REFERENCE_DATE, pq);
@@ -185,6 +201,7 @@ app.get('/companies/:id', (req, res) => {
   const thresholdFields = enrichRowWithThresholdFields(rowShape, th.mismatchBounded, th.confidenceMin);
   res.json({
     disclaimers: DISCLAIMER_LINES,
+    corpus_provenance: CORPUS_PROVENANCE,
     period_query: pq,
     threshold_params: {
       bounded_mismatch_minimum: th.mismatchBounded,
@@ -206,7 +223,7 @@ app.get('/companies/:id', (req, res) => {
 
 app.get('/scores', (req, res) => {
   const pq = parsePeriodQuery(req);
-  const rows = sortListRows(SEED_COMPANIES.map(c => listRow(c, pq))).map(r => ({
+  const rows = sortListRows(ACTIVE_COMPANIES.map(c => listRow(c, pq))).map(r => ({
     company_id: r.id,
     company_name: r.name,
     sector: r.sector,
@@ -216,6 +233,7 @@ app.get('/scores', (req, res) => {
   }));
   res.json({
     disclaimers: DISCLAIMER_LINES,
+    corpus_provenance: CORPUS_PROVENANCE,
     period_query: pq,
     scores: rows,
   });
@@ -235,6 +253,7 @@ app.get('/signals/export', (req, res) => {
       schema_version: body.schema_version,
       generated_at: body.generated_at,
       disclaimers: body.disclaimers,
+      corpus_provenance: body.corpus_provenance,
       period_query: pq,
       threshold_used: body.threshold_used,
       flagged_count_at_threshold: body.flagged_count_at_threshold,
@@ -251,6 +270,15 @@ app.get('/signals/export', (req, res) => {
 });
 
 app.listen(PORT, () => {
+  const d = CORPUS.corpusDetail;
   // eslint-disable-next-line no-console
   console.log(`[signals] Disclosure Mismatch Engine listening on http://127.0.0.1:${PORT}`);
+  // eslint-disable-next-line no-console
+  console.log(
+    `[signals] corpus_mode=${CORPUS.corpusMode} artifact=${d.artifact_path} active=${ACTIVE_COMPANIES.length} seed_baseline=${SEED_COMPANIES.length}` +
+      (CORPUS.corpusMode === 'mixed'
+        ? ` seed_appended=${d.seed_appended_ids.length} seed_skipped_dup=${d.seed_skipped_duplicate_ids.length}`
+        : '') +
+      (CORPUS.corpusMode === 'seeded' && d.fallback_reason ? ` fallback_reason=${d.fallback_reason}` : ''),
+  );
 });
