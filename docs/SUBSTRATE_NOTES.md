@@ -51,3 +51,55 @@ Reusable pattern for future charter-class artifacts: production-run scaling char
 **Why A held in reserve:** Future option if on-demand becomes binding constraint and a leased VM is unacceptable for cost/ops/data-residency reasons not yet surfaced. Two product details still need verification before A is deployable: whether Cloudflare's dedicated-egress-IP product covers Workers specifically, and required plan tier.
 
 **Status:** Decision made; implementation pending under Block 3. Rate-limit numbers (sub-1 req/s default, 10 req/s ceiling) inherited from prior substrate-notes observation and should be re-verified against current SEC EDGAR fair-access policy before Block 3 implementation lands.
+---
+
+## 2026-05-14 — Analytical-lens layer under-represented in project record
+
+**Observation:** Cross-LLM context-pooling on 2026-05-14 (Claude + ChatGPT briefing exchange) surfaced that the project record under-represents WWW's analytical-lens layer. Specifically, the four-layer / three-output architecture (L1-L4 / O1-O3) as documented in prior substrate notes and project memory captures data ingestion (L1-L4) and contradiction-detection output (O1), but does not represent the analytical/doctrinal frameworks WWW is intended to apply to that output.
+
+**Confirmed analytical lenses surfaced in this session (incomplete list — see failsafe below):**
+
+- Networks, Platforms, and Utilities (NPU) — legal/regulatory framework. User-supplied source links: LPE Project, Fordham Law Review, Vanderbilt Policy Accelerator, Yale Law & Policy, SSRN, Yale Journal on Regulation.
+- Computational Antitrust — User-supplied source links: Stanford CodeX, Network Law Review.
+
+**Intended mode of application (user-stated 2026-05-14):** The app should "attempt automated analysis" with human review of automated output for verification. This sits between full-automated and tag-and-classify modes; the bounded version of the capability has not yet been specified at the engineering level.
+
+**Why this is substrate-level, not just project-briefing-level:** The architecture itself may need extension. The current L1-L4 / O1-O3 structure has no slot for analytical-lens application. Whether this is a new output category (e.g., O4 doctrinal analysis), a transverse layer applied across O1-O3, or a separate post-processing stage is an architecture-design question, not a documentation question.
+
+**What is NOT being decided here:** This entry does not commit to specific engineering scope for any individual lens, does not architect the analytical-lens layer, and does not extend the L1-L4 / O1-O3 model. Those decisions are deferred to a dedicated session.
+
+**What is being captured:** The methodological observation that (a) the project record was incomplete, (b) cross-LLM pooling surfaced the incompleteness, and (c) a dedicated architecture session is needed before further deliverables claim WWW capabilities in the analytical-lens domain.
+
+### FAILSAFE — INCOMPLETENESS NOTICE
+
+This entry's enumeration of analytical lenses is explicitly non-exhaustive. User has indicated additional analytical lenses were intended for WWW application but were not surfaced in this 2026-05-14 session due to time constraints. Until a dedicated architecture session enumerates the full set:
+
+1. Any deliverable claiming "WWW's analytical lenses are NPU and Computational Antitrust" is incorrect. The correct claim is: "NPU and Computational Antitrust are *among* WWW's analytical lenses; the complete list is not yet documented."
+
+2. Any AI assistant (including future Claude sessions) reading this substrate file must NOT treat the two-lens enumeration as complete. The two listed are confirmed; the full set is open.
+
+3. Before any deliverable references analytical-lens capability, the user must be prompted to confirm whether the full lens set has been enumerated. If not, the deliverable must use language consistent with point (1) above.
+
+4. This failsafe is lifted only by a subsequent dated substrate notes entry that explicitly states "full lens set enumerated; no further lenses pending."
+
+**Status:** Open. Architecture session pending. Until that session lands, deliverables referencing analytical-lens capability (e.g., NPU-frame analysis, Computational Antitrust analysis) must be bracketed as planned-not-implemented.
+---
+
+## 2026-05-14 — Cross-LLM pooling requires user-side triage
+
+**Observation:** The cross-LLM consultation convergence pattern documented 2026-05-13 (commit `855e19b5`) was extended on 2026-05-14 in a different direction: context-pooling (rather than pressure-testing) across Claude and ChatGPT memory for the same project. This produced useful gap-detection — ChatGPT's pooled briefing surfaced items missing from Claude memory, including the analytical-lens gap captured in the preceding 2026-05-14 entry — but also produced contamination risk that the original pattern did not.
+
+**Failure mode:** ChatGPT memory accumulates across all user activity, not just within a single project. Pooling without triage can pull non-project context into project records if the user has used the same ChatGPT account for multiple unrelated threads. Items the user has discussed in adjacent-but-separate contexts can read as in-scope to the receiving LLM when they are not.
+
+**User-side triage as part of the pattern:** Cross-LLM pooling requires the user to triage pooled items before they enter durable project records. Triage criteria:
+
+- Items confirmed against the receiving LLM's project memory → safe to record
+- Items not in receiving LLM's memory but user can confirm as in-scope → safe to record with confirmation noted
+- Items not in receiving LLM's memory and user cannot immediately confirm → flag as uncertain; do not record until verified
+- Items the user identifies as out-of-scope (different project, different domain) → drop entirely, do not record even for "completeness"
+
+**Implication for pattern reuse:** Future cross-LLM pooling exercises (production-scale charter, tier-(ii) classifier charter, others in the substrate) should include an explicit triage step in their working protocol. The substrate-notes pattern of producing a briefing → reviewing → committing requires the review step to be substantive triage, not just proofreading.
+
+**Implication for the preceding 2026-05-14 analytical-lens entry:** That entry's contents were triaged before recording. NPU and Computational Antitrust are user-confirmed (with source links) and Claude-memory-adjacent (the ChatGPT briefing's "NPU framework" mention prompted the user to surface the full reference). Other items from the same pooling session were either confirmed against Claude memory (the four-layer architecture, the warrant tags, the named empirical sources) or identified by the user as out-of-scope (NY/OK incorporation discussions) and dropped.
+
+**Status:** Pattern upgrade documented. Triage step is now part of cross-LLM pooling working protocol.
