@@ -104,3 +104,36 @@ This entry's enumeration of analytical lenses is explicitly non-exhaustive. User
 
 **Status:** Pattern upgrade documented. Triage step is now part of cross-LLM pooling working protocol.
 ---
+---
+
+## 2026-05-15 — First substrate bridge complete (DCIM ↔ DME)
+
+**Commit:** `3995ed64645821786fec4086a5f447261664a819`  
+**Branch:** `stabilization/2026-05` (local only; not pushed)  
+**Message:** `feat(signals): optional pipeline corpus load with visible provenance`
+
+**Objective completed:** First executable substrate bridge between the Python WWW extraction pipeline and the Node/Express Disclosure Mismatch Engine (DME). Prior state: pipeline outputs landed under `www_pipeline_out/` but were unread by DME, which served only `server/mockDataset.js` `SEED_COMPANIES` in memory. The two paths were operationally disconnected in code. This commit introduces `server/corpusLoader.js` and wires `server/index.js` to optionally load `www_pipeline_out/validated_cases.json` (or `SIGNALS_SEED_PATH`) at startup, with visible provenance surfaced on `/health`, `/companies`, `/companies/:id`, `/scores`, `/signals/export` (JSON + JSONL meta), and a small UI strip in `DisclosureMismatchView`. The bridge was intentionally implemented as an inspectable provenance boundary rather than a generalized normalization layer; transformation logic remains minimal and explicit.
+
+**Ratifications (recorded design choices, not defaults):**
+
+1. **Replace-only default.** When `validated_cases.json` loads successfully, the active corpus *is* the pipeline corpus. Mixed mode (append non-colliding seed companies; pipeline wins on `id` collision) is opt-in only via `SIGNALS_CORPUS_MODE=mixed`. Default-to-mixed was explicitly rejected to preserve semantic clarity at the first substrate boundary.
+
+2. **No coercion in v1.** Invalid pipeline shapes trigger fallback to seeded mode with `corpus_mode: "seeded"` and `corpus_provenance.fallback_reason` populated. No field-level coercion logic. Schema drift is surfaced as visible mode change, not absorbed by silent normalization.
+
+3. **Single-source companies accepted as-is.** Pipeline output may contain companies with fewer sources than the DME scoring threshold (`MIN_SOURCES_FOR_SCORES = 2` in `scoringEngine.js`). Scoring suppression applies normally. The Goldman Sachs entry (`goldman_sachs_www_tier_i`, 1 source) loads under pipeline mode; its scores will suppress. This is the intended demonstration of bounded claims — provenance label plus visible suppression behavior beats either masking the limitation or modifying scoring to compensate.
+
+**Smoke verification (live, 2026-05-15):** Startup log on `node server/index.js`: `[signals] corpus_mode=pipeline artifact=/Users/daniel/Desktop/DCIM/www_pipeline_out/validated_cases.json active=1 seed_baseline=12`. `GET /health` returned `corpus_provenance` with `corpus_mode: "pipeline"`, `active_company_count: 1`, `pipeline_company_ids: ["goldman_sachs_www_tier_i"]`, `artifact_mtime_iso: "2026-05-13T13:18:14.685Z"`, `seed_baseline_company_count: 12`. `GET /companies` returned the same provenance block alongside disclaimers. Browser UI verified via `npm run dev:with-signals`: AI Labor tab renders, corpus source strip displays pipeline mode, Goldman row shows "Insufficient sources — signal withheld" message under suppression.
+
+**Intentionally unresolved (deferred from this work):**
+
+- Broader ontology and canonical-status declaration system — no unified maturity ontology was built; existing piecemeal markers (`parsing_confidence`, `reviewer_flag`, `methodology_reference`, `warrant_note`) were inventoried but not unified.
+- Mixed mode is implemented but intentionally non-default; treated as a future operational or demo-specific choice rather than canonical behavior. No mixed-mode usage is endorsed by this milestone.
+- DME mismatch model vs. facility `ContradictionPair` model — left separate.
+- Dexie `Source` / `Citation` / `DataProvenance` schemas — left as partial scaffolding, not promoted to system-of-record.
+- Audience wrappers / presentation-layer architecture — not built; deferred until first real demo audience identified.
+- Hard technical/social firewall between substrate and presentation layers — conceptual work only; no architectural enforcement.
+- Analytical-lens layer architecture (per 2026-05-14 entry) — remains open, unaffected by this work.
+
+**What this milestone permits:** Any future claim about pipeline-backed DME demonstration can be substantiated by running the smoke commands against current commit state. Prior to this commit, such claims would have been aspirational. The DME ↔ pipeline boundary now exists in code; it does not yet imply that broader substrate, ontology, or provenance architecture has been resolved. Those remain future work.
+
+**Status:** Closed. First substrate bridge objective complete. Sprint paused here intentionally; resumption to be scoped against actual first-demo audience and context rather than continued speculative polish.
