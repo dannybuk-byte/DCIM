@@ -1,0 +1,10 @@
+{
+  "firms": [
+    {
+      "cik": "0000999999",
+      "firm_id": "firm-acme-compute-0001",
+      "legal_name_sec": "ACME Compute Holdings LLC",
+      "resolved_name": "ACME Compute Holdings LLC"
+    }
+  ]
+}

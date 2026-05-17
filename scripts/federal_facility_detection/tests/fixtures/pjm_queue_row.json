@@ -1,0 +1,22 @@
+[
+  {
+    "queueNumber": "TEST-PJM-001",
+    "projectName": "Example Solar Phase 1",
+    "customerName": "ACME Compute Holdings LLC",
+    "status": "Under Study",
+    "mwEnergy": "45.5",
+    "proposedCompletionDate": "2028-06-01",
+    "state": "NJ",
+    "fuel": "Solar",
+    "project_type": "Generation"
+  },
+  {
+    "queueNumber": "TEST-PJM-002",
+    "projectName": "Hyperscale Load Request",
+    "customerName": "Example Power LLC",
+    "status": "Planning",
+    "mwEnergy": "120",
+    "state": "VA",
+    "type": "Large Load"
+  }
+]
