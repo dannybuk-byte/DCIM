@@ -1,0 +1,42 @@
+{
+  "by_candidate": {
+    "ACME Compute Holdings LLC": {
+      "qid": "Q9999999",
+      "canonical_legal_name": "ACME Compute Holdings LLC",
+      "aliases": ["ACME Compute"],
+      "subsidiary_labels": []
+    },
+    "ACME Holdings Inc.": {
+      "qid": "Q9999998",
+      "canonical_legal_name": "ACME Holdings Inc.",
+      "aliases": [],
+      "subsidiary_labels": ["ACME Compute LLC"]
+    },
+    "ACME Compute LLC": {
+      "qid": "Q9999997",
+      "canonical_legal_name": "ACME Compute LLC",
+      "aliases": [],
+      "parent_qids": ["Q9999998"]
+    },
+    "Foreign Example Ltd.": {
+      "no_match": true
+    },
+    "Example Power LLC": {
+      "qid": "Q9999996",
+      "canonical_legal_name": "Example Power LLC",
+      "aliases": []
+    },
+    "ACME Conflict Test Corp": {
+      "ambiguous_qids": ["Q9999995", "Q9999994"]
+    },
+    "Example SEC Only LLC": {
+      "no_match": true
+    },
+    "ACME IBM Style LLC": {
+      "qid": "Q9999993",
+      "canonical_legal_name": "ACME ZED",
+      "aliases": [],
+      "subsidiary_labels": []
+    }
+  }
+}

@@ -1,0 +1,45 @@
+{
+  "by_candidate": {
+    "ACME Compute Holdings LLC": {
+      "cik": "0000999999",
+      "ticker": "ACME",
+      "legal_name_sec": "ACME COMPUTE HLDGS LLC"
+    },
+    "ACME Holdings Inc.": {
+      "cik": "0000999998",
+      "ticker": "ACHO",
+      "legal_name_sec": "ACME HOLDINGS INC"
+    },
+    "ACME Compute LLC": {
+      "cik": "0000999997",
+      "ticker": null,
+      "legal_name_sec": "ACME COMPUTE LLC"
+    },
+    "Foreign Example Ltd.": {
+      "cik": null,
+      "ticker": null,
+      "legal_name_sec": null,
+      "is_foreign_primary": true
+    },
+    "Example Power LLC": {
+      "cik": null,
+      "ticker": null,
+      "legal_name_sec": null
+    },
+    "ACME Conflict Test Corp": {
+      "cik": null,
+      "ticker": null,
+      "legal_name_sec": null
+    },
+    "Example SEC Only LLC": {
+      "cik": "0000888888",
+      "ticker": "EXSO",
+      "legal_name_sec": "EXAMPLE SEC ONLY LLC"
+    },
+    "ACME IBM Style LLC": {
+      "cik": "0000777777",
+      "ticker": "AIBM",
+      "legal_name_sec": "ACME QRX HOLDINGS CORP"
+    }
+  }
+}

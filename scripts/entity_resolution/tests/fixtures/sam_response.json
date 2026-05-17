@@ -1,0 +1,14 @@
+{
+  "by_candidate": {
+    "ACME Compute Holdings LLC": {
+      "ueis": ["ZZZZZZZZZZZZ"],
+      "cages": ["ABC12"],
+      "legal_names": ["ACME COMPUTE HOLDINGS LLC"]
+    },
+    "ACME Holdings Inc.": {
+      "ueis": ["YYYYYYYYYYYY", "XXXXXXXXXXXX"],
+      "cages": ["DEF34", "GHI56"],
+      "legal_names": ["ACME HOLDINGS INC", "ACME COMPUTE LLC"]
+    }
+  }
+}

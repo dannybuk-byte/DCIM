@@ -1,0 +1,9 @@
+{
+  "by_candidate": {
+    "ACME Compute Holdings LLC": {
+      "directory_entry_name": "ACME Compute Holdings LLC",
+      "membership_tier": "Gold",
+      "contributor_evidence_urls": ["https://example.test/ocp/acme"]
+    }
+  }
+}
