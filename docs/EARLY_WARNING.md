@@ -14,56 +14,46 @@ This project aims to be that early-warning system, with two specific downstream 
 
 Two feature tracks, both downstream of the same observability layer:
 
-**1. Early-warning signal detection.** Ingestion and correlation across:
-
-- Power-grid interconnection queues (NYISO, PJM, FERC) — earliest formal signal that a large facility is being planned
-- BGP routing announcements
-- Certificate transparency log entries
-- Subdomain and DNS surfacing
-- IP and ASN registration changes
-- Peering interconnect formation
-- Disclosure cross-reference (SEC filings, public contracts) for vendor identification
-
-Each signal individually has a high false-positive rate; the leverage is in correlation across them. Some of these are already running (see below); others are obvious next-build surfaces.
+**1. Early-warning signal detection.** Ingestion and correlation across network, routing, certificate, and disclosure signals. See the *Current state* table below for what exists in the repo versus what's open contribution surface.
 
 **2. Two downstream consumer surfaces** that turn detected signals into action:
 
 - **Curriculum signaling.** Once vendor partners are identified, their stack determines the skill-mix the new facility will demand. That feeds curriculum development directly, or hands off to OCP Academy and union locals to prep apprentice pipelines in the relevant geography — *before* the facility opens.
 - **CBA negotiation tooling.** Early-warning detection prompts CBA writers when a counterparty is about to need workforce. The build also includes longitudinal compliance records per counterparty across prior facilities, so CBA writers come to the table with documented track records rather than starting from zero.
 
+## Current state
+
+Status terms:
+
+- **Prototype** = code exists in the repo; runtime/production readiness varies.
+- **Planned** = scoped or discussed; no code yet.
+- **Exploratory** = idea-level; not yet scoped.
+
+| Signal | Status | What it detects |
+| --- | --- | --- |
+| Certificate transparency logs (`src/services/NetworkDiscoveryAPIs.ts`, `src/osint/DataSourceManager.ts`) | Prototype | Infra/domain emergence before announcement |
+| BGP announcements (`src/network/BGPMonitor.ts`) | Prototype | Routing activation when networks come online |
+| DNS / subdomain surfacing (`src/utils/dnsRecon.ts`) | Prototype | Organizational preparation |
+| Power-grid interconnection queues — NYISO, PJM, FERC eLibrary, FERC Form 715 (`scripts/federal_facility_detection/`) | Prototype | Formal pre-build regulatory filings |
+| SEC / disclosure cross-reference (`scripts/federal_facility_detection/adapters/sec_edgar.py`) | Prototype | Vendor partner identification from filings |
+| Entity resolution pipeline (`scripts/entity_resolution/`) | Prototype | Cross-source entity matching (SEC, OpenCorporates, OCP, Wikidata, SAM, NY WARN) |
+| RIR allocation history / ROA records | Planned | Allocation intent before infrastructure exists |
+| Network peering / PeeringDB integration | Planned | Regional operator presence |
+| Multi-signal correlation | Exploratory | Confidence aggregation across weak signals |
+| Curriculum-signal output formatting | Planned | Structured handoff to OCP Academy / union locals |
+| CBA tooling (counterparty timelines, compliance track-record) | Planned | CBA writer leverage interface |
+
+A six-stage pre-commit gate runs in the repo to catch common safety-pattern violations (storage, dynamic class names, large files, console.log, TODO/FIXME, useEffect cleanup).
+
 ## How this fits in the larger architecture
 
-Early-warning detection is the **L2 network telemetry layer** of a broader four-layer architecture documented in [`ARCHITECTURE.md`](../ARCHITECTURE.md). The other layers are workforce records (L1 — WARN filings, regulatory notices), investor disclosures (L3 — SEC 10-K, 10-Q, 8-K), and infrastructure taxonomies (L4 — OCP, iMasons).
+Early-warning detection is the network-telemetry layer of a four-layer architecture documented in [`ARCHITECTURE.md`](../ARCHITECTURE.md). The first proving ground was a documentary-contradiction case at the workforce/investor disclosure layers: 162+ NY WARN Act notices since March 2025 (none citing AI) while the same employers told investors they were cutting headcount because of AI. That work built out L1/L3 ingestion now in the repo. The early-warning track extends the same correlation discipline to infrastructure formation.
 
-The architecture's first proving ground was a documentary-contradiction case: 162+ NY WARN Act notices since March 2025 (none cite AI), while the same employers told investors they were cutting headcount because of AI. That work demonstrated the underlying premise — that disclosure asymmetries across mandatory-disclosure regimes are detectable, traceable to primary sources, and meaningful — and built out the L1/L3 ingestion infrastructure now in production.
-
-The early-warning track generalizes the same observability logic *upstream* into infrastructure formation (before facilities exist) and *downstream* into workforce-coordination outputs (curriculum, CBA). The disclosure-asymmetry work and the early-warning work are complementary instances of the same architectural premise, not competing projects.
-
-Three invariants hold across both tracks:
+Three invariants hold:
 
 - **Human adjudication is central.** The system surfaces; humans decide.
-- **Outputs are signals, not conclusions.** A weak signal is presented as weak. Below source thresholds, the signal is visibly suppressed.
+- **Outputs are signals, not conclusions.** Below source thresholds, the signal is visibly suppressed.
 - **Governance-latency reduction, not labor-judgment automation.** The goal is to give workforce-development and labor-relations actors earlier and better-grounded inputs — not to make workforce decisions for them.
-
-## What's running now
-
-In the early-warning layer:
-
-- **Federal facility / interconnection queue ingestion** (`scripts/federal_facility_detection/`) — adapters for NYISO, PJM, FERC eLibrary, FERC Form 715, plus SEC EDGAR cross-reference. Queue normalization, confidence scoring, warrant-tagged outputs.
-- **Entity resolution pipeline** (`scripts/entity_resolution/`) — resolver with multiple source adapters (SEC tickers, OpenCorporates, OCP, Wikidata, SAM, NY WARN), normalization, review queue for human adjudication, test fixtures.
-- **BGP monitoring** (`src/network/BGPMonitor.ts`) — route announcement ingestion, integrated into multiple UI surfaces.
-- **Certificate transparency ingestion** — distributed across `src/services/NetworkDiscoveryAPIs.ts`, `src/osint/DataSourceManager.ts`, expansion-tracking utilities.
-- **DNS reconnaissance** (`src/utils/dnsRecon.ts`) and subdomain expansion tracking.
-- Six-stage pre-commit gate covering safety patterns.
-
-Open contribution surfaces (real engineering work, varying depth):
-
-- **RIR / RPKI / ROA ingestion** — not yet built. RIR allocation history and Route Origin Authorization records are obvious upstream signals for new infrastructure intent; both are publicly queryable but ingestion code does not exist yet. Architecturally clean place to contribute.
-- **Network peering and interconnect detection** — not yet built at the network layer. PeeringDB integration and BGP-session inference for detecting new operator presence would extend the existing BGP monitoring.
-- **Multi-signal correlation logic** — partial. The individual signal ingestions exist; the correlation layer that says *"these three weak signals are pointing at the same forming facility"* is the highest-leverage engineering work and the most open.
-- **Entity resolution extension** — sources, matching heuristics, and confidence scoring for the existing resolver pipeline. Concrete extension of a working module rather than greenfield.
-- **Curriculum-signal output formatting** — not yet built. Once vendor identification fires, the output that goes to OCP Academy or union locals needs structured formatting.
-- **CBA tooling** — not yet built. Counterparty timeline assembly and longitudinal compliance track-record interface for CBA writers.
 
 ## About the project
 
@@ -71,4 +61,4 @@ This is part of **What We Will (WWW)**, a Bronx-based worker advocacy organizati
 
 ## What I'm looking for
 
-A collaborator who finds the multi-signal correlation problem interesting and wants to build out the curriculum-signaling and CBA tooling that makes that correlation actually useful. The infrastructure to ingest signals is substantially built; the correlation logic and the downstream output surfaces are where the highest-leverage work remains. The downstream applications are concrete and have real users (union locals, OCP Academy, CBA writers) waiting for the inputs.
+A collaborator who finds the multi-signal correlation problem interesting and wants to build out the curriculum-signaling and CBA tooling that makes that correlation actually useful. Several signal ingestions exist in prototype form; the correlation logic and the downstream output surfaces are where the highest-leverage work remains. The downstream applications are concrete and have real users (union locals, OCP Academy, CBA writers) waiting for the inputs.
