@@ -22,6 +22,7 @@ import {
   type RobustnessSummary,
   type ThresholdParams,
 } from '../api/disclosureMismatchClient';
+import { EpochConfirmTimeline } from './EpochConfirmTimeline';
 import {
   SOURCED_CASE_PACK_SKEPTICISM,
   buildCaseReportPayload,
@@ -1345,6 +1346,25 @@ export const DisclosureMismatchView: React.FC<DisclosureMismatchViewProps> = ({
           <div className="grid grid-cols-1 xl:grid-cols-5 gap-6">
             {/* 2. Main table */}
             <div className="xl:col-span-3 space-y-3">
+              {/* S1 Stage C/D — early-warning timeline spine + LIVE/DESIGN honesty layer.
+                  Withheld candidates are shown first-class; corroborated candidates show
+                  the Epoch AI lead-time ladder (CC-BY). */}
+              <section className="space-y-2">
+                <div className="flex items-baseline justify-between gap-2 flex-wrap">
+                  <h2 className="text-lg font-black text-white tracking-tight">
+                    Early-warning timeline · two-source gate
+                  </h2>
+                  <span className="text-[11px] text-zinc-500 uppercase font-bold tracking-wide">
+                    Epoch AI confirm feed · CC-BY
+                  </span>
+                </div>
+                <div className="space-y-2">
+                  {tableRows.map(row => (
+                    <EpochConfirmTimeline key={`ewt-${row.id}`} row={row} />
+                  ))}
+                </div>
+              </section>
+
               <div className="flex items-baseline justify-between gap-2 flex-wrap">
                 <h2 className="text-lg font-black text-white tracking-tight">Cross-company corpus</h2>
                 <span className="text-[11px] text-zinc-500 uppercase font-bold tracking-wide">

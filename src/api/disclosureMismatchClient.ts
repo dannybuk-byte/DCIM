@@ -87,6 +87,31 @@ export interface CompanyScoresRow {
   low_confidence_flag: boolean;
   /** Echoed when API scoped with ?from=&to= */
   period_query?: { from: string | null; to: string | null } | null;
+  /** S1 Stage C: lead-time ladder from the real Epoch public-visibility timeline. */
+  lead_time?: LeadTime | null;
+  /** S1 Stage D: LIVE/DESIGN provenance rollup for the honesty layer. */
+  provenance?: ProvenanceSummary;
+}
+
+export interface LeadTimeRung {
+  site_name: string;
+  public_visibility_date: string;
+  public_visibility_kind: string | null;
+  lead_time_days: number;
+}
+
+export interface LeadTime {
+  detection_date: string;
+  epoch_site_count: number;
+  sites_flagged_before_public: number;
+  lead_days_range: [number, number];
+  ladder: LeadTimeRung[];
+}
+
+export interface ProvenanceSummary {
+  real_source_count: number;
+  has_epoch_confirm: boolean;
+  provenance: 'real' | 'synthetic' | 'mixed';
 }
 
 export interface ThresholdParams {

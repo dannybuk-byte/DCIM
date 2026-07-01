@@ -1,0 +1,19 @@
+{
+  "source": "Epoch AI",
+  "dataset": "AI Data Centers",
+  "attribution": "Epoch AI, 'AI Data Centers'. Published online at epoch.ai. Retrieved from 'https://epoch.ai/data/ai-data-centers'",
+  "license": "CC-BY",
+  "retrieved_at": "2026-06-30",
+  "dataset_version": "epoch-ai-data-centers-2026-06-30",
+  "files": {
+    "data_centers.csv": {
+      "rows_including_header": 290,
+      "sha256": "2744b640a2f7dca3b64d723fba58448d4408c8d312d549acbfd424b03371eb2d"
+    },
+    "data_center_timelines.csv": {
+      "rows_including_header": 374,
+      "sha256": "27a59bcbd05443bec9d3b7be0203817603fa3f6f4d061fb2f3a010a4a0b08375"
+    }
+  },
+  "note": "Pinned CC-BY snapshot vendored in-tree. Deterministic corpus builds read this snapshot; no live fetch during builds. Refresh is a deliberate, separate fetch -> diff -> re-vendor -> rebuild workflow, not part of routine builds."
+}

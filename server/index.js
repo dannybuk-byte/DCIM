@@ -12,9 +12,23 @@ import {
   buildRobustnessExportMeta,
   enrichRowWithThresholdFields,
 } from './robustnessEngine.js';
+import {
+  loadEpochConfirmSources,
+  mergeEpochConfirmSources,
+  computeLeadTime,
+  summarizeProvenance,
+} from './epochConfirm.js';
+import { SYNTHETIC_CANDIDATES } from './syntheticCandidates.js';
 
 const CORPUS = loadActiveCorpus({ seedCompanies: SEED_COMPANIES });
-const ACTIVE_COMPANIES = CORPUS.activeCompanies;
+// Stage B/D: real Epoch confirm sources merged onto matched candidates (floor untouched),
+// plus labeled-synthetic candidates for the hybrid surface. Real corroboration and
+// synthetic demonstration remain separately labeled and never mixed to cross the floor.
+const EPOCH_CONFIRM = loadEpochConfirmSources();
+const ACTIVE_COMPANIES = [
+  ...mergeEpochConfirmSources(CORPUS.activeCompanies, EPOCH_CONFIRM),
+  ...SYNTHETIC_CANDIDATES,
+];
 const CORPUS_PROVENANCE = buildCorpusProvenancePayload(CORPUS, SEED_COMPANIES.length);
 
 const PORT = Number(process.env.SIGNALS_PORT || process.env.PORT || 8787);
@@ -56,6 +70,10 @@ function listRow(company, periodQuery) {
     sector: company.sector,
     ...(company.case_type ? { case_type: company.case_type } : {}),
     ...(company.reviewer_flag ? { reviewer_flag: company.reviewer_flag } : {}),
+    // Stage C/D: timeline lead time (from the real Epoch public-visibility date) and the
+    // LIVE/DESIGN provenance rollup, so the surface can render both honestly.
+    lead_time: computeLeadTime(company),
+    provenance: summarizeProvenance(company),
     ...rest,
   };
 }
