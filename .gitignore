@@ -16,3 +16,12 @@ DCIM Compliance App/
 ts-errors.txt
 public/commit-hash.txt
 www_pipeline_out/
+
+# committed-env / WIP — must never enter the slice commit
+# NOTE: docs/ intentionally NOT ignored — it holds 19 already-tracked files.
+.venv-federal/
+data/
+spike_evidence_units/
+spike_interconnection/
+stage_spike_files.sh
+BUILD_RESULT_S1_2026-06-30.md
