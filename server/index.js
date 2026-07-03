@@ -30,6 +30,16 @@ export const ACTIVE_COMPANIES = [
   ...mergeEpochConfirmSources(CORPUS.activeCompanies, EPOCH_CONFIRM),
   ...SYNTHETIC_CANDIDATES,
 ];
+// D1 (ratified 2026-07-03): freeze the counted list at the assembly boundary so
+// post-assembly mutation cannot alter what gets counted. Each company's sources array is
+// frozen (blocks push/splice), the company object is frozen (blocks sources reassignment),
+// and the list itself is frozen (blocks adding/removing candidates). Mutation of any of
+// these throws in ESM strict mode. The floor (scoringEngine.js) only reads these shapes.
+for (const company of ACTIVE_COMPANIES) {
+  if (Array.isArray(company.sources)) Object.freeze(company.sources);
+  Object.freeze(company);
+}
+Object.freeze(ACTIVE_COMPANIES);
 const CORPUS_PROVENANCE = buildCorpusProvenancePayload(CORPUS, SEED_COMPANIES.length);
 
 const PORT = Number(process.env.SIGNALS_PORT || process.env.PORT || 8787);
