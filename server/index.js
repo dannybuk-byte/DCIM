@@ -120,6 +120,7 @@ function exportSignalRecord(company, periodQuery, thresholdCtx) {
       possible: scored.possible_false_negative,
       reasons: scored.false_negative_reasons,
     },
+    provenance: summarizeProvenance(company),
     sources: filtered,
   };
 }
