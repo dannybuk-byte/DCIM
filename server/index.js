@@ -19,13 +19,14 @@ import {
   summarizeProvenance,
 } from './epochConfirm.js';
 import { SYNTHETIC_CANDIDATES } from './syntheticCandidates.js';
+import { pathToFileURL } from 'node:url';
 
 const CORPUS = loadActiveCorpus({ seedCompanies: SEED_COMPANIES });
 // Stage B/D: real Epoch confirm sources merged onto matched candidates (floor untouched),
 // plus labeled-synthetic candidates for the hybrid surface. Real corroboration and
 // synthetic demonstration remain separately labeled and never mixed to cross the floor.
 const EPOCH_CONFIRM = loadEpochConfirmSources();
-const ACTIVE_COMPANIES = [
+export const ACTIVE_COMPANIES = [
   ...mergeEpochConfirmSources(CORPUS.activeCompanies, EPOCH_CONFIRM),
   ...SYNTHETIC_CANDIDATES,
 ];
@@ -78,7 +79,7 @@ function listRow(company, periodQuery) {
   };
 }
 
-function exportSignalRecord(company, periodQuery, thresholdCtx) {
+export function exportSignalRecord(company, periodQuery, thresholdCtx) {
   const scored = scoreCompanyForPeriod(company, REFERENCE_DATE, periodQuery);
   const filtered = filterSourcesByPeriod(company.sources || [], periodQuery?.from, periodQuery?.to);
   const rowShape = { id: company.id, ...scored };
@@ -288,16 +289,21 @@ app.get('/signals/export', (req, res) => {
   res.json(body);
 });
 
-app.listen(PORT, () => {
-  const d = CORPUS.corpusDetail;
-  // eslint-disable-next-line no-console
-  console.log(`[signals] Disclosure Mismatch Engine listening on http://127.0.0.1:${PORT}`);
-  // eslint-disable-next-line no-console
-  console.log(
-    `[signals] corpus_mode=${CORPUS.corpusMode} artifact=${d.artifact_path} active=${ACTIVE_COMPANIES.length} seed_baseline=${SEED_COMPANIES.length}` +
-      (CORPUS.corpusMode === 'mixed'
-        ? ` seed_appended=${d.seed_appended_ids.length} seed_skipped_dup=${d.seed_skipped_duplicate_ids.length}`
-        : '') +
-      (CORPUS.corpusMode === 'seeded' && d.fallback_reason ? ` fallback_reason=${d.fallback_reason}` : ''),
-  );
-});
+// Listen only when this module is run directly (npm run signals-server); importing it is
+// side-effect-free — no socket opens. Under `node -e` / dynamic import process.argv[1] is
+// undefined, so guard it before pathToFileURL(), which throws on undefined input.
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  app.listen(PORT, () => {
+    const d = CORPUS.corpusDetail;
+    // eslint-disable-next-line no-console
+    console.log(`[signals] Disclosure Mismatch Engine listening on http://127.0.0.1:${PORT}`);
+    // eslint-disable-next-line no-console
+    console.log(
+      `[signals] corpus_mode=${CORPUS.corpusMode} artifact=${d.artifact_path} active=${ACTIVE_COMPANIES.length} seed_baseline=${SEED_COMPANIES.length}` +
+        (CORPUS.corpusMode === 'mixed'
+          ? ` seed_appended=${d.seed_appended_ids.length} seed_skipped_dup=${d.seed_skipped_duplicate_ids.length}`
+          : '') +
+        (CORPUS.corpusMode === 'seeded' && d.fallback_reason ? ` fallback_reason=${d.fallback_reason}` : ''),
+    );
+  });
+}
