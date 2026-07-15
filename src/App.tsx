@@ -12,11 +12,11 @@ import { OmniscientCommandInterface } from './components/OmniscientCommandInterf
 import { initClickToScrollEverywhere } from './utils/clickToScrollEverywhere';
 import { db } from './db/database';
 import { Facility } from './types';
-import { ErrorBoundary } from './components/ErrorBoundary';
 import { safeDbOperation } from './utils/dbOperations';
 import { trackError } from './utils/errorTracking';
 import { ProvenanceModeProvider } from './components/shared/ProvenanceMode';
 import { Methodology } from './pages/Methodology';
+import { useRaceSafeQuery } from './hooks/useRaceSafeQuery';
 
 function App() {
   const [demoBannerVisible, setDemoBannerVisible] = useState(true);
@@ -26,8 +26,28 @@ function App() {
   const [reportOpen, setReportOpen] = useState(false);
   const [networkTraceOpen, setNetworkTraceOpen] = useState(false);
   const [sourceManagerOpen, setSourceManagerOpen] = useState(false); // NotebookLM Source Manager
-  const [facilities, setFacilities] = useState<Facility[]>([]);
   const [sourceManagerFacilityId, setSourceManagerFacilityId] = useState<number | null>(null);
+
+  const { surface: facilitiesSurface } = useRaceSafeQuery<'boot', Facility[]>({
+    key: 'boot',
+    keyOf: () => 'facilities-boot',
+    isEmpty: (rows) => rows.length === 0,
+    query: async () => {
+      // No synthetic empty fallback — failure must surface as error, not Empty.
+      try {
+        return await safeDbOperation(() => db.facilities.toArray());
+      } catch (error) {
+        trackError(error instanceof Error ? error : new Error(String(error)), {
+          context: 'App.loadFacilities',
+        });
+        throw error instanceof Error ? error : new Error(String(error));
+      }
+    },
+  });
+
+  // Prop consumers still receive an array; Empty vs Error is on facilitiesSurface.kind
+  // (never use a synthetic [] fallback as a successful empty settle).
+  const facilities = facilitiesSurface.data ?? [];
 
   const [routeHash, setRouteHash] = useState(
     () => (typeof window !== 'undefined' ? window.location.hash : ''),
@@ -55,39 +75,6 @@ function App() {
     if (!sourceManagerFacilityId) return undefined;
     return facilities.find((f) => f.id === sourceManagerFacilityId);
   }, [facilities, sourceManagerFacilityId]);
-
-  useEffect(() => {
-    let isMounted = true;
-    const abortController = new AbortController();
-
-    async function loadFacilities() {
-      try {
-        const facilities = await safeDbOperation(
-          () => db.facilities.toArray(),
-          () => [] // Fallback: empty array
-        );
-        if (isMounted && !abortController.signal.aborted) {
-          setFacilities(facilities);
-        }
-      } catch (error) {
-        console.error('Error loading facilities:', error);
-        trackError(error instanceof Error ? error : new Error(String(error)), {
-          context: 'App.loadFacilities'
-        });
-        // Graceful degradation: set empty array
-        if (isMounted) {
-          setFacilities([]);
-        }
-      }
-    }
-
-    loadFacilities();
-
-    return () => {
-      isMounted = false;
-      abortController.abort();
-    };
-  }, []);
 
   // Initialize smooth scrolling and click-to-scroll
   useEffect(() => {

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useMemo } from 'react';
 import { ErrorBoundary } from './ErrorBoundary';
 import { ProvenanceBadge } from './shared/ProvenanceBadge';
 import { Tooltip } from './shared/Tooltip';
@@ -6,49 +6,56 @@ import { db, SubsidyAgreement } from '../db/database';
 import { Facility } from '../types';
 import { formatCurrency } from '../utils/formatting';
 import { Info } from 'lucide-react';
+import { useRaceSafeQuery } from '../hooks/useRaceSafeQuery';
 
 interface RealityObservedProps {
   facilityId: number;
 }
 
+interface RealityObservedData {
+  facility: Facility | null;
+  agreement: SubsidyAgreement | null;
+}
+
 export function RealityObserved({ facilityId }: RealityObservedProps) {
-  const [facility, setFacility] = useState<Facility | null>(null);
-  const [agreement, setAgreement] = useState<SubsidyAgreement | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<Error | null>(null);
-
-  useEffect(() => {
-    let isMounted = true;
-    const abortController = new AbortController();
-
-    async function loadData() {
-      try {
-        setLoading(true);
-        const [facilityData, agreementData] = await Promise.all([
-          db.facilities.get(facilityId),
-          db.subsidyAgreements.where('facilityId').equals(facilityId).first()
-        ]);
-
-        if (isMounted && !abortController.signal.aborted) {
-          setFacility(facilityData || null);
-          setAgreement(agreementData || null);
-          setError(null);
-        }
-      } catch (err) {
-        setError(err instanceof Error ? err : new Error('Failed to load facility data'));
-      } finally {
-        setLoading(false);
+  const { surface } = useRaceSafeQuery<number, RealityObservedData>({
+    key: facilityId,
+    keyOf: (id) => id,
+    isEmpty: (data) => data.facility == null,
+    query: async ({ key, signal }) => {
+      const [facilityData, agreementData] = await Promise.all([
+        db.facilities.get(key),
+        db.subsidyAgreements.where('facilityId').equals(key).first(),
+      ]);
+      if (signal.aborted) {
+        throw new DOMException('Aborted', 'AbortError');
       }
-    }
+      return {
+        facility: facilityData ?? null,
+        agreement: agreementData ?? null,
+      };
+    },
+  });
 
-    loadData();
-  }, [facilityId]);
+  const facility = surface.data?.facility ?? null;
+  const agreement = surface.data?.agreement ?? null;
 
-  if (loading) {
+  const shell = useMemo(
+    () => ({
+      title: 'REALITY OBSERVED' as const,
+    }),
+    [],
+  );
+
+  if (surface.kind === 'loading') {
     return (
       <ErrorBoundary>
-        <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
-          <h3 className="text-lg font-semibold mb-4 text-gray-200">REALITY OBSERVED</h3>
+        <div
+          className="bg-gray-800 border border-gray-700 rounded-lg p-6"
+          data-query-surface="loading"
+          data-entity-key={facilityId}
+        >
+          <h3 className="text-lg font-semibold mb-4 text-gray-200">{shell.title}</h3>
           <div className="space-y-3">
             <div className="h-12 bg-gray-900 rounded animate-pulse" />
             <div className="h-12 bg-gray-900 rounded animate-pulse" />
@@ -58,13 +65,70 @@ export function RealityObserved({ facilityId }: RealityObservedProps) {
     );
   }
 
-  if (error || !facility) {
+  if (surface.kind === 'error') {
     return (
       <ErrorBoundary>
-        <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
-          <h3 className="text-lg font-semibold mb-4 text-gray-200">REALITY OBSERVED</h3>
+        <div
+          className="bg-gray-800 border border-gray-700 rounded-lg p-6"
+          data-query-surface="error"
+          data-entity-key={facilityId}
+        >
+          <h3 className="text-lg font-semibold mb-4 text-gray-200">{shell.title}</h3>
           <div className="p-3 bg-red-900/20 border border-red-900/50 rounded text-sm text-red-200">
-            {error ? `Error: ${error.message}` : 'Facility not found'}
+            {surface.error?.message ?? 'Failed to load facility data'}
+          </div>
+        </div>
+      </ErrorBoundary>
+    );
+  }
+
+  if (surface.kind === 'unavailable') {
+    return (
+      <ErrorBoundary>
+        <div
+          className="bg-gray-800 border border-gray-700 rounded-lg p-6"
+          data-query-surface="unavailable"
+          data-entity-key={facilityId}
+        >
+          <h3 className="text-lg font-semibold mb-4 text-gray-200">{shell.title}</h3>
+          <div className="p-3 bg-amber-900/20 border border-amber-900/50 rounded text-sm text-amber-100">
+            Unavailable: {surface.diagnostic ?? 'Required capability cannot be used'}
+          </div>
+        </div>
+      </ErrorBoundary>
+    );
+  }
+
+  if (surface.kind === 'empty') {
+    return (
+      <ErrorBoundary>
+        <div
+          className="bg-gray-800 border border-gray-700 rounded-lg p-6"
+          data-query-surface="empty"
+          data-entity-key={facilityId}
+        >
+          <h3 className="text-lg font-semibold mb-4 text-gray-200">{shell.title}</h3>
+          <div className="p-3 bg-gray-900/60 border border-gray-700 rounded text-sm text-gray-300">
+            No facility record for this selection.
+          </div>
+        </div>
+      </ErrorBoundary>
+    );
+  }
+
+  // ready | stale | partial | insufficient — show data when present
+  if (!facility) {
+    // Defensive: ready/stale without facility should not occur if isEmpty is correct
+    return (
+      <ErrorBoundary>
+        <div
+          className="bg-gray-800 border border-gray-700 rounded-lg p-6"
+          data-query-surface={surface.kind}
+          data-entity-key={facilityId}
+        >
+          <h3 className="text-lg font-semibold mb-4 text-gray-200">{shell.title}</h3>
+          <div className="p-3 bg-gray-900/60 border border-gray-700 rounded text-sm text-gray-300">
+            No facility record for this selection.
           </div>
         </div>
       </ErrorBoundary>
@@ -94,13 +158,29 @@ export function RealityObserved({ facilityId }: RealityObservedProps) {
 
   return (
     <ErrorBoundary>
-      <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
+      <div
+        className="bg-gray-800 border border-gray-700 rounded-lg p-6"
+        data-query-surface={surface.kind}
+        data-entity-key={facilityId}
+        data-facility-id={facility.id}
+      >
         <div className="flex items-center gap-2 mb-4">
-          <h3 className="text-lg font-semibold text-gray-200">REALITY OBSERVED</h3>
+          <h3 className="text-lg font-semibold text-gray-200">{shell.title}</h3>
           <Tooltip content="This shows what's actually happening at the facility right now, compared to what was promised. This is the 'real world' data, not the promises.">
             <Info className="w-4 h-4 text-gray-400" />
           </Tooltip>
         </div>
+
+        {surface.kind === 'stale' && (
+          <div
+            className="mb-3 p-2 rounded border border-amber-700/50 bg-amber-950/40 text-xs text-amber-100"
+            data-stale-label="true"
+            role="status"
+          >
+            Showing prior result — refresh pending or failed.
+            {surface.error ? ` (${surface.error.message})` : ''}
+          </div>
+        )}
 
         <div className="space-y-4">
           {/* Current Employment */}
@@ -195,4 +275,3 @@ export function RealityObserved({ facilityId }: RealityObservedProps) {
     </ErrorBoundary>
   );
 }
-

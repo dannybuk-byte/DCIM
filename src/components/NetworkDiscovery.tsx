@@ -11,6 +11,7 @@ import React, { useState, useEffect } from 'react';
 import { Globe, Network, Shield, MapPin, Server, AlertTriangle, Info } from 'lucide-react';
 import { getFacilityDNSInfo, detectDataCenterPatterns, type FacilityDNSInfo } from '../utils/dnsRecon';
 import { getFacilityNetworkIntel, type GeolocationInfo, type NetworkInfo, type AbuseContact } from '../utils/ripestat';
+import { resolveFacilityDomainLinkage } from '../utils/entityFacilityLinkage';
 import type { Facility } from '../types';
 
 interface NetworkDiscoveryProps {
@@ -34,16 +35,22 @@ export const NetworkDiscovery: React.FC<NetworkDiscoveryProps> = React.memo(({
   } | null>(null);
   const [expanded, setExpanded] = useState(false);
 
+  // R-F4: resolve the domain through the linkage resolver so an unverified
+  // (name-guessed or caller-provided) domain is tracked as such and never
+  // presented as a verified facility fact.
+  const linkage = resolveFacilityDomainLinkage(facility, domain);
+  const domainVerified = linkage.verified;
+
   useEffect(() => {
     let isMounted = true;
 
     const runDiscovery = async () => {
       try {
-        // Construct domain from facility info if not provided
-        const targetDomain = domain || 
-          facility.name.toLowerCase()
-            .replace(/[^a-z0-9]+/g, '-')
-            .replace(/^-|-$/g, '') + '.com';
+        const targetDomain = linkage.domain;
+        if (!targetDomain) {
+          if (isMounted) setLoading(false);
+          return;
+        }
 
         // Run DNS reconnaissance
         const dns = await getFacilityDNSInfo(targetDomain);
@@ -223,6 +230,13 @@ export const NetworkDiscovery: React.FC<NetworkDiscoveryProps> = React.memo(({
                   </li>
                 ))}
               </ul>
+              {/* R-F4: unverified domain → entity/network signal, not a facility fact. */}
+              {!domainVerified && (
+                <p className="text-[11px] text-amber-300/90 mt-2">
+                  Observed on <span className="font-mono">{linkage.domain}</span> (unverified domain
+                  for this facility) — network/entity signal, not a facility claim.
+                </p>
+              )}
             </div>
           </div>
         </div>

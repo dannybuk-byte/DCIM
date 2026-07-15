@@ -9,12 +9,23 @@
  *   T2  exportSignalRecord export surface carries candidate-level provenance + per-source sources
  *       (closes the v1.9 §9 testability-gap corollary — first direct test of the export surface)
  */
-import { describe, expect, it } from 'vitest';
-import { ACTIVE_COMPANIES, exportSignalRecord } from './index.js';
+import { beforeAll, describe, expect, it } from 'vitest';
 
 // Stable labeled-synthetic fixture: two independent synthetic sources, provenance 'synthetic'.
+// R-F2: synthetic candidates are only assembled under the explicit demo corpus,
+// so this suite loads the engine with SIGNALS_DEMO_MODE=true.
 const KNOWN_ID = 'synthetic_frontier_west_dc';
 const THRESHOLD_CTX = { mismatchBounded: 50, confidenceMin: 50 };
+
+let ACTIVE_COMPANIES;
+let exportSignalRecord;
+
+beforeAll(async () => {
+  process.env.SIGNALS_DEMO_MODE = 'true';
+  const mod = await import('./index.js');
+  ACTIVE_COMPANIES = mod.ACTIVE_COMPANIES;
+  exportSignalRecord = mod.exportSignalRecord;
+});
 
 describe('T1 — D1 freeze: post-assembly mutation cannot alter the counted list', () => {
   it('(a) pushing a duplicate source into a known company throws and does not alter the count', () => {

@@ -6,19 +6,36 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { TrendingUp, AlertTriangle, CheckCircle, Clock, Server, Activity, RefreshCw } from 'lucide-react';
+import { TrendingUp, AlertTriangle, CheckCircle, Clock, Server, Activity, RefreshCw, ShieldAlert } from 'lucide-react';
 import {
   monitorFacilityExpansion,
   generateExpansionInsights,
   type SubdomainDiscovery,
   type ExpansionEvent,
 } from '../utils/expansionTracker';
+import {
+  resolveFacilityDomainLinkage,
+  observationScope,
+  annotationCaveats,
+  type ObservationScope,
+} from '../utils/entityFacilityLinkage';
+import { db } from '../db/database';
 import type { Facility } from '../types';
 
 interface ExpansionTrackerProps {
   facility: Facility;
   className?: string;
 }
+
+/** Persisted CT baseline (R-F4): "new"/"expansion" is only meaningful vs. this. */
+interface CtBaseline {
+  domain: string;
+  subdomains: string[];
+  capturedAt: string;
+}
+
+const baselineKey = (facilityId: number, domain: string): string =>
+  `ctBaseline:${facilityId}:${domain}`;
 
 export const ExpansionTracker: React.FC<ExpansionTrackerProps> = React.memo(({ facility, className = '' }) => {
   const [loading, setLoading] = useState(false);
@@ -27,23 +44,69 @@ export const ExpansionTracker: React.FC<ExpansionTrackerProps> = React.memo(({ f
   const [events, setEvents] = useState<ExpansionEvent[]>([]);
   const [insights, setInsights] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [scope, setScope] = useState<ObservationScope>('entity-annotation');
+  const [caveats, setCaveats] = useState<string[]>([]);
 
-  // Derive domain from facility (simplified - in production would use actual domain data)
-  const domain = facility.name.toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-|-$/g, '') + '.com';
+  // R-F4: resolve a VERIFIED facility-to-domain linkage; a name-derived guess
+  // is never verified, so it can only ever produce an entity annotation.
+  const linkage = resolveFacilityDomainLinkage(facility);
 
   const checkExpansion = async () => {
     setLoading(true);
     setError(null);
 
+    if (!linkage.domain) {
+      setError('No domain available for this facility.');
+      setLoading(false);
+      return;
+    }
+    const domain = linkage.domain;
+
     try {
-      const result = await monitorFacilityExpansion(facility.name, domain);
-      
+      // Load the persisted prior baseline (mandatory for any facility claim).
+      const key = baselineKey(facility.id, domain);
+      const stored = await db.settings.get(key);
+      const priorBaseline = (stored?.value as CtBaseline | undefined) ?? null;
+      const hasPersistedBaseline =
+        Boolean(priorBaseline) && Array.isArray(priorBaseline?.subdomains);
+
+      const baselineDiscoveries = hasPersistedBaseline
+        ? priorBaseline!.subdomains.map((s) => ({
+            subdomain: s,
+            firstSeen: new Date(priorBaseline!.capturedAt),
+            certificateId: 0,
+            issuer: 'baseline',
+            pattern: 'unknown' as const,
+            confidence: 0,
+          }))
+        : undefined;
+
+      const result = await monitorFacilityExpansion(facility.name, domain, baselineDiscoveries);
+
+      // R-F4 gate: facility-claim phrasing requires verified linkage + baseline.
+      const resolvedScope = observationScope(linkage, hasPersistedBaseline);
+      setScope(resolvedScope);
+      setCaveats(annotationCaveats(linkage, hasPersistedBaseline));
+
       setSubdomains(result.newSubdomains);
       setEvents(result.expansionEvents);
-      setInsights(generateExpansionInsights(facility.name, result.newSubdomains, result.expansionEvents));
+      setInsights(
+        generateExpansionInsights(
+          facility.name,
+          result.newSubdomains,
+          result.expansionEvents,
+          resolvedScope,
+        ),
+      );
       setLastCheck(new Date());
+
+      // Persist the current observation as the new baseline for next time.
+      const nextBaseline: CtBaseline = {
+        domain,
+        subdomains: result.allSubdomains.map((s) => s.subdomain),
+        capturedAt: new Date().toISOString(),
+      };
+      await db.settings.put({ key, value: nextBaseline });
     } catch (err) {
       console.error('[ExpansionTracker] Error:', err);
       setError('Failed to check for expansions. Try again later.');
@@ -78,8 +141,36 @@ export const ExpansionTracker: React.FC<ExpansionTrackerProps> = React.memo(({ f
 
       {/* Description */}
       <p className="text-xs text-slate-400">
-        Monitors Certificate Transparency logs for new subdomains indicating facility expansions.
+        Monitors Certificate Transparency logs for new subdomains on the operating entity's domain.
       </p>
+
+      {/* R-F4 scope banner: entity annotation vs. facility claim */}
+      {scope === 'entity-annotation' && caveats.length > 0 && (
+        <div className="p-3 bg-amber-500/10 border border-amber-500/30 rounded-md">
+          <div className="flex items-start gap-2">
+            <ShieldAlert className="w-4 h-4 text-amber-400 mt-0.5 flex-shrink-0" />
+            <div className="flex-1">
+              <p className="text-xs font-semibold text-amber-300 mb-1">
+                Entity/network annotation — not a facility claim
+              </p>
+              <ul className="space-y-0.5">
+                {caveats.map((caveat, i) => (
+                  <li key={i} className="text-[11px] text-amber-200/80">
+                    • {caveat}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </div>
+      )}
+      {scope === 'facility-claim' && (
+        <div className="p-2 bg-green-500/10 border border-green-500/30 rounded-md">
+          <p className="text-[11px] text-green-300">
+            Verified domain linkage + prior baseline on record — expansion shown as a facility claim.
+          </p>
+        </div>
+      )}
 
       {/* Loading State */}
       {loading && !lastCheck && (

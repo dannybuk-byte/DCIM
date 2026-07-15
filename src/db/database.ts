@@ -1,7 +1,11 @@
 import Dexie, { Table } from 'dexie';
 import { Facility } from '../types';
 import { SourceType } from '../config/sourceTypes';
-import { computeDemoBgpFields } from '../utils/bgpDemo';
+import {
+  backfillDemoBgpInPlace,
+  stripDemoBgpFieldsInPlace,
+} from '../utils/demoBgpMigration';
+import { activeDbName, DEMO_DB_NAME } from './demoMode';
 
 // Provenance tracking interfaces
 export interface DataProvenance {
@@ -169,7 +173,9 @@ export class ComplianceDatabase extends Dexie {
   researchNotes!: Table<ResearchNote, number>;
 
   constructor() {
-    super('ComplianceDatabase');
+    // R-F1: live and demo data are separate IndexedDB namespaces; the demo
+    // namespace is opened only under an explicit VITE_DEMO_MODE selection.
+    super(activeDbName());
     
     // Version 3: Original schema
     this.version(3).stores({
@@ -285,21 +291,58 @@ export class ComplianceDatabase extends Dexie {
       researchNotes: '++id, createdAt, updatedAt, *tags, *relatedFacilities, *relatedSources, category',
       searchHistory: '++id, query, context, lastUsedAt, [context+lastUsedAt]',
     }).upgrade(async (tx) => {
+      // R-F10: the backfill runs ONLY against the demo namespace (R-F1).
+      // In the live namespace v9 is schema-only (indexes added, no row
+      // rewrite) — demo metrics never enter live facility rows.
+      if (this.name !== DEMO_DB_NAME) {
+        return;
+      }
       await tx.table('facilities').toCollection().modify((f: Facility) => {
-        if (f.bgpRiskScore != null && f.infrastructureAccountabilityRisk != null) {
-          return;
-        }
-        const bgp = computeDemoBgpFields(f.id, f.subsidyGap ?? 0, f.complianceStatus);
-        f.bgpRiskScore = bgp.bgpRiskScore;
-        f.asnCount = bgp.asnCount;
-        f.routeChangeRate = bgp.routeChangeRate;
-        f.latencyAnomalyScore = bgp.latencyAnomalyScore;
-        f.transitDependency = bgp.transitDependency;
-        f.infrastructureAccountabilityRisk = bgp.infrastructureAccountabilityRisk;
+        backfillDemoBgpInPlace(f);
       });
-      console.log('Database upgraded to version 9: demo BGP fields backfilled on facilities.');
+    });
+
+    // Version 10 (R-F10): repair + isolate.
+    // - Live namespace: strip the six demo BGP fields from any facility row
+    //   the historical (un-gated) v9 backfill polluted, so demo metrics can
+    //   no longer reach live filters, scores, exports, or claims.
+    // - Demo namespace: backfill any missing demo fields (idempotent).
+    // Runs inside the Dexie version-change transaction: all rows or none.
+    this.version(10).upgrade(async (tx) => {
+      const isDemoNamespace = this.name === DEMO_DB_NAME;
+      await tx.table('facilities').toCollection().modify((f: Facility) => {
+        if (isDemoNamespace) {
+          backfillDemoBgpInPlace(f);
+        } else {
+          stripDemoBgpFieldsInPlace(f);
+        }
+      });
     });
   }
 }
 
 export const db = new ComplianceDatabase();
+
+/**
+ * Canonical list of ALL 14 declared stores (R-F9). Export, restore, and
+ * clear operations must cover exactly this list; update it together with
+ * any future schema version.
+ */
+export const ALL_STORE_NAMES = [
+  'facilities',
+  'dataProvenance',
+  'communityContext',
+  'subsidyAgreements',
+  'localSignatures',
+  'localOrganizations',
+  'knowledgeGaps',
+  'engagementTracking',
+  'settings',
+  'searchHistory',
+  'networkSecurity',
+  'sources',
+  'citations',
+  'researchNotes',
+] as const;
+
+export type StoreName = (typeof ALL_STORE_NAMES)[number];

@@ -4,7 +4,11 @@
 import express from 'express';
 import cors from 'cors';
 import { SEED_COMPANIES, DISCLAIMER_LINES } from './mockDataset.js';
-import { loadActiveCorpus, buildCorpusProvenancePayload } from './corpusLoader.js';
+import {
+  loadActiveCorpus,
+  buildCorpusProvenancePayload,
+  isSignalsDemoMode,
+} from './corpusLoader.js';
 import { filterSourcesByPeriod, scoreCompanyForPeriod } from './scoringEngine.js';
 import {
   DEFAULT_CONFIDENCE_THRESHOLD,
@@ -22,14 +26,50 @@ import { SYNTHETIC_CANDIDATES } from './syntheticCandidates.js';
 import { pathToFileURL } from 'node:url';
 
 const CORPUS = loadActiveCorpus({ seedCompanies: SEED_COMPANIES });
-// Stage B/D: real Epoch confirm sources merged onto matched candidates (floor untouched),
-// plus labeled-synthetic candidates for the hybrid surface. Real corroboration and
-// synthetic demonstration remain separately labeled and never mixed to cross the floor.
+// Stage B/D: real Epoch confirm sources merged onto matched candidates (floor untouched).
 const EPOCH_CONFIRM = loadEpochConfirmSources();
-export const ACTIVE_COMPANIES = [
-  ...mergeEpochConfirmSources(CORPUS.activeCompanies, EPOCH_CONFIRM),
-  ...SYNTHETIC_CANDIDATES,
-];
+const MERGED_COMPANIES = mergeEpochConfirmSources(CORPUS.activeCompanies, EPOCH_CONFIRM);
+
+/**
+ * R-F2: a record is synthetic when the candidate is labeled synthetic OR any
+ * of its sources is. Company-level exclusion (not source-stripping) so a
+ * mislabeled hybrid can never be partially served as real.
+ * @param {object} company
+ */
+export function isSyntheticRecord(company) {
+  return (
+    company.synthetic === true ||
+    company.provenance === 'synthetic' ||
+    (company.sources || []).some(s => s.provenance === 'synthetic')
+  );
+}
+
+const SIGNALS_DEMO_MODE = isSignalsDemoMode();
+
+// R-F2 (synthetic separation, by construction): the production assembly NEVER
+// includes synthetic records — labeled-synthetic demonstration candidates are
+// appended ONLY under the explicit demo corpus (SIGNALS_DEMO_MODE=true, the
+// same switch that gates the seeded fallback). Because /companies, /scores,
+// /companies/:id and /signals/export all derive exclusively from
+// ACTIVE_COMPANIES, no synthetic record is reachable through any production
+// endpoint. Real corroboration and synthetic demonstration remain separately
+// labeled and never mixed to cross the floor.
+export const ACTIVE_COMPANIES = SIGNALS_DEMO_MODE
+  ? [...MERGED_COMPANIES, ...SYNTHETIC_CANDIDATES]
+  : MERGED_COMPANIES.filter(c => !isSyntheticRecord(c));
+
+// Post-assembly invariant check (defense in depth): outside demo mode the
+// assembled list must contain zero synthetic records; violation is a startup
+// failure, not a served response.
+if (!SIGNALS_DEMO_MODE) {
+  for (const company of ACTIVE_COMPANIES) {
+    if (isSyntheticRecord(company)) {
+      throw new Error(
+        `R-F2 invariant violated: synthetic record '${company.id}' reached the production assembly`,
+      );
+    }
+  }
+}
 // D1 (ratified 2026-07-03): freeze the counted list at the assembly boundary so
 // post-assembly mutation cannot alter what gets counted. Each company's sources array is
 // frozen (blocks push/splice), the company object is frozen (blocks sources reassignment),
@@ -40,14 +80,21 @@ for (const company of ACTIVE_COMPANIES) {
   Object.freeze(company);
 }
 Object.freeze(ACTIVE_COMPANIES);
-const CORPUS_PROVENANCE = buildCorpusProvenancePayload(CORPUS, SEED_COMPANIES.length);
+const CORPUS_PROVENANCE = {
+  ...buildCorpusProvenancePayload(CORPUS, SEED_COMPANIES.length),
+  // R-F2: say explicitly whether demonstration candidates are in the surface.
+  demo_mode: SIGNALS_DEMO_MODE,
+  synthetic_candidates_included: SIGNALS_DEMO_MODE,
+};
 
 const PORT = Number(process.env.SIGNALS_PORT || process.env.PORT || 8787);
 const REFERENCE_DATE = process.env.SIGNALS_REFERENCE_DATE
   ? new Date(process.env.SIGNALS_REFERENCE_DATE)
   : new Date();
 
-const app = express();
+// Exported for endpoint-level tests (module import stays side-effect-free;
+// no socket opens unless run directly).
+export const app = express();
 app.use(cors({ origin: true }));
 app.use(express.json({ limit: '2mb' }));
 
@@ -116,6 +163,9 @@ export function exportSignalRecord(company, periodQuery, thresholdCtx) {
     risk_level_at_threshold: enriched.risk_level_at_threshold,
     flagged_at_threshold: enriched.flagged_at_threshold,
     source_count: scored.source_count,
+    // R-F5: admission summary — which rows were counted, which were held out
+    // as annotations, and which were rejected (duplicates/malformed).
+    admission: scored.admission,
     source_types_present: scored.source_types_present,
     missing_expected_sources: scored.missing_expected_sources,
     score_breakdown: scored.score_breakdown,

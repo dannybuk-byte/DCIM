@@ -1,6 +1,12 @@
 /**
- * Optional file-backed DME corpus loader with fallback to static seed.
- * No coercion: invalid artifact → full seeded fallback (ratification v1).
+ * File-backed DME corpus loader.
+ *
+ * R-F3 (fail-closed corpus): a missing or invalid live corpus FAILS CLOSED —
+ * the loader throws CorpusUnavailableError and the engine refuses to start —
+ * unless demo mode is explicitly selected (SIGNALS_DEMO_MODE=true). The demo
+ * fallback serves ONLY the seed corpus, and every seed source must already
+ * carry synthetic/DESIGN provenance; unlabeled rows are refused. Production
+ * consumers can therefore never receive fallback rows scored as real.
  */
 
 import fs from 'fs';
@@ -9,6 +15,55 @@ import path from 'path';
 /**
  * @typedef {'seeded' | 'pipeline' | 'mixed'} CorpusMode
  */
+
+/** Explicit demo-mode selection for the signals engine (parallel to VITE_DEMO_MODE). */
+export function isSignalsDemoMode() {
+  return (process.env.SIGNALS_DEMO_MODE || '').trim().toLowerCase() === 'true';
+}
+
+/** Thrown when the live corpus is missing/invalid outside explicit demo mode. */
+export class CorpusUnavailableError extends Error {
+  /**
+   * @param {string} reason
+   * @param {string} artifactPath
+   */
+  constructor(reason, artifactPath) {
+    super(
+      `Live corpus unavailable (${reason}) at ${artifactPath}. ` +
+        'Failing closed: seed/demo rows are never served as real. ' +
+        'Provide a valid corpus artifact, or set SIGNALS_DEMO_MODE=true for an explicitly-labeled demo run.',
+    );
+    this.name = 'CorpusUnavailableError';
+    this.reason = reason;
+    this.artifact_path = artifactPath;
+  }
+}
+
+/**
+ * R-F3: every seed/demo source must carry synthetic provenance and the DESIGN
+ * label BEFORE it can be served. Refusing mislabeled rows here means no code
+ * path downstream can score a demo row as real.
+ * @param {object[]} companies
+ * @param {string} context
+ */
+function assertDesignLabeled(companies, context) {
+  for (const company of companies) {
+    if (company.provenance !== 'synthetic') {
+      throw new CorpusUnavailableError(
+        `unlabeled_demo_company_${company.id}_in_${context}`,
+        'seed corpus',
+      );
+    }
+    for (const source of company.sources || []) {
+      if (source.provenance !== 'synthetic' || source.label !== 'DESIGN') {
+        throw new CorpusUnavailableError(
+          `unlabeled_demo_source_${source.id}_in_${context}`,
+          'seed corpus',
+        );
+      }
+    }
+  }
+}
 
 /**
  * @param {object} params
@@ -46,9 +101,16 @@ export function loadActiveCorpus({ seedCompanies }) {
   };
 
   /**
+   * R-F3: fallback is DEMO-ONLY. Outside explicit demo mode a bad corpus
+   * fails closed (throws); inside demo mode only DESIGN-labeled seed rows
+   * are served.
    * @param {string} reason
    */
   function seeded(reason) {
+    if (!isSignalsDemoMode()) {
+      throw new CorpusUnavailableError(reason, resolvedPath);
+    }
+    assertDesignLabeled(seedCompanies, 'seeded_fallback');
     corpusDetail.fallback_reason = reason;
     return {
       activeCompanies: seedCompanies,
@@ -100,6 +162,9 @@ export function loadActiveCorpus({ seedCompanies }) {
   corpusDetail.pipeline_company_ids = pipeline.map(/** @param {any} */ c => String(c.id));
 
   if (wantMixed) {
+    // R-F3: mixed mode appends seed rows to a valid live corpus; those rows
+    // must be DESIGN-labeled so they can never be read as real.
+    assertDesignLabeled(seedCompanies, 'mixed_append');
     const pipelineIds = new Set(corpusDetail.pipeline_company_ids);
     const seedSkipped = [];
     const seedAppended = [];
@@ -149,6 +214,9 @@ export function buildCorpusProvenancePayload(corpus, seedBaselineLength) {
 
   if (mode === 'seeded' && d.fallback_reason) {
     out.fallback_reason = d.fallback_reason;
+    // R-F3: a seeded corpus only exists under explicit demo mode; say so.
+    out.demo_only = true;
+    out.seeded_provenance = 'synthetic/DESIGN';
   }
 
   if (mode === 'pipeline' || mode === 'mixed') {

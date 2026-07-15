@@ -5,16 +5,22 @@
  * Ensures user data is regularly backed up
  * 
  * Part of Phase 4: Backup & Recovery
+ * R-F8: backups are durably persisted (separate 'ComplianceBackups' database),
+ * integrity-verified by SHA-256 read-back, retained as history, and failures
+ * propagate to callers instead of being swallowed.
  */
 
 import { exportAllData, downloadBackup } from './dbRecovery';
 import { db } from '../db/database';
+import { persistBackup, type BackupMeta } from './backupStore';
 
 export interface BackupSchedule {
   enabled: boolean;
   frequency: 'daily' | 'weekly' | 'manual';
   lastBackup: number | null;
   nextBackup: number | null;
+  /** Message of the most recent backup failure; null after a success. */
+  lastError?: string | null;
 }
 
 class AutomatedBackupManager {
@@ -71,49 +77,56 @@ class AutomatedBackupManager {
 
     const now = Date.now();
 
+    // Background timer path: performBackup propagates failures, so catch here
+    // and retain the error in schedule state (surfaced by the health monitor).
+    const runScheduled = async (): Promise<void> => {
+      try {
+        await this.performBackup();
+      } catch (error) {
+        console.error('❌ Scheduled backup failed:', error);
+      }
+    };
+
     // If no last backup, do one now
     if (!this.schedule.lastBackup) {
-      console.log('💾 No previous backup found - creating initial backup...');
-      await this.performBackup();
+      await runScheduled();
       return;
     }
 
     // Check if it's time for next backup
     if (this.schedule.nextBackup && now >= this.schedule.nextBackup) {
-      console.log('💾 Scheduled backup due - starting...');
-      await this.performBackup();
+      await runScheduled();
     }
   }
 
   /**
-   * Perform a backup
+   * Perform a backup (R-F8).
+   *
+   * Exports all data, durably persists the bytes with an integrity digest and
+   * read-back verification, retains history, and updates the schedule only
+   * after the bytes are proven stored. Any failure (export, write, or
+   * verification) is recorded on the schedule and RETHROWN — a failed backup
+   * never reports success.
    */
-  async performBackup(): Promise<void> {
+  async performBackup(): Promise<BackupMeta> {
     try {
-      console.warn('💾 Creating data backup...');
-      const startTime = Date.now();
-
-      // Export data as JSON
       const data = await exportAllData();
-      
-      // Store backup metadata (not the full data - that's too large)
-      console.warn(`✅ Backup created (${data.length} bytes) in ${Date.now() - startTime}ms`);
+      const record = await persistBackup(data);
 
-      // Update schedule
       const now = Date.now();
       this.schedule.lastBackup = now;
       this.schedule.nextBackup = this.calculateNextBackup(now);
+      this.schedule.lastError = null;
       await this.saveSchedule();
 
-      console.warn(
-        `💾 Next backup scheduled for: ${new Date(this.schedule.nextBackup).toLocaleString()}`
-      );
-
-      // Notify user (could trigger a notification)
       this.notifyBackupComplete();
 
+      const { payload: _payload, ...meta } = record;
+      return meta;
     } catch (error) {
-      console.error('❌ Backup failed:', error);
+      this.schedule.lastError = error instanceof Error ? error.message : String(error);
+      await this.saveSchedule().catch(() => undefined);
+      throw error;
     }
   }
 
@@ -146,11 +159,10 @@ class AutomatedBackupManager {
   }
 
   /**
-   * Manually trigger a backup
+   * Manually trigger a backup. Failures propagate to the caller (R-F8).
    */
-  async backupNow(): Promise<void> {
-    console.log('💾 Manual backup requested...');
-    await this.performBackup();
+  async backupNow(): Promise<BackupMeta> {
+    return this.performBackup();
   }
 
   /**
@@ -247,7 +259,7 @@ if (typeof window !== 'undefined') {
 }
 
 // Export convenience functions
-export function backupNow(): Promise<void> {
+export function backupNow(): Promise<BackupMeta> {
   return automatedBackupManager.backupNow();
 }
 

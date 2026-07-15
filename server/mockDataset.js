@@ -1,6 +1,10 @@
 /**
  * Expanded mock corpus: richer public AI rows + multiple disruption signals;
  * formal WARN/legal rows omit AI causation (prototype).
+ *
+ * R-F3: this is DEMO/SEED data. Every company and every source is stamped
+ * with synthetic/DESIGN provenance at construction, so no consumer — however
+ * it obtains these rows — can score or display them as real evidence.
  */
 
 export const DISCLAIMER_LINES = [
@@ -30,7 +34,7 @@ function S(
   };
 }
 
-export const SEED_COMPANIES = [
+const SEED_COMPANIES_RAW = [
   {
     id: 'goldman_sachs',
     name: 'Goldman Sachs',
@@ -404,3 +408,30 @@ export const SEED_COMPANIES = [
     ],
   },
 ];
+
+const SEED_ATTRIBUTION =
+  'Seed/demo corpus — illustrative mock rows, method demonstration only (DESIGN)';
+
+/**
+ * R-F3: stamp synthetic/DESIGN provenance onto every seed company and every
+ * seed source. summarizeProvenance and the export surface treat any source
+ * without an explicit provenance as 'real', so seed rows MUST carry the label
+ * at the data boundary rather than relying on consumers to remember.
+ */
+function stampSeedProvenance(companies) {
+  return companies.map(company => ({
+    ...company,
+    provenance: 'synthetic',
+    synthetic: true,
+    case_type: company.case_type || 'seed_demo_case',
+    sources: (company.sources || []).map(source => ({
+      ...source,
+      provenance: 'synthetic',
+      data_source: source.data_source || 'Seed/demo fixture',
+      attribution: source.attribution || SEED_ATTRIBUTION,
+      label: 'DESIGN',
+    })),
+  }));
+}
+
+export const SEED_COMPANIES = stampSeedProvenance(SEED_COMPANIES_RAW);

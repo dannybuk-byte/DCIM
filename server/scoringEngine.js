@@ -2,7 +2,14 @@
  * WWW Disclosure Mismatch Engine — explainable scoring + uncertainty metadata.
  * AAS, LSS, DS ∈ [0,100]. raw_mismatch_index = AAS + LSS − DS (unbounded).
  * bounded_mismatch_index maps raw ∈ [-100,300] → [0,100].
+ *
+ * R-F5: scoreCompany admits sources through the admission contract
+ * (admissionContract.js) BEFORE the raw count. The two-source floor
+ * (MIN_SOURCES_FOR_SCORES) — value and semantics — is unchanged; it now
+ * counts only admissible evidence rows with unique source identity.
  */
+
+import { admitCandidateSources, buildAdmissionSummary } from './admissionContract.js';
 
 export const AAS_POINTS = { strong: 25, moderate: 12, weak: 4, irrelevant: 0 };
 export const WARN_BASE_POINTS = 15;
@@ -409,7 +416,14 @@ export function computeEvidenceQuality(p) {
  * @param {Date} [referenceDate]
  */
 export function scoreCompany(company, referenceDate = new Date()) {
-  const sources = company.sources || [];
+  // R-F5: admission contract runs AHEAD of the raw count. Only admissible
+  // evidence rows with unique source identity are counted; annotations are
+  // partitioned outside the counted list; a malformed candidate admits
+  // nothing (fail closed), so the unchanged floor suppresses its scores.
+  const admission = admitCandidateSources(company.sources ?? []);
+  const sources = admission.counted;
+  const admission_summary = buildAdmissionSummary(admission);
+
   const derived = derivePeriodBounds(sources);
   const period_start = company.period_start ?? derived.period_start;
   const period_end = company.period_end ?? derived.period_end;
@@ -417,6 +431,22 @@ export function scoreCompany(company, referenceDate = new Date()) {
   const source_types_present = computeSourceTypesPresent(sources);
   const missing_expected_sources = detectMissingExpectedSources(sources);
   const warnings = [];
+
+  if (admission.malformed) {
+    warnings.push(
+      `ADMISSION: Candidate sources malformed (${admission.malformedReason}) — no rows admitted; scores suppressed (fail closed).`,
+    );
+  }
+  if (admission.duplicateIds.length > 0) {
+    warnings.push(
+      `ADMISSION: Duplicate source ids rejected (counted once): ${[...new Set(admission.duplicateIds)].join(', ')}.`,
+    );
+  }
+  if (admission.annotations.length > 0) {
+    warnings.push(
+      `ADMISSION: ${admission.annotations.length} annotation row(s) stored outside the counted list (annotations never corroborate).`,
+    );
+  }
 
   if (sources.length < MIN_SOURCES_FOR_SCORES) {
     warnings.push(
@@ -428,6 +458,7 @@ export function scoreCompany(company, referenceDate = new Date()) {
       period_start,
       period_end,
       source_count: sources.length,
+      admission: admission_summary,
       source_types_present,
       missing_expected_sources,
       aas: null,
@@ -536,6 +567,7 @@ export function scoreCompany(company, referenceDate = new Date()) {
     period_start,
     period_end,
     source_count: sources.length,
+    admission: admission_summary,
     source_types_present,
     missing_expected_sources,
     aas,
@@ -576,6 +608,10 @@ export function scoreCompany(company, referenceDate = new Date()) {
  * @param {string|null} to
  */
 export function filterSourcesByPeriod(sources, from, to) {
+  // R-F5: a malformed sources value passes through unchanged so the
+  // admission contract inside scoreCompany fails it closed (suppression),
+  // rather than throwing here.
+  if (!Array.isArray(sources)) return sources;
   if (!from && !to) return sources;
   return sources.filter(s => {
     const d = s.date;
@@ -591,12 +627,17 @@ export function filterSourcesByPeriod(sources, from, to) {
  */
 export function scoreCompanyForPeriod(company, referenceDate, periodQuery) {
   const { from = null, to = null } = periodQuery || {};
-  const filtered = filterSourcesByPeriod(company.sources || [], from, to);
+  const filtered = filterSourcesByPeriod(company.sources ?? [], from, to);
+  // R-F5: a malformed sources value yields no period bounds here; scoreCompany
+  // fails the candidate closed via the admission contract.
+  const bounds = Array.isArray(filtered)
+    ? derivePeriodBounds(filtered)
+    : { period_start: null, period_end: null };
   const synthetic = {
     ...company,
     sources: filtered,
-    period_start: from ?? derivePeriodBounds(filtered).period_start,
-    period_end: to ?? derivePeriodBounds(filtered).period_end,
+    period_start: from ?? bounds.period_start,
+    period_end: to ?? bounds.period_end,
   };
   const scored = scoreCompany(synthetic, referenceDate);
   return {

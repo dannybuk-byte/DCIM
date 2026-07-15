@@ -5,6 +5,8 @@ interface ImportMetaEnv {
   readonly VITE_SIGNALS_API_URL?: string;
   /** Optional origin for SEC EDGAR proxy (GET /api/sec/*). Default: deployed dcim-api-worker. */
   readonly VITE_SEC_EDGAR_PROXY_URL?: string;
+  /** Explicit demo-mode selection (R-F1): 'true' opens the demo namespace and enables seeding. */
+  readonly VITE_DEMO_MODE?: string;
 }
 
 interface ImportMeta {

@@ -28,6 +28,10 @@ import {
 import { db } from '../db/database';
 import { seedDatabase } from '../db/seedData';
 import { Facility } from '../types';
+import { useDbInit } from '../hooks/useDbInit';
+import { useRaceSafeQuery } from '../hooks/useRaceSafeQuery';
+import { deriveConsoleStatus, statsArePresentable, type ConsoleStatus } from '../runtime/consoleStatus';
+import { DbInitStatusBanner } from './DbInitStatusBanner';
 import { ErrorBoundary } from './ErrorBoundary'; // Error boundary for resilience
 import SecurityOverview from './SecurityOverview'; // NEW: Security Posture Overview
 import SecurityInsights from './SecurityInsights'; // Package 1: Security & Verification
@@ -85,7 +89,6 @@ const TOP_BAR_MODE_DEFS: ReadonlyArray<{
 
 export const OmniscientCommandInterface: React.FC = () => {
   const [viewMode, setViewMode] = useState<ViewMode>('omniscient');
-  const [facilities, setFacilities] = useState<Facility[]>([]);
   const [selectedFacility, setSelectedFacility] = useState<Facility | null>(null);
   const [canvasOffset, setCanvasOffset] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
@@ -108,22 +111,56 @@ export const OmniscientCommandInterface: React.FC = () => {
   const idleTimerRef = useRef<NodeJS.Timeout>();
   const scrollQuietTimerRef = useRef<ReturnType<typeof setTimeout>>();
 
-  // Load facilities
-  useEffect(() => {
-    const loadData = async () => {
-      try {
-        // Seed database first if empty
-        await seedDatabase();
-        
-        const data = await db.facilities.toArray();
-        setFacilities(data);
-        console.log('🌌 Omniscient Interface: Loaded', data.length, 'facilities');
-      } catch (error) {
-        console.error('Error loading facilities:', error);
-      }
-    };
-    loadData();
-  }, []);
+  // R-F7: honest default console. Init lifecycle drives whether statistics may
+  // be shown as LIVE. The facilities read runs ONLY after the database reports
+  // ready; init failure/pending is surfaced explicitly (loading/error/
+  // unavailable) and never rendered as zero-as-current.
+  const { state: dbInit, retry: retryDbInit } = useDbInit();
+  const dbReady = dbInit.kind === 'ready';
+
+  const { surface: facilitiesSurface, refresh: refreshFacilities } = useRaceSafeQuery<
+    string,
+    Facility[]
+  >({
+    key: 'omniscient-facilities',
+    keyOf: () => 'omniscient-facilities',
+    isEmpty: (rows) => rows.length === 0,
+    enabled: dbReady,
+    query: async () => {
+      // seedDatabase is a strict no-op outside explicit demo mode (R-F1).
+      await seedDatabase();
+      return db.facilities.toArray();
+    },
+  });
+
+  // Prop consumers still receive an array; Empty vs Error/Unavailable lives on
+  // the surface kind. NEVER treat a failure as a successful empty settle.
+  const facilities = facilitiesSurface.data ?? [];
+
+  // R-F7 console status (pure derivation): init state takes precedence, then
+  // the facilities read. 'ready' is the ONLY kind allowed to present numeric
+  // statistics as current/LIVE.
+  const consoleStatus: ConsoleStatus = deriveConsoleStatus(dbInit.kind, facilitiesSurface.kind);
+
+  const statsLive = statsArePresentable(consoleStatus);
+  const statusDiagnostic =
+    dbInit.diagnostic ?? facilitiesSurface.error?.message ?? facilitiesSurface.diagnostic;
+  // Count/currency renderers: real figures ONLY when live, else a neutral dash
+  // (never a zero that could read as a measured "current" value).
+  const showCount = (n: number): string => (statsLive ? n.toLocaleString() : '—');
+  const showMoneyB = (n: number): string => (statsLive ? `$${(n / 1e9).toFixed(2)}B` : '—');
+
+  const LIVE_STATUS_META: Record<
+    typeof consoleStatus,
+    { label: string; dotClass: string; textClass: string }
+  > = {
+    ready: { label: 'LIVE', dotClass: 'bg-[#00d2d3] animate-pulse', textClass: 'text-[#00d2d3]' },
+    loading: { label: 'LOADING', dotClass: 'bg-slate-400 animate-pulse', textClass: 'text-slate-300' },
+    empty: { label: 'NO DATA', dotClass: 'bg-slate-500', textClass: 'text-slate-300' },
+    error: { label: 'ERROR', dotClass: 'bg-red-500', textClass: 'text-red-400' },
+    unavailable: { label: 'UNAVAILABLE', dotClass: 'bg-orange-500', textClass: 'text-orange-400' },
+  };
+  const liveStatus = LIVE_STATUS_META[consoleStatus];
 
   // Deep-link: example.com/#bgp opens live RIPE RIS BGP monitor (after deploy with current bundle).
   useEffect(() => {
@@ -257,7 +294,10 @@ export const OmniscientCommandInterface: React.FC = () => {
   }, [facilities]);
 
   return (
-    <div className="relative flex h-full min-h-0 w-full flex-1 flex-col overflow-hidden bg-black text-white">
+    <div
+      className="relative flex h-full min-h-0 w-full flex-1 flex-col overflow-hidden bg-black text-white"
+      data-console-status={consoleStatus}
+    >
       {/* BACKGROUND: Animated Grid */}
       <div className="absolute inset-0 opacity-10">
         <div
@@ -290,10 +330,14 @@ export const OmniscientCommandInterface: React.FC = () => {
                 DATA CENTER ACCOUNTABILITY
               </div>
 
-              {/* Live Indicator */}
-              <div className="flex items-center gap-1.5 text-[10px] text-[#00d2d3]">
-                <div className="w-1.5 h-1.5 shrink-0 rounded-full bg-[#00d2d3] animate-pulse" />
-                LIVE
+              {/* R-F7: status indicator — reflects DbInit/read state, not always "LIVE" */}
+              <div
+                className={`flex items-center gap-1.5 text-[10px] ${liveStatus.textClass}`}
+                data-console-live-status={consoleStatus}
+                title={statusDiagnostic ?? undefined}
+              >
+                <div className={`w-1.5 h-1.5 shrink-0 rounded-full ${liveStatus.dotClass}`} />
+                {liveStatus.label}
               </div>
               <div
                 className="shrink-0 rounded border border-emerald-500/70 bg-emerald-950/50 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wide text-emerald-300"
@@ -367,15 +411,15 @@ export const OmniscientCommandInterface: React.FC = () => {
             {/* Mini Stats (Always Visible) */}
             <div className="flex shrink-0 flex-wrap items-center justify-end gap-2 text-[10px] sm:gap-4">
               <div className="text-center" title="Total data center facilities tracked">
-                <div className="text-[#00d2d3] font-bold">{stats.total.toLocaleString()}</div>
+                <div className="text-[#00d2d3] font-bold">{showCount(stats.total)}</div>
                 <div className="text-gray-500">TRACKED</div>
               </div>
               <div className="text-center" title="Facilities meeting job creation promises">
-                <div className="text-[#2ed573] font-bold">{stats.compliant.toLocaleString()}</div>
+                <div className="text-[#2ed573] font-bold">{showCount(stats.compliant)}</div>
                 <div className="text-gray-500">✓</div>
               </div>
               <div className="text-center" title="Facilities failing to meet job promises">
-                <div className="text-[#ff4757] font-bold">{stats.nonCompliant.toLocaleString()}</div>
+                <div className="text-[#ff4757] font-bold">{showCount(stats.nonCompliant)}</div>
                 <div className="text-gray-500">✗</div>
               </div>
               
@@ -385,7 +429,7 @@ export const OmniscientCommandInterface: React.FC = () => {
                 className="relative flex items-center gap-1 px-2 py-1 bg-[#ff4757]/20 border border-[#ff4757] rounded hover:bg-[#ff4757]/30 transition-colors"
               >
                 <AlertCircle size={14} className="text-[#ff4757]" />
-                <span className="text-[#ff4757] font-bold">{stats.nonCompliant}</span>
+                <span className="text-[#ff4757] font-bold">{statsLive ? stats.nonCompliant : '—'}</span>
               </button>
 
               {/* AI Settings Button */}
@@ -487,29 +531,75 @@ export const OmniscientCommandInterface: React.FC = () => {
                 {/* Detailed Stats */}
                 <div className="flex items-center gap-6 text-xs">
                   <div className="text-center">
-                    <div className="text-[#00d2d3] font-bold text-lg">{stats.total.toLocaleString()}</div>
+                    <div className="text-[#00d2d3] font-bold text-lg">{showCount(stats.total)}</div>
                     <div className="text-gray-500 text-[10px]">TRACKED</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-[#2ed573] font-bold text-lg">{stats.compliant.toLocaleString()}</div>
+                    <div className="text-[#2ed573] font-bold text-lg">{showCount(stats.compliant)}</div>
                     <div className="text-gray-500 text-[10px]">COMPLIANT</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-[#ffa502] font-bold text-lg">{stats.atRisk.toLocaleString()}</div>
+                    <div className="text-[#ffa502] font-bold text-lg">{showCount(stats.atRisk)}</div>
                     <div className="text-gray-500 text-[10px]">AT RISK</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-[#ff4757] font-bold text-lg">{stats.nonCompliant.toLocaleString()}</div>
+                    <div className="text-[#ff4757] font-bold text-lg">{showCount(stats.nonCompliant)}</div>
                     <div className="text-gray-500 text-[10px]">CRITICAL</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-[#00d2d3] font-bold text-lg">${(stats.totalGap / 1e9).toFixed(2)}B</div>
+                    <div className="text-[#00d2d3] font-bold text-lg">{showMoneyB(stats.totalGap)}</div>
                     <div className="text-gray-500 text-[10px]">TOTAL GAP</div>
                   </div>
                 </div>
               </div>
             </div>
           )}
+        </div>
+      )}
+
+      {/* R-F7: honest status chrome — until the DB is ready (and a facilities
+          read has settled), statistics are withheld and the state is named
+          explicitly. A DB failure never renders as LIVE zeros. */}
+      {consoleStatus !== 'ready' && (
+        <div
+          className="pointer-events-none absolute left-1/2 top-16 z-40 w-[min(92%,42rem)] -translate-x-1/2"
+          data-testid="console-status-banner"
+          role="status"
+        >
+          <div className="pointer-events-auto">
+            {consoleStatus === 'empty' ? (
+              <div
+                className="rounded border border-slate-600 bg-slate-900/90 px-3 py-2 text-sm text-slate-200"
+                data-console-empty="true"
+              >
+                <div className="font-semibold">No facility data loaded</div>
+                <p className="mt-1 text-xs text-slate-300/90">
+                  The local database is ready but contains no facilities. Statistics are withheld
+                  until data is imported — no figures are shown as current.
+                </p>
+              </div>
+            ) : (
+              <DbInitStatusBanner
+                state={
+                  dbInit.kind === 'ready'
+                    ? {
+                        // DB opened fine, but the facilities read failed — surface as
+                        // unavailable with the read diagnostic (never a silent zero).
+                        ...dbInit,
+                        kind: 'unavailable',
+                        diagnostic:
+                          statusDiagnostic ?? 'Facility data could not be loaded from the local database.',
+                      }
+                    : dbInit
+                }
+                onRetry={() => {
+                  retryDbInit();
+                  if (dbReady) refreshFacilities();
+                }}
+                onReload={() => window.location.reload()}
+              />
+            )}
+          </div>
         </div>
       )}
 

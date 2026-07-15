@@ -1,6 +1,10 @@
 import { Facility } from '../types';
-import { buildPrinceWilliamClusterFacility } from '../data/princeWilliamClusterFacility';
+import {
+  buildPrinceWilliamClusterFacility,
+  PRINCE_WILLIAM_CLUSTER_FACILITY_ID,
+} from '../data/princeWilliamClusterFacility';
 import { db } from './database';
+import { isDemoMode } from './demoMode';
 import { computeDemoBgpFields } from '../utils/bgpDemo';
 
 // Global operators with their market presence by country
@@ -1485,43 +1489,56 @@ function generateFacility(id: number): Facility {
   };
 }
 
-export async function seedDatabase() {
-  const count = await db.facilities.count();
-  
-  // Always verify state coverage for US - if we don't have comprehensive coverage, reseed
-  let shouldReseed = count === 0 || count !== 11992;
-  
-  if (count > 0 && count === 11992) {
-    // Check if we actually have all US states represented
-    const allFacilities = await db.facilities.toArray();
-    const usStates = new Set(allFacilities.filter(f => f.country === 'US').map(f => f.state));
-    // We should have at least 45+ states (allowing for some randomness in distribution)
-    if (usStates.size < 45) {
-      console.log(`Database has only ${usStates.size} US states, reseeding for comprehensive coverage...`);
-      shouldReseed = true;
-    }
-  }
-  
-  if (shouldReseed) {
-    // Clear existing data if reseeding
-    if (count > 0) {
-      await db.facilities.clear();
-    }
-    const facilities: Facility[] = [];
-    for (let i = 1; i <= 11992; i++) {
-      facilities.push(generateFacility(i));
-    }
-    await db.facilities.bulkAdd(facilities);
-    
-    // Verify coverage
-    const allFacilities = await db.facilities.toArray();
-    const uniqueStates = new Set(allFacilities.filter(f => f.country === 'US').map(f => f.state));
-    const uniqueCountries = new Set(allFacilities.map(f => f.country));
-    
-    console.log(`✅ Seeded ${facilities.length} facilities globally across ${uniqueCountries.size} countries (${uniqueStates.size} US states including OK) with real operator data`);
-  } else {
-    console.log(`Database already seeded with ${count} facilities`);
+export interface SeedResult {
+  seeded: boolean;
+  reason: 'live-mode-noop' | 'demo-already-populated' | 'demo-seeded' | 'demo-replaced';
+}
+
+export interface SeedOptions {
+  /**
+   * Explicit, deliberate replacement of an existing demo dataset. Never set
+   * from startup paths; only a direct user action may pass this.
+   */
+  replaceExisting?: boolean;
+}
+
+/**
+ * R-F1: safe seeding.
+ *
+ * - Startup NEVER seeds or clears the live store: outside explicit demo mode
+ *   this function is a strict no-op (no reads promoted to writes, no
+ *   count/coverage heuristics that can trigger a clear).
+ * - Demo data lives only in the explicitly-selected demo namespace
+ *   (VITE_DEMO_MODE=true opens 'ComplianceDatabase_demo'; see demoMode.ts).
+ * - A populated demo store is never cleared implicitly; replacement requires
+ *   the explicit `replaceExisting` option and happens in ONE transaction.
+ * - The fixed-ID curated row (11992) is written only as part of that seed
+ *   transaction via add(); no existing primary key is overwritten.
+ */
+export async function seedDatabase(options: SeedOptions = {}): Promise<SeedResult> {
+  if (!isDemoMode()) {
+    return { seeded: false, reason: 'live-mode-noop' };
   }
 
-  await db.facilities.put(buildPrinceWilliamClusterFacility());
+  const count = await db.facilities.count();
+  if (count > 0 && !options.replaceExisting) {
+    return { seeded: false, reason: 'demo-already-populated' };
+  }
+
+  // Generated rows occupy IDs 1..11991; the curated case-study row holds the
+  // reserved fixed ID 11992, for a total of 11992 demo rows.
+  const facilities: Facility[] = [];
+  for (let i = 1; i < PRINCE_WILLIAM_CLUSTER_FACILITY_ID; i++) {
+    facilities.push(generateFacility(i));
+  }
+
+  await db.transaction('rw', db.facilities, async () => {
+    if (options.replaceExisting) {
+      await db.facilities.clear();
+    }
+    await db.facilities.bulkAdd(facilities);
+    await db.facilities.add(buildPrinceWilliamClusterFacility());
+  });
+
+  return { seeded: true, reason: options.replaceExisting ? 'demo-replaced' : 'demo-seeded' };
 }
