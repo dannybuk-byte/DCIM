@@ -1,5 +1,6 @@
 /**
- * Step-3: call-site neutralization, diagnostic gate, atomic write, v9 idempotence, network guard.
+ * Step-3: call-site neutralization, diagnostic gate, atomic write, v9 idempotence.
+ * Slice 4.1: concurrent fetch must remain unaffected by atomicWrite (no global fetch guard).
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
@@ -114,8 +115,17 @@ describe('T6 atomic write boundary', () => {
   });
 });
 
-describe('T8 network outside transaction', () => {
-  it('rejects fetch inside atomicWrite', async () => {
+describe('T8 concurrent fetch unaffected by atomicWrite', () => {
+  it('unrelated fetch succeeds while an atomicWrite transaction is open', async () => {
+    const fetchSpy = vi.fn().mockResolvedValue({ ok: true } as Response);
+    const originalFetch = globalThis.fetch;
+    globalThis.fetch = fetchSpy as typeof fetch;
+
+    let release!: () => void;
+    const hold = new Promise<void>((r) => {
+      release = r;
+    });
+
     const mockDb = {
       transaction: async (
         _mode: string,
@@ -124,12 +134,26 @@ describe('T8 network outside transaction', () => {
       ) => fn(),
     };
 
-    await expect(
-      atomicWrite(['facilities'], async () => {
-        await fetch('https://example.invalid/api');
-        return 1;
-      }, mockDb as never),
-    ).rejects.toThrow(/forbidden inside a Dexie transaction/i);
+    try {
+      const writePromise = atomicWrite(
+        ['facilities'],
+        async () => {
+          await hold;
+          return 1;
+        },
+        mockDb as never,
+      );
+
+      await expect(fetch('https://example.invalid/concurrent')).resolves.toEqual({
+        ok: true,
+      });
+      expect(fetchSpy).toHaveBeenCalled();
+
+      release();
+      await expect(writePromise).resolves.toBe(1);
+    } finally {
+      globalThis.fetch = originalFetch;
+    }
   });
 });
 
