@@ -1,10 +1,8 @@
 import { useMemo } from 'react';
 import { ErrorBoundary } from './ErrorBoundary';
-import { ProvenanceBadge } from './shared/ProvenanceBadge';
 import { Tooltip } from './shared/Tooltip';
 import { db, SubsidyAgreement } from '../db/database';
 import { Facility } from '../types';
-import { formatCurrency } from '../utils/formatting';
 import { Info } from 'lucide-react';
 import { useRaceSafeQuery } from '../hooks/useRaceSafeQuery';
 
@@ -135,26 +133,10 @@ export function RealityObserved({ facilityId }: RealityObservedProps) {
     );
   }
 
-  // Estimate current employment (would come from OSINT or other sources)
-  // For now, we'll use a placeholder - in real implementation this would be fetched
-  const currentEmployment = 23; // Placeholder - would be from actual data source
+  // DESIGN placeholder — synthetic only. Not OSINT, not facility-sourced (R-F6).
+  // Do not derive compliance / delivery math from this value.
+  const DESIGN_PLACEHOLDER_EMPLOYMENT = 23 as const;
   const promisedJobs = agreement?.promisedJobs || 0;
-  const jobDeliveryRate = promisedJobs > 0 ? (currentEmployment / promisedJobs) * 100 : 0;
-
-  // Calculate compliance gap
-  const yearsOperating = agreement?.permitDate
-    ? Math.max(1, (new Date().getTime() - new Date(agreement.permitDate).getTime()) / (1000 * 60 * 60 * 24 * 365))
-    : 1;
-  const assumedAnnualWage = 85000; // BLS median for tech roles
-  const deliveredJobs = currentEmployment;
-  const jobGap = Math.max(0, promisedJobs - deliveredJobs);
-  const complianceGap = jobGap * assumedAnnualWage * yearsOperating - (agreement?.incentiveValue || 0);
-
-  const getJobDeliveryColor = (rate: number) => {
-    if (rate < 25) return '#ff4757'; // red
-    if (rate < 75) return '#ffa502'; // yellow
-    return '#2ed573'; // green
-  };
 
   return (
     <ErrorBoundary>
@@ -183,43 +165,49 @@ export function RealityObserved({ facilityId }: RealityObservedProps) {
         )}
 
         <div className="space-y-4">
-          {/* Current Employment */}
+          {/* Current Employment — DESIGN quarantine (R-F6) */}
           <div className="flex justify-between items-start py-2 border-b border-gray-700">
             <div className="text-sm text-gray-400">Current Employment</div>
             <div className="text-right">
-              <div className="text-sm font-medium text-gray-200">
-                {currentEmployment.toLocaleString()}
+              <div
+                className="text-sm font-medium text-gray-200"
+                data-design-placeholder="employment"
+              >
+                {DESIGN_PLACEHOLDER_EMPLOYMENT.toLocaleString()}
               </div>
               <div className="mt-1">
-                <ProvenanceBadge
-                  sourceType="OSINT"
-                  sourceDescription="Estimated from public sources and job postings"
-                  lastUpdated={new Date().toISOString()}
-                  collectionMethod="Open source intelligence gathering"
-                  limitations={['May not capture all contractor positions', 'Based on publicly available information']}
-                />
+                <span
+                  className="px-2 py-0.5 rounded text-xs border bg-amber-900/30 text-amber-300 border-amber-700"
+                  title="LIVE/DESIGN honesty layer — synthetic placeholder, not observed OSINT"
+                  data-design-badge="employment"
+                >
+                  DESIGN · synthetic / placeholder
+                </span>
+              </div>
+              <div className="text-xs text-gray-500 mt-1 max-w-xs">
+                Not live observed employment. No facility-dated source warrant.
               </div>
             </div>
           </div>
 
-          {/* Job Delivery Rate */}
+          {/* Job Delivery Rate — withheld; would require live employment */}
           {promisedJobs > 0 && (
             <div className="flex justify-between items-start py-2 border-b border-gray-700">
               <div className="text-sm text-gray-400 flex items-center gap-1">
                 Job Delivery Rate
-                <Tooltip content="What percentage of promised jobs actually exist. Green (75%+) = mostly delivered. Yellow (25-75%) = partially delivered. Red (<25%) = very few jobs delivered.">
+                <Tooltip content="Withheld until live observed employment is available. Not computed from DESIGN placeholders.">
                   <Info className="w-3 h-3" />
                 </Tooltip>
               </div>
               <div className="text-right">
                 <div
-                  className="text-sm font-medium"
-                  style={{ color: getJobDeliveryColor(jobDeliveryRate) }}
+                  className="text-sm font-medium text-amber-200"
+                  data-design-withheld="job-delivery-rate"
                 >
-                  {jobDeliveryRate.toFixed(1)}%
+                  Not computed
                 </div>
                 <div className="text-xs text-gray-500 mt-1">
-                  {currentEmployment} of {promisedJobs} promised jobs
+                  Requires live employment (promised: {promisedJobs}) — DESIGN placeholder not used
                 </div>
               </div>
             </div>
@@ -241,32 +229,23 @@ export function RealityObserved({ facilityId }: RealityObservedProps) {
             </div>
           </div>
 
-          {/* Compliance Gap */}
+          {/* Compliance Gap — withheld; no math on unsourced placeholder (R-F6) */}
           {agreement && (
-            <div className="mt-6 p-4 rounded" style={{
-              backgroundColor: complianceGap > 1000000 ? '#ff475720' : '#2ed57320',
-              border: `1px solid ${complianceGap > 1000000 ? '#ff475740' : '#2ed57340'}`
-            }}>
+            <div
+              className="mt-6 p-4 rounded border border-amber-700/50 bg-amber-950/30"
+              data-design-withheld="compliance-gap"
+            >
               <div className="flex items-center gap-2 mb-2">
-                <div className="text-sm font-semibold" style={{
-                  color: complianceGap > 1000000 ? '#ff4757' : '#2ed573'
-                }}>
-                  Compliance Gap
-                </div>
-                <Tooltip content="This is the estimated economic value of the gap between what was promised and what was delivered. It's calculated as: (promised jobs - actual jobs) × average wage × years operating - incentives received. Red means the gap is over $1 million.">
-                  <Info className="w-3 h-3" style={{ color: complianceGap > 1000000 ? '#ff4757' : '#2ed573' }} />
+                <div className="text-sm font-semibold text-amber-200">Compliance Gap</div>
+                <Tooltip content="Not computed from DESIGN placeholder employment. A live, sourced headcount is required before any gap dollars are shown.">
+                  <Info className="w-3 h-3 text-amber-300" />
                 </Tooltip>
               </div>
-              <div className="text-lg font-bold mb-2" style={{
-                color: complianceGap > 1000000 ? '#ff4757' : '#2ed573'
-              }}>
-                {formatCurrency(complianceGap)}
+              <div className="text-sm text-amber-100">
+                Not computed — employment figure is DESIGN placeholder, not live observed data.
               </div>
-              <div className="text-xs text-gray-400">
-                Calculation: ({promisedJobs} - {deliveredJobs}) jobs × ${assumedAnnualWage.toLocaleString()}/year × {yearsOperating.toFixed(1)} years - {formatCurrency(agreement.incentiveValue)} incentives
-              </div>
-              <div className="mt-2 text-xs text-gray-500">
-                Assumes average annual wage of ${assumedAnnualWage.toLocaleString()} (BLS median for tech roles)
+              <div className="mt-2 text-xs text-gray-400">
+                Promised jobs on agreement: {promisedJobs || 'n/a'}. Gap formula withheld until employment has a dated source warrant.
               </div>
             </div>
           )}

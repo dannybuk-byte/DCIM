@@ -1,5 +1,9 @@
 import { defineConfig } from 'vitest/config';
 import react from '@vitejs/plugin-react';
+import { generateBuildInfo } from './scripts/generate-build-info.mjs';
+
+// R-F13: ensure generated build identity exists for tests that import it.
+generateBuildInfo();
 
 export default defineConfig({
   plugins: [react()],

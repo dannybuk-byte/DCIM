@@ -1,16 +1,16 @@
 /**
  * Simple Build Version Badge
- * Shows current deployment version - NO COMPLEX DEPENDENCIES
+ * R-F13: shows bake-time short SHA from the same resolver identity — not a runtime clock.
  */
 
 import React, { useEffect, useState } from 'react';
+import { BUILD_COMMIT, shortBuildCommit } from '../runtime/buildIdentity';
 
 export const SimpleBuildBadge: React.FC = () => {
-  const [buildTime] = useState(new Date().toLocaleTimeString());
   const [showPulse, setShowPulse] = useState(true);
+  const shortSha = shortBuildCommit(BUILD_COMMIT);
 
   useEffect(() => {
-    // Pulse for first 5 seconds to grab attention
     const timer = setTimeout(() => setShowPulse(false), 5000);
     return () => clearTimeout(timer);
   }, []);
@@ -18,24 +18,22 @@ export const SimpleBuildBadge: React.FC = () => {
   return (
     <div className="fixed top-4 right-4 z-[9998] bg-gradient-to-r from-cyan-900/90 to-blue-900/90 backdrop-blur-sm border border-cyan-500/50 rounded-lg px-4 py-3 shadow-2xl shadow-cyan-500/20 min-w-[200px]">
       <div className="flex items-center gap-3">
-        {/* Pulsing indicator */}
         <div className="relative flex items-center justify-center">
           {showPulse && (
             <div className="absolute w-3 h-3 bg-green-500 rounded-full animate-ping" />
           )}
           <div className="relative w-2 h-2 bg-green-400 rounded-full" />
         </div>
-        
+
         <div className="flex-1">
           <div className="text-cyan-300 font-bold text-sm">
-            🚀 Live Dashboard
+            Live Dashboard
           </div>
-          <div className="text-cyan-400/70 text-xs">
-            Loaded: {buildTime}
+          <div className="text-cyan-400/70 text-xs" data-build-badge="commit">
+            build: {shortSha}
           </div>
         </div>
 
-        {/* GitHub link */}
         <a
           href="https://github.com/dannybuk-byte/DCIM"
           target="_blank"
@@ -49,13 +47,11 @@ export const SimpleBuildBadge: React.FC = () => {
         </a>
       </div>
 
-      {/* Feature indicators */}
       <div className="mt-2 pt-2 border-t border-cyan-500/20 flex items-center gap-2 text-xs text-cyan-400/60">
-        <span title="Pre-commit hooks active">✅ Safe</span>
-        <span title="Auto-deploy active">🚀 Live</span>
-        <span title="Health monitoring">🏥 OK</span>
+        <span title="Pre-commit hooks active">Safe</span>
+        <span title="Auto-deploy active">Live</span>
+        <span title="Health monitoring">OK</span>
       </div>
     </div>
   );
 };
-

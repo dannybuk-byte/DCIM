@@ -14,6 +14,8 @@ interface Phase {
   start: Date;
   end: Date;
   employment: number;
+  /** R-F6: employment is DESIGN placeholder — do not derive drop % from it */
+  employmentIsDesign?: boolean;
   color: string;
 }
 
@@ -22,6 +24,9 @@ interface TimelineEvent {
   label: string;
   icon: React.ReactNode;
 }
+
+/** R-F6: synthetic steady-state placeholder — not OSINT, not facility-sourced. */
+export const DESIGN_PLACEHOLDER_EMPLOYMENT = 23 as const;
 
 export function LifecycleTimeline({ facilityId }: LifecycleTimelineProps) {
   const [facility, setFacility] = useState<Facility | null>(null);
@@ -37,87 +42,87 @@ export function LifecycleTimeline({ facilityId }: LifecycleTimelineProps) {
     async function loadData() {
       try {
         setLoading(true);
-        
+
         const [facilityData, agreementData] = await Promise.all([
           db.facilities.get(facilityId),
-          db.subsidyAgreements.where('facilityId').equals(facilityId).first()
+          db.subsidyAgreements.where('facilityId').equals(facilityId).first(),
         ]);
 
         if (isMounted && !abortController.signal.aborted) {
           setFacility(facilityData || null);
-        setAgreement(agreementData || null);
+          setAgreement(agreementData || null);
 
-        if (agreementData) {
-          // Calculate phases
-          const permitDate = new Date(agreementData.permitDate);
-          const constructionStart = permitDate;
-          const constructionEnd = new Date(permitDate);
-          constructionEnd.setMonth(constructionEnd.getMonth() + 24); // 2 years construction
-          
-          const commissioningStart = constructionEnd;
-          const commissioningEnd = new Date(commissioningStart);
-          commissioningEnd.setMonth(commissioningEnd.getMonth() + 6); // 6 months commissioning
-          
-          const operationalDate = commissioningEnd;
-          const now = new Date();
+          if (agreementData) {
+            const permitDate = new Date(agreementData.permitDate);
+            const constructionStart = permitDate;
+            const constructionEnd = new Date(permitDate);
+            constructionEnd.setMonth(constructionEnd.getMonth() + 24);
 
-          const calculatedPhases: Phase[] = [
-            {
-              name: 'Construction',
-              start: constructionStart,
-              end: constructionEnd,
-              employment: 1200, // Peak construction employment
-              color: '#ff6b35' // orange
-            },
-            {
-              name: 'Commissioning',
-              start: commissioningStart,
-              end: commissioningEnd,
-              employment: 150, // Commissioning team
-              color: '#ffa502' // yellow
-            },
-            {
-              name: 'Operations',
-              start: operationalDate,
-              end: now,
-              employment: 23, // Steady-state employment
-              color: '#2ed573' // green
-            }
-          ];
+            const commissioningStart = constructionEnd;
+            const commissioningEnd = new Date(commissioningStart);
+            commissioningEnd.setMonth(commissioningEnd.getMonth() + 6);
 
-          setPhases(calculatedPhases);
+            const operationalDate = commissioningEnd;
+            const now = new Date();
 
-          // Create events
-          const calculatedEvents: TimelineEvent[] = [
-            {
-              date: permitDate,
-              label: 'Board Approval',
-              icon: <Calendar className="w-4 h-4" />
-            },
-            {
-              date: constructionStart,
-              label: 'Construction Start',
-              icon: <Building className="w-4 h-4" />
-            },
-            {
-              date: new Date(constructionEnd.getTime() - 30 * 24 * 60 * 60 * 1000), // 30 days before end
-              label: 'First Power Draw',
-              icon: <Zap className="w-4 h-4" />
-            },
-            {
-              date: operationalDate,
-              label: 'Operational Declaration',
-              icon: <CheckCircle className="w-4 h-4" />
-            },
-            {
-              date: new Date(operationalDate.getTime() + 365 * 24 * 60 * 60 * 1000), // 1 year after
-              label: 'Steady-State Reached',
-              icon: <TrendingDown className="w-4 h-4" />
-            }
-          ];
+            const calculatedPhases: Phase[] = [
+              {
+                name: 'Construction',
+                start: constructionStart,
+                end: constructionEnd,
+                employment: 1200,
+                color: '#ff6b35',
+              },
+              {
+                name: 'Commissioning',
+                start: commissioningStart,
+                end: commissioningEnd,
+                employment: 150,
+                color: '#ffa502',
+              },
+              {
+                name: 'Operations',
+                start: operationalDate,
+                end: now,
+                // R-F6 DESIGN quarantine — synthetic placeholder, not live headcount
+                employment: DESIGN_PLACEHOLDER_EMPLOYMENT,
+                employmentIsDesign: true,
+                color: '#2ed573',
+              },
+            ];
 
-          setEvents(calculatedEvents);
-        }
+            setPhases(calculatedPhases);
+
+            const calculatedEvents: TimelineEvent[] = [
+              {
+                date: permitDate,
+                label: 'Board Approval',
+                icon: <Calendar className="w-4 h-4" />,
+              },
+              {
+                date: constructionStart,
+                label: 'Construction Start',
+                icon: <Building className="w-4 h-4" />,
+              },
+              {
+                date: new Date(constructionEnd.getTime() - 30 * 24 * 60 * 60 * 1000),
+                label: 'First Power Draw',
+                icon: <Zap className="w-4 h-4" />,
+              },
+              {
+                date: operationalDate,
+                label: 'Operational Declaration',
+                icon: <CheckCircle className="w-4 h-4" />,
+              },
+              {
+                date: new Date(operationalDate.getTime() + 365 * 24 * 60 * 60 * 1000),
+                label: 'Steady-State Reached',
+                icon: <TrendingDown className="w-4 h-4" />,
+              },
+            ];
+
+            setEvents(calculatedEvents);
+          }
         }
       } catch (error) {
         console.error('Error loading lifecycle data:', error);
@@ -127,6 +132,11 @@ export function LifecycleTimeline({ facilityId }: LifecycleTimelineProps) {
     }
 
     loadData();
+
+    return () => {
+      isMounted = false;
+      abortController.abort();
+    };
   }, [facilityId]);
 
   if (loading) {
@@ -149,17 +159,16 @@ export function LifecycleTimeline({ facilityId }: LifecycleTimelineProps) {
     );
   }
 
-  // Calculate timeline span
   const timelineStart = phases[0].start;
   const timelineEnd = phases[phases.length - 1].end;
-  const totalDays = Math.ceil((timelineEnd.getTime() - timelineStart.getTime()) / (1000 * 60 * 60 * 24));
+  const totalDays = Math.ceil(
+    (timelineEnd.getTime() - timelineStart.getTime()) / (1000 * 60 * 60 * 24),
+  );
 
-  // Calculate drop percentage
-  const peakEmployment = Math.max(...phases.map(p => p.employment));
-  const steadyStateEmployment = phases[phases.length - 1].employment;
-  const dropPercentage = peakEmployment > 0
-    ? ((peakEmployment - steadyStateEmployment) / peakEmployment) * 100
-    : 0;
+  const peakEmployment = Math.max(...phases.map((p) => p.employment));
+  const steadyPhase = phases[phases.length - 1];
+  const steadyStateIsDesign = Boolean(steadyPhase.employmentIsDesign);
+  const steadyStateEmployment = steadyPhase.employment;
 
   return (
     <ErrorBoundary>
@@ -171,23 +180,26 @@ export function LifecycleTimeline({ facilityId }: LifecycleTimelineProps) {
           </Tooltip>
         </div>
 
-        {/* Timeline */}
         <div className="mb-8">
-          {/* Year markers */}
           <div className="flex justify-between mb-4 text-xs text-gray-400">
-            {Array.from({ length: Math.ceil((timelineEnd.getFullYear() - timelineStart.getFullYear()) + 1) }, (_, i) => {
-              const year = timelineStart.getFullYear() + i;
-              return <span key={year}>{year}</span>;
-            })}
+            {Array.from(
+              { length: Math.ceil(timelineEnd.getFullYear() - timelineStart.getFullYear() + 1) },
+              (_, i) => {
+                const year = timelineStart.getFullYear() + i;
+                return <span key={year}>{year}</span>;
+              },
+            )}
           </div>
 
-          {/* Phase bars */}
           <div className="relative h-32 mb-4">
             {phases.map((phase, index) => {
               const phaseStart = phase.start.getTime();
               const phaseEnd = phase.end.getTime();
               const phaseDays = Math.ceil((phaseEnd - phaseStart) / (1000 * 60 * 60 * 24));
-              const leftPercent = ((phaseStart - timelineStart.getTime()) / (timelineEnd.getTime() - timelineStart.getTime())) * 100;
+              const leftPercent =
+                ((phaseStart - timelineStart.getTime()) /
+                  (timelineEnd.getTime() - timelineStart.getTime())) *
+                100;
               const widthPercent = (phaseDays / totalDays) * 100;
 
               return (
@@ -198,23 +210,39 @@ export function LifecycleTimeline({ facilityId }: LifecycleTimelineProps) {
                     left: `${leftPercent}%`,
                     width: `${widthPercent}%`,
                     backgroundColor: phase.color,
-                    minWidth: '80px'
+                    minWidth: '80px',
                   }}
                 >
                   <div className="text-center">
                     <div>{phase.name}</div>
-                    <div className="text-xs opacity-90">{phase.employment} jobs</div>
+                    <div
+                      className="text-xs opacity-90"
+                      data-design-placeholder={phase.employmentIsDesign ? 'employment' : undefined}
+                    >
+                      {phase.employment} jobs
+                    </div>
+                    {phase.employmentIsDesign && (
+                      <div
+                        className="mt-0.5 px-1 py-0.5 rounded text-[10px] border bg-amber-900/40 text-amber-200 border-amber-700"
+                        data-design-badge="employment"
+                        title="LIVE/DESIGN honesty layer — synthetic placeholder, not observed OSINT"
+                      >
+                        DESIGN · synthetic / placeholder
+                      </div>
+                    )}
                   </div>
                 </div>
               );
             })}
           </div>
 
-          {/* Events */}
           <div className="relative">
             {events.map((event, index) => {
-              const eventPercent = ((event.date.getTime() - timelineStart.getTime()) / (timelineEnd.getTime() - timelineStart.getTime())) * 100;
-              
+              const eventPercent =
+                ((event.date.getTime() - timelineStart.getTime()) /
+                  (timelineEnd.getTime() - timelineStart.getTime())) *
+                100;
+
               return (
                 <div
                   key={index}
@@ -225,7 +253,9 @@ export function LifecycleTimeline({ facilityId }: LifecycleTimelineProps) {
                   <div className="text-xs text-gray-400 text-center whitespace-nowrap">
                     {event.icon}
                     <div className="mt-1">{event.label}</div>
-                    <div className="text-gray-500">{event.date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}</div>
+                    <div className="text-gray-500">
+                      {event.date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
+                    </div>
                   </div>
                 </div>
               );
@@ -233,7 +263,6 @@ export function LifecycleTimeline({ facilityId }: LifecycleTimelineProps) {
           </div>
         </div>
 
-        {/* Phase Transition Analysis */}
         <div className="mt-8 p-4 bg-gray-900 rounded-lg border border-gray-700">
           <div className="flex items-center gap-2 mb-3">
             <h4 className="text-sm font-medium text-gray-200">Phase Transition Analysis</h4>
@@ -260,27 +289,48 @@ export function LifecycleTimeline({ facilityId }: LifecycleTimelineProps) {
                 </Tooltip>
                 :
               </span>
-              <span className="text-gray-200">{steadyStateEmployment.toLocaleString()}</span>
+              <span className="text-gray-200 text-right">
+                {steadyStateEmployment.toLocaleString()}
+                {steadyStateIsDesign && (
+                  <div
+                    className="mt-1 px-2 py-0.5 rounded text-xs border bg-amber-900/30 text-amber-300 border-amber-700 inline-block"
+                    data-design-badge="steady-state"
+                  >
+                    DESIGN · synthetic / placeholder
+                  </div>
+                )}
+              </span>
             </div>
             <div className="flex justify-between">
               <span className="text-gray-400 flex items-center gap-1">
                 Employment Drop
-                <Tooltip content="How much employment decreased from peak construction to steady operations. A high percentage means most construction jobs disappeared.">
+                <Tooltip content="Withheld when steady-state employment is a DESIGN placeholder. Not computed from unsourced figures.">
                   <Info className="w-3 h-3" />
                 </Tooltip>
                 :
               </span>
-              <span className="text-red-400">{dropPercentage.toFixed(1)}%</span>
+              {steadyStateIsDesign ? (
+                <span
+                  className="text-amber-200 text-right"
+                  data-design-withheld="employment-drop"
+                >
+                  Not computed
+                </span>
+              ) : null}
             </div>
-            <div className="mt-3 pt-3 border-t border-gray-700 text-xs text-gray-300">
-              <strong>Insight:</strong> This pattern—high construction followed by minimal permanent staffing—explains why job promises often fail to materialize. 
-              The employment drop from {peakEmployment.toLocaleString()} to {steadyStateEmployment.toLocaleString()} jobs ({dropPercentage.toFixed(1)}% reduction) 
-              represents the transition from construction workforce to operational staffing.
-            </div>
+            {steadyStateIsDesign ? (
+              <div
+                className="mt-3 pt-3 border-t border-gray-700 text-xs text-amber-100"
+                data-design-withheld="employment-drop-insight"
+              >
+                Not computed — steady-state employment is DESIGN placeholder, not live observed
+                data. Employment-drop % is withheld until operations headcount has a dated source
+                warrant.
+              </div>
+            ) : null}
           </div>
         </div>
       </div>
     </ErrorBoundary>
   );
 }
-

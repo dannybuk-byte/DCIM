@@ -7,6 +7,11 @@
 
 import React, { useEffect, useState } from 'react';
 import { RefreshCw, CheckCircle, AlertCircle, Zap, Github } from 'lucide-react';
+import {
+  assertBuildIdentity,
+  BUILD_COMMIT,
+  formatBuildIdentityMeta,
+} from '../runtime/buildIdentity';
 
 interface DeploymentStatus {
   currentVersion: string;
@@ -193,28 +198,41 @@ export const LiveDeploymentIndicator: React.FC = () => {
   );
 };
 
-// Helper component: Build timestamp injector
+// Helper component: Build identity injector + file↔bundle assert (R-F13)
 export const BuildInfo: React.FC = () => {
   useEffect(() => {
-    // Inject build time into DOM
-    document.documentElement.dataset.buildTime = String(Date.now());
-    
-    // Try to get actual git commit hash
+    let cancelled = false;
+
+    const apply = (result: ReturnType<typeof assertBuildIdentity>) => {
+      if (cancelled) return;
+      document.documentElement.dataset.buildIdentity = result.status;
+      const existing = document.querySelector('meta[name="app-version"]');
+      if (existing) existing.remove();
+      const meta = document.createElement('meta');
+      meta.name = 'app-version';
+      meta.content = formatBuildIdentityMeta(result);
+      document.head.appendChild(meta);
+      if (result.status !== 'ok') {
+        console.error('R-F13 build identity check failed:', result);
+      }
+    };
+
     fetch('/commit-hash.txt')
-      .then(r => r.text())
-      .then(hash => {
-        const meta = document.createElement('meta');
-        meta.name = 'app-version';
-        meta.content = hash.trim();
-        document.head.appendChild(meta);
+      .then((r) => {
+        if (!r.ok) throw new Error(`commit-hash.txt HTTP ${r.status}`);
+        return r.text();
+      })
+      .then((text) => {
+        apply(assertBuildIdentity(text, BUILD_COMMIT));
       })
       .catch(() => {
-        // Fallback to timestamp
-        const meta = document.createElement('meta');
-        meta.name = 'app-version';
-        meta.content = String(Date.now());
-        document.head.appendChild(meta);
+        // Missing marker — never substitute Date.now() as a fake commit.
+        apply(assertBuildIdentity(null, BUILD_COMMIT));
       });
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   return null;

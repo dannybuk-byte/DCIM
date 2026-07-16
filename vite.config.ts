@@ -1,5 +1,9 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
+import { generateBuildInfo } from './scripts/generate-build-info.mjs';
+
+// R-F13: keep public marker + generated bundle constant in sync whenever Vite loads.
+generateBuildInfo();
 
 // https://vitejs.dev/config/
 export default defineConfig({

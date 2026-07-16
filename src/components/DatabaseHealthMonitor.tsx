@@ -76,7 +76,18 @@ export const DatabaseHealthMonitor: React.FC = () => {
     setLastCheck(new Date());
 
     if (quotaData.percentage > 80) {
-      await autoCleanupIfNeeded();
+      try {
+        await autoCleanupIfNeeded();
+      } catch (error) {
+        const message =
+          error instanceof Error ? error.message : 'Automatic quota cleanup failed';
+        console.error('Automatic quota cleanup failed:', error);
+        setHealth((prev) => ({
+          ...prev,
+          healthy: false,
+          error: `Quota cleanup failed: ${message}`,
+        }));
+      }
     }
   };
 

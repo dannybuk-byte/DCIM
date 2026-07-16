@@ -32,7 +32,10 @@ export async function atomicWrite<T>(
 ): Promise<T> {
   installFetchGuard();
   const mode = 'rw' as const;
-  return database.transaction(mode, tables, async () => {
+  // Dexie accepts Table | string at runtime; normalize to names for the
+  // typed transaction overload (TS2769 / remediation-introduced).
+  const tableNames = tables.map((t) => (typeof t === 'string' ? t : t.name));
+  return database.transaction(mode, tableNames, async () => {
     transactionDepth += 1;
     try {
       return await fn();

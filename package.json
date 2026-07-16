@@ -5,10 +5,12 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "predev": "node scripts/generate-build-info.mjs",
     "signals-server": "node server/index.js",
     "dev:with-signals": "concurrently -n vite,signals -c cyan,magenta \"npm run dev\" \"npm run signals-server\"",
-    "prebuild": "bash generate-build-info.sh",
+    "prebuild": "node scripts/generate-build-info.mjs",
     "build": "vite build",
+    "postbuild": "node scripts/verify-build-identity.mjs",
     "preview": "vite preview",
     "test": "vitest",
     "test:ui": "vitest --ui",

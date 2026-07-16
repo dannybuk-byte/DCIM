@@ -5,6 +5,7 @@
 
 import { ALL_STORE_NAMES, db, type StoreName } from '../db/database';
 import { seedDatabase } from '../db/seedData';
+import { cacheDb } from '../services/DataFetcher';
 import { assertDestructiveAuthorized } from './dbDiagnosticGate';
 
 export interface DBRecoveryOptions {
@@ -348,33 +349,28 @@ export async function downloadBackup(): Promise<void> {
 }
 
 /**
- * Automatic cleanup when quota is nearly full (>80%)
+ * Automatic cleanup when quota is nearly full (>80%).
+ * R-F11: prune only declared growth/cache stores with correct indexes;
+ * failures propagate (no swallow). Targets:
+ * - ComplianceDatabase.searchHistory via lastUsedAt (ISO)
+ * - DataCacheDatabase.cache via expiresAt (API/OSINT cache stand-in)
  */
 export async function autoCleanupIfNeeded(): Promise<boolean> {
   const quota = await checkQuota();
-  
-  if (quota.percentage > 80) {
-    console.warn(`⚠️ Storage quota ${quota.percentage.toFixed(1)}% full - cleaning up...`);
-    
-    try {
-      // Clear OSINT cache (least critical data)
-      await db.osintCache?.clear();
-      
-      // Clear old search history (> 30 days)
-      const thirtyDaysAgo = Date.now() - 30 * 24 * 60 * 60 * 1000;
-      await db.searchHistory
-        .where('timestamp')
-        .below(thirtyDaysAgo)
-        .delete();
-      
-      console.log('✅ Automatic cleanup complete');
-      return true;
-    } catch (error) {
-      console.error('Automatic cleanup failed:', error);
-      return false;
-    }
+
+  if (quota.percentage <= 80) {
+    return false;
   }
-  
-  return false;
+
+  console.warn(`⚠️ Storage quota ${quota.percentage.toFixed(1)}% full - cleaning up...`);
+
+  const nowIso = new Date().toISOString();
+  const historyCutoff = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
+
+  await db.searchHistory.where('lastUsedAt').below(historyCutoff).delete();
+  await cacheDb.cache.where('expiresAt').below(nowIso).delete();
+
+  console.log('✅ Automatic cleanup complete');
+  return true;
 }
 

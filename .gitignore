@@ -15,6 +15,7 @@ DCIM Compliance App/
 # scratch / build artifacts
 ts-errors.txt
 public/commit-hash.txt
+src/generated/buildIdentity.ts
 www_pipeline_out/
 
 # committed-env / WIP — must never enter the slice commit

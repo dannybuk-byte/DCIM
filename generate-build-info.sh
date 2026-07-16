@@ -1,16 +1,8 @@
 #!/bin/bash
 #
-# Generate commit hash file for deployment tracking
-# This runs during the build process
+# R-F13: thin wrapper — identity comes from scripts/generate-build-info.mjs
+# (fail-closed resolver: CI env → git HEAD).
 #
-
-echo "🔍 Generating commit hash..."
-
-# Get current git commit hash
-COMMIT_HASH=$(git rev-parse HEAD 2>/dev/null || echo "development")
-
-# Write to public directory so it's accessible at runtime
-echo "$COMMIT_HASH" > "public/commit-hash.txt"
-
-echo "✅ Commit hash: ${COMMIT_HASH:0:7}"
-
+set -euo pipefail
+cd "$(dirname "$0")"
+node scripts/generate-build-info.mjs

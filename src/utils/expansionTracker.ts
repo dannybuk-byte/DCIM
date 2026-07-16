@@ -299,35 +299,48 @@ export async function monitorMultipleFacilities(
 }
 
 /**
- * Generate organizer-friendly insights
+ * Generate organizer-friendly insights.
+ *
+ * R-F4: `scope` decides whether CT observations may be phrased as FACILITY
+ * claims. Facility-claim language ("facility expansion", "compare with job
+ * creation promises") is emitted ONLY when scope === 'facility-claim' — which
+ * the caller may set only with a verified domain linkage AND a persisted prior
+ * baseline. In 'entity-annotation' scope (the default) the same signals are
+ * described strictly as domain/network observations for the entity.
  */
 export function generateExpansionInsights(
   facilityName: string,
   newSubdomains: SubdomainDiscovery[],
-  expansionEvents: ExpansionEvent[]
+  expansionEvents: ExpansionEvent[],
+  scope: 'facility-claim' | 'entity-annotation' = 'entity-annotation'
 ): string[] {
   const insights: string[] = [];
+  const isFacilityClaim = scope === 'facility-claim';
 
   if (newSubdomains.length === 0) {
-    insights.push('✅ No new infrastructure detected - stable configuration');
+    insights.push('✅ No new certificates observed for this domain since the last check');
     return insights;
   }
 
-  insights.push(`🚨 ${newSubdomains.length} new subdomain${newSubdomains.length > 1 ? 's' : ''} detected!`);
+  insights.push(`🚨 ${newSubdomains.length} new subdomain${newSubdomains.length > 1 ? 's' : ''} observed on this domain`);
 
   const highConfidence = newSubdomains.filter(s => s.confidence >= 70);
   if (highConfidence.length > 0) {
-    insights.push(`⚠️ ${highConfidence.length} high-confidence infrastructure expansion${highConfidence.length > 1 ? 's' : ''}`);
+    insights.push(`⚠️ ${highConfidence.length} high-confidence infrastructure-pattern subdomain${highConfidence.length > 1 ? 's' : ''}`);
   }
 
   const datacenterSubdomains = newSubdomains.filter(s => s.pattern === 'datacenter');
   if (datacenterSubdomains.length > 0) {
-    insights.push(`🏢 ${datacenterSubdomains.length} new data center subdomain${datacenterSubdomains.length > 1 ? 's' : ''} - possible facility expansion`);
+    insights.push(
+      isFacilityClaim
+        ? `🏢 ${datacenterSubdomains.length} new data center subdomain${datacenterSubdomains.length > 1 ? 's' : ''} - possible facility expansion`
+        : `🏢 ${datacenterSubdomains.length} data-center-pattern subdomain${datacenterSubdomains.length > 1 ? 's' : ''} on this domain (entity annotation — not a facility claim)`,
+    );
   }
 
   const highSignificance = expansionEvents.filter(e => e.significance === 'high');
   if (highSignificance.length > 0) {
-    insights.push(`📈 ${highSignificance.length} high-significance expansion event${highSignificance.length > 1 ? 's' : ''} detected`);
+    insights.push(`📈 ${highSignificance.length} high-significance domain-activity cluster${highSignificance.length > 1 ? 's' : ''} detected`);
   }
 
   // Most recent activity
@@ -337,7 +350,11 @@ export function generateExpansionInsights(
     insights.push(`🕐 Most recent: ${daysSince} day${daysSince !== 1 ? 's' : ''} ago`);
   }
 
-  insights.push(`💡 Compare with job creation promises to verify compliance`);
+  insights.push(
+    isFacilityClaim
+      ? `💡 Compare with job creation promises to verify compliance`
+      : `💡 Domain/network signal for the operating entity — corroborate with facility-specific evidence before any facility claim`,
+  );
 
   return insights;
 }
