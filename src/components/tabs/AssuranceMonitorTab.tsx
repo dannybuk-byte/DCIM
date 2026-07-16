@@ -13,6 +13,7 @@ import { Activity, AlertTriangle, CheckCircle, Clock, TrendingDown, TrendingUp, 
 import type { Facility } from '../../types';
 import { useComplianceAssurance } from '../../hooks/useComplianceAssurance';
 import type { DriftAlert } from '../../analyzers/assurance/complianceAssuranceEngine';
+import { liveFamilyChromeLabel } from '../../runtime/modeChrome';
 
 interface AssuranceMonitorTabProps {
   facilities: Facility[];
@@ -54,7 +55,9 @@ export function AssuranceMonitorTab({ facilities }: AssuranceMonitorTabProps) {
               {assurance.isMonitoring && (
                 <div className="flex items-center gap-2 px-3 py-1 bg-green-900/30 border border-green-700 rounded-full">
                   <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
-                  <span className="text-xs text-green-300 font-medium">LIVE</span>
+                  <span className="text-xs text-green-300 font-medium" data-mode-chrome="live-family">
+                    {liveFamilyChromeLabel()}
+                  </span>
                 </div>
               )}
             </div>

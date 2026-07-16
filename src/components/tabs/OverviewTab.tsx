@@ -24,6 +24,7 @@ import {
   ActionButton,
   LiveIndicator,
 } from '../shared/CommandCenterComponents';
+import { liveFamilyChromeLabel } from '../../runtime/modeChrome';
 
 const COLORS = {
   bg: '#0a0e17',
@@ -285,7 +286,9 @@ const OverviewTab = memo(function OverviewTab({ facilities, stats }: OverviewTab
               <h1 className="text-lg font-bold text-white">Dashboard Overview</h1>
               <div className="flex items-center gap-1 px-1.5 py-0.5 bg-green-900/50 border-2 border-green-500 rounded-full">
                 <div className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse" />
-                <span className="text-xs text-green-300 font-bold">LIVE</span>
+                <span className="text-xs text-green-300 font-bold" data-mode-chrome="live-family">
+                  {liveFamilyChromeLabel()}
+                </span>
               </div>
             </div>
             <p className="text-xs text-cyan-200 font-medium">

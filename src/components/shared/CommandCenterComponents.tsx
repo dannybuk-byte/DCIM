@@ -8,6 +8,7 @@
 import React, { ReactNode } from 'react';
 import { LucideIcon } from 'lucide-react';
 import { AnimatedNumber } from './animations';
+import { liveFamilyChromeLabel } from '../../runtime/modeChrome';
 
 // ============================================================================
 // LIVE INDICATOR
@@ -20,7 +21,7 @@ interface LiveIndicatorProps {
 }
 
 export function LiveIndicator({ 
-  label = 'LIVE', 
+  label = liveFamilyChromeLabel(), 
   color = 'green',
   pulse = true,
 }: LiveIndicatorProps) {
@@ -113,7 +114,7 @@ export function CommandHeader({
   title,
   subtitle,
   isLive = false,
-  liveLabel = 'LIVE',
+  liveLabel = liveFamilyChromeLabel(),
   lastUpdate,
   actions,
   children,

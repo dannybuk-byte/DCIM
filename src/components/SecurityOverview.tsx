@@ -22,6 +22,7 @@ import {
 import { getRiskLevelInfo, formatForOrganizers, getContextualHelp } from '../utils/plainLanguage'; // NEW: Plain language utilities
 import type { Facility } from '../types';
 import { ReviewerMode } from './ReviewerMode';
+import { showReviewerDebugChrome } from '../runtime/modeChrome';
 
 interface SecurityOverviewProps {
   facilities: Facility[];
@@ -108,19 +109,24 @@ export const SecurityOverview: React.FC<SecurityOverviewProps> = React.memo(({ f
         )}
       </div>
 
-      <div className="rounded-lg border-2 border-amber-500/60 bg-amber-950/25 p-4 space-y-3">
-        <p className="text-xs font-bold uppercase tracking-wide text-amber-400">
-          DEBUG: REVIEWER MODE FORCED RENDER
-        </p>
-        <ReviewerMode
-          open={true}
-          onClose={() => {}}
-          facility={debugReviewerFacility}
-          facilities={facilities}
-          onSelectFacility={setDebugReviewerFacility}
-          layout="inline"
-        />
-      </div>
+      {showReviewerDebugChrome() && (
+        <div
+          className="rounded-lg border-2 border-amber-500/60 bg-amber-950/25 p-4 space-y-3"
+          data-reviewer-debug-chrome="debug-label"
+        >
+          <p className="text-xs font-bold uppercase tracking-wide text-amber-400">
+            DEBUG: REVIEWER MODE FORCED RENDER
+          </p>
+          <ReviewerMode
+            open={true}
+            onClose={() => {}}
+            facility={debugReviewerFacility}
+            facilities={facilities}
+            onSelectFacility={setDebugReviewerFacility}
+            layout="inline"
+          />
+        </div>
+      )}
 
       {/* Header Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { Facility } from '../types';
+import { liveFamilyChromeLabel, liveStatusSectionChromeLabel } from '../runtime/modeChrome';
 import { 
   ChevronDown, 
   ChevronRight, 
@@ -602,7 +603,9 @@ export const DeepDiveView: React.FC<DeepDiveViewProps> = ({ facilities, isFullsc
           <div className="flex items-center gap-4 text-xs">
             <div className="flex items-center gap-1">
               <Activity size={12} className="text-[#00d2d3] animate-pulse" />
-              <span className="text-gray-400">LIVE</span>
+              <span className="text-gray-400" data-mode-chrome="live-family">
+                {liveFamilyChromeLabel()}
+              </span>
             </div>
             <div className="text-gray-400">
               Showing {visibleCount} of {facilities.length}
@@ -740,7 +743,7 @@ export const DeepDiveView: React.FC<DeepDiveViewProps> = ({ facilities, isFullsc
                         {renderExpandableSection(
                           facility.id,
                           'liveStatus',
-                          'Live Status',
+                          liveStatusSectionChromeLabel(),
                           <Activity size={16} className="animate-pulse" />,
                           <div className="space-y-2">
                             <div className="grid grid-cols-3 gap-2">

@@ -1,14 +1,17 @@
 /**
  * Simple Build Version Badge
- * R-F13: shows bake-time short SHA from the same resolver identity — not a runtime clock.
+ * R-F13: bake-time short SHA. D-A: mode-aware Live/Demo chrome (isDemoMode).
  */
 
 import React, { useEffect, useState } from 'react';
 import { BUILD_COMMIT, shortBuildCommit } from '../runtime/buildIdentity';
+import { dashboardTitleChrome, deployChipChrome } from '../runtime/modeChrome';
 
 export const SimpleBuildBadge: React.FC = () => {
   const [showPulse, setShowPulse] = useState(true);
   const shortSha = shortBuildCommit(BUILD_COMMIT);
+  const title = dashboardTitleChrome();
+  const deployChip = deployChipChrome();
 
   useEffect(() => {
     const timer = setTimeout(() => setShowPulse(false), 5000);
@@ -26,8 +29,8 @@ export const SimpleBuildBadge: React.FC = () => {
         </div>
 
         <div className="flex-1">
-          <div className="text-cyan-300 font-bold text-sm">
-            Live Dashboard
+          <div className="text-cyan-300 font-bold text-sm" data-build-badge="title">
+            {title}
           </div>
           <div className="text-cyan-400/70 text-xs" data-build-badge="commit">
             build: {shortSha}
@@ -49,7 +52,9 @@ export const SimpleBuildBadge: React.FC = () => {
 
       <div className="mt-2 pt-2 border-t border-cyan-500/20 flex items-center gap-2 text-xs text-cyan-400/60">
         <span title="Pre-commit hooks active">Safe</span>
-        <span title="Auto-deploy active">Live</span>
+        <span title="Deploy mode chip" data-build-badge="deploy-chip">
+          {deployChip}
+        </span>
         <span title="Health monitoring">OK</span>
       </div>
     </div>

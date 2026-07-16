@@ -9,6 +9,7 @@ import {
   ExternalLink, HelpCircle, ArrowRight, CheckCircle2, Rocket
 } from 'lucide-react';
 import { FadeIn, AnimatedNumber, PulsingDot, AnimatedProgressBar } from '../shared/animations';
+import { liveFamilyChromeLabel } from '../../runtime/modeChrome';
 
 const COLORS = {
   cyan: '#00d2d3',
@@ -350,11 +351,11 @@ const GuidesTab = memo(function GuidesTab() {
             { icon: Building2, text: '11,992 Fac', color: COLORS.cyan },
             { icon: Users, text: '118 Ops', color: COLORS.purple },
             { icon: DollarSign, text: '$2.48B Gap', color: COLORS.red },
-            { icon: Globe, text: 'Live', color: COLORS.green },
+            { icon: Globe, text: liveFamilyChromeLabel(), color: COLORS.green },
           ].map((badge, i) => (
             <div key={i} className="flex items-center gap-0.5 px-1 py-0.5 bg-gray-800/50 rounded text-[8px]">
               <badge.icon className="w-2.5 h-2.5" style={{ color: badge.color }} />
-              <span className="text-gray-400">{badge.text}</span>
+              <span className="text-gray-400" data-mode-chrome="live-family">{badge.text}</span>
             </div>
           ))}
         </div>

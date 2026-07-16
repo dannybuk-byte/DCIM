@@ -9,6 +9,7 @@ import { seedNotebookLMFeatures } from '../../db/seedNotebookLM';
 import { AutocompleteInput, AutocompleteOption } from '../shared/AutocompleteInput';
 import { BGPRouteMonitor } from '../shared/BGPRouteMonitor';
 import { Spinner, ProgressBar, SkeletonTable, SkeletonCard } from '../shared/ProgressIndicators';
+import { liveFamilyChromeLabel } from '../../runtime/modeChrome';
 
 interface NetworkSecurityTabProps {
   facilities: Facility[];
@@ -354,7 +355,12 @@ const NetworkSecurityTab = memo(({ facilities }: NetworkSecurityTabProps) => {
             {showBGPMonitor ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
             <Radio className="w-3 h-3 text-cyan-400" />
             BGP Monitor
-            <span className="px-1 py-0.5 rounded text-[8px] bg-green-500/20 text-green-400">LIVE</span>
+            <span
+              className="px-1 py-0.5 rounded text-[8px] bg-green-500/20 text-green-400"
+              data-mode-chrome="live-family"
+            >
+              {liveFamilyChromeLabel()}
+            </span>
           </button>
           {showBGPMonitor && <BGPRouteMonitor enabled={true} maxUpdates={150} />}
         </div>

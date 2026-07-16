@@ -7,6 +7,7 @@ import {
 import { ComplianceStats } from '../../types';
 import { formatCurrency } from '../../utils/formatting';
 import { AnimatedNumber, PulsingDot } from './animations';
+import { liveFamilyChromeLabel } from '../../runtime/modeChrome';
 
 const COLORS = {
   bg: '#0a0e17',
@@ -119,7 +120,9 @@ export const LiveHeaderBar = memo(function LiveHeaderBar({ stats, operatorCount,
       <DenseMetricStrip metrics={metrics} />
       <div className="flex items-center gap-2 text-[10px] text-gray-500">
         <Activity className="w-3 h-3 text-green-400" />
-        <span className="text-green-400">LIVE</span>
+        <span className="text-green-400" data-mode-chrome="live-family">
+          {liveFamilyChromeLabel()}
+        </span>
       </div>
     </div>
   );

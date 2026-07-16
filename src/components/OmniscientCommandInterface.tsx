@@ -31,6 +31,11 @@ import { Facility } from '../types';
 import { useDbInit } from '../hooks/useDbInit';
 import { useRaceSafeQuery } from '../hooks/useRaceSafeQuery';
 import { deriveConsoleStatus, statsArePresentable, type ConsoleStatus } from '../runtime/consoleStatus';
+import {
+  alertsPanelChromeLabel,
+  readyModeChromeLabel,
+  showReviewerDebugChrome,
+} from '../runtime/modeChrome';
 import { DbInitStatusBanner } from './DbInitStatusBanner';
 import { ErrorBoundary } from './ErrorBoundary'; // Error boundary for resilience
 import SecurityOverview from './SecurityOverview'; // NEW: Security Posture Overview
@@ -154,7 +159,11 @@ export const OmniscientCommandInterface: React.FC = () => {
     typeof consoleStatus,
     { label: string; dotClass: string; textClass: string }
   > = {
-    ready: { label: 'LIVE', dotClass: 'bg-[#00d2d3] animate-pulse', textClass: 'text-[#00d2d3]' },
+    ready: {
+      label: readyModeChromeLabel(),
+      dotClass: 'bg-[#00d2d3] animate-pulse',
+      textClass: 'text-[#00d2d3]',
+    },
     loading: { label: 'LOADING', dotClass: 'bg-slate-400 animate-pulse', textClass: 'text-slate-300' },
     empty: { label: 'NO DATA', dotClass: 'bg-slate-500', textClass: 'text-slate-300' },
     error: { label: 'ERROR', dotClass: 'bg-red-500', textClass: 'text-red-400' },
@@ -339,12 +348,15 @@ export const OmniscientCommandInterface: React.FC = () => {
                 <div className={`w-1.5 h-1.5 shrink-0 rounded-full ${liveStatus.dotClass}`} />
                 {liveStatus.label}
               </div>
-              <div
-                className="shrink-0 rounded border border-emerald-500/70 bg-emerald-950/50 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wide text-emerald-300"
-                title="Temporary build marker — remove after deploy verification"
-              >
-                Build: Reviewer Mode Enabled
-              </div>
+              {showReviewerDebugChrome() && (
+                <div
+                  className="shrink-0 rounded border border-emerald-500/70 bg-emerald-950/50 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wide text-emerald-300"
+                  title="Dev-only build marker — absent from production"
+                  data-reviewer-debug-chrome="build-marker"
+                >
+                  Build: Reviewer Mode Enabled
+                </div>
+              )}
             </div>
 
             {/* Mode tabs + Methodology: single row + overflow-x-auto (wrapping was clipped by h-12 + parent overflow-hidden) */}
@@ -651,7 +663,7 @@ export const OmniscientCommandInterface: React.FC = () => {
             <div className="p-4 border-b border-[#00d2d3]/20">
               <div className="flex items-center gap-2 text-sm font-bold text-[#00d2d3]">
                 <Activity size={16} />
-                LIVE ALERTS
+                <span data-mode-chrome="alerts-panel">{alertsPanelChromeLabel()}</span>
                 <span className="ml-auto text-xs text-gray-400">{recentAlerts.length} critical</span>
               </div>
             </div>

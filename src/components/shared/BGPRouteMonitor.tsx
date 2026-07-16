@@ -16,6 +16,9 @@ const COLORS = {
   purple: '#a855f7',
 };
 
+/** D-A chrome-only: websocket connected ≠ app LIVE mode. */
+export const BGP_CONNECTED_CHROME_LABEL = 'FEED' as const;
+
 // Known AS names for display (expand as needed)
 const AS_DATABASE: Record<number, string> = {
   13335: 'Cloudflare',
@@ -342,7 +345,8 @@ const ConnectionStatus = memo(function ConnectionStatus({
 }) {
   const statusConfig = {
     connecting: { color: COLORS.yellow, label: 'CONNECTING', pulse: true },
-    connected: { color: COLORS.green, label: 'LIVE', pulse: true },
+    // D-A: chrome label only — FEED = websocket connected (not app live-mode).
+    connected: { color: COLORS.green, label: BGP_CONNECTED_CHROME_LABEL, pulse: true },
     disconnected: { color: COLORS.textMuted, label: 'DISCONNECTED', pulse: false },
     error: { color: COLORS.red, label: 'ERROR', pulse: false },
   };

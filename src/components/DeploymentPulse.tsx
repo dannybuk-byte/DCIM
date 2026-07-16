@@ -6,6 +6,7 @@
  */
 
 import React from 'react';
+import { liveMonitoringChromeLabel } from '../runtime/modeChrome';
 
 export const DeploymentPulse: React.FC = () => {
   return (
@@ -18,8 +19,11 @@ export const DeploymentPulse: React.FC = () => {
       
       {/* Status text */}
       <div className="flex flex-col">
-        <span className="text-[10px] text-cyan-300 font-semibold leading-none">
-          Live Monitoring
+        <span
+          className="text-[10px] text-cyan-300 font-semibold leading-none"
+          data-mode-chrome="live-monitoring"
+        >
+          {liveMonitoringChromeLabel()}
         </span>
         <span className="text-[8px] text-gray-400 leading-none mt-0.5">
           Cloudflare Auto-Deploy
