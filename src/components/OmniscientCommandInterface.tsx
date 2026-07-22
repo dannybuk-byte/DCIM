@@ -67,6 +67,9 @@ type ViewMode =
   | 'kanban'
   | 'deepdive';
 
+// Disclosure-mismatch (retired WARN/labor register) surface is hidden by default.
+const SHOW_DISCLOSURE_MISMATCH: boolean = false;
+
 /** Top bar mode tabs (Methodology button is inserted after Dashboard in the JSX). */
 const TOP_BAR_MODE_DEFS: ReadonlyArray<{
   mode: ViewMode;
@@ -90,7 +93,7 @@ const TOP_BAR_MODE_DEFS: ReadonlyArray<{
   { mode: 'network', icon: GitBranch, label: 'NET', tooltip: 'Network connections between facilities' },
   { mode: 'map', icon: MapPin, label: 'MAP', tooltip: 'Geographic map view by state' },
   { mode: 'kanban', icon: Grid3x3, label: 'BOARD', tooltip: 'Kanban board by compliance status' },
-];
+].filter((d) => SHOW_DISCLOSURE_MISMATCH || d.mode !== 'disclosure_mismatch');
 
 export const OmniscientCommandInterface: React.FC = () => {
   const [viewMode, setViewMode] = useState<ViewMode>('omniscient');
@@ -178,7 +181,7 @@ export const OmniscientCommandInterface: React.FC = () => {
       if (h === '#bgp') {
         setViewMode('bgp');
       }
-      if (h === '#signals' || h === '#disclosure-mismatch') {
+      if (SHOW_DISCLOSURE_MISMATCH && (h === '#signals' || h === '#disclosure-mismatch')) {
         setViewMode('disclosure_mismatch');
       }
     };
@@ -844,7 +847,7 @@ export const OmniscientCommandInterface: React.FC = () => {
             </div>
           </div>
         )}
-        {viewMode === 'disclosure_mismatch' && (
+        {SHOW_DISCLOSURE_MISMATCH && viewMode === 'disclosure_mismatch' && (
           <DisclosureMismatchView isFullscreen={isFullscreen} />
         )}
         {viewMode === 'map' && <MapView facilities={facilities} onSelect={setSelectedFacility} isFullscreen={isFullscreen} />}

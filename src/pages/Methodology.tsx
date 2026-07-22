@@ -49,7 +49,7 @@ export const Methodology: React.FC<MethodologyProps> = ({ onClose }) => {
               Facility count (11,992): Edge-inclusive — includes traditional DCs, edge POPs, CDN, CORD. Provider-specific counts may differ from &quot;physical building&quot; headlines.
             </li>
             <li>
-              Subsidy gap: (jobs promised) – (jobs verified in BLS QCEW + WARN + SEC). Dollar gap uses agreement-stated cost-per-job.
+              Subsidy gap: (jobs promised) – (jobs verified in BLS QCEW + SEC). WARN-notice cross-checks were used historically and are retired from the current basis. Dollar gap uses agreement-stated cost-per-job.
             </li>
             <li>
               Compliance status:
