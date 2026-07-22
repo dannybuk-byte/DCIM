@@ -88,6 +88,11 @@ export function loadActiveCorpus({ seedCompanies }) {
     : path.join(cwd, 'www_pipeline_out', 'validated_cases.json');
 
   const corpusModeEnv = (process.env.SIGNALS_CORPUS_MODE || '').trim().toLowerCase();
+  // NOTE: mixed append is NOT demo-gated here. Outside SIGNALS_DEMO_MODE the
+  // DESIGN-labeled seed rows appended below are removed at the production
+  // assembly (index.js: isSyntheticRecord filter + R-F2 startup invariant),
+  // so they can never reach scoring. Kept ungated to preserve corpus_mode
+  // provenance reporting and the R-F3 mixed-append label check.
   const wantMixed = corpusModeEnv === 'mixed';
 
   /** @type {{ artifact_path: string, artifact_mtime_iso: string | null, fallback_reason: string | null, pipeline_company_ids: string[], seed_appended_ids: string[], seed_skipped_duplicate_ids: string[] }} */

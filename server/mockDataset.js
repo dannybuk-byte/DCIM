@@ -2,6 +2,14 @@
  * Expanded mock corpus: richer public AI rows + multiple disruption signals;
  * formal WARN/legal rows omit AI causation (prototype).
  *
+ * RETIRED REGISTER (census 2026-07-22): the WARN/legal/labor-disclosure source
+ * types in these rows belong to the retired WARN/WWW register. They are kept
+ * solely as DEMO/SEED fixtures and are never served as real evidence.
+ * Demo-only reachability: seeded fallback and mixed append both require
+ * DESIGN labels (corpusLoader.js assertDesignLabeled), and outside
+ * SIGNALS_DEMO_MODE the production assembly filters and re-checks synthetic
+ * records at startup (index.js R-F2 invariant).
+ *
  * R-F3: this is DEMO/SEED data. Every company and every source is stamped
  * with synthetic/DESIGN provenance at construction, so no consumer — however
  * it obtains these rows — can score or display them as real evidence.
