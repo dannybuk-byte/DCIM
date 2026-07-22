@@ -26,14 +26,16 @@ compatibility_date = "2024-01-01"
 # ============================================================================
 # KV NAMESPACES (for rate limiting)
 # ============================================================================
-# To enable rate limiting, create a KV namespace:
+# Stage-1 hardening: rate limiting FAILS CLOSED in production when this
+# binding is missing, so the namespace must exist before a production deploy.
 # 1. wrangler kv:namespace create "RATE_LIMITS"
-# 2. Add the binding ID below
-#
-# [[kv_namespaces]]
-# binding = "RATE_LIMITS"
-# id = "your-kv-namespace-id"
-# preview_id = "your-preview-namespace-id"
+# 2. Replace the placeholder ids below with the real ones.
+# NOTE: deploy will fail until the placeholder ids are replaced (intentional).
+
+[[kv_namespaces]]
+binding = "RATE_LIMITS"
+id = "6b9fabee016346dd880eb377e3c6102d"
+preview_id = "75899ea536344d85943429b4d184c05e"
 
 # ============================================================================
 # D1 DATABASE (optional, for persistent storage)
@@ -57,6 +59,7 @@ ENVIRONMENT = "development"
 # SECRETS (set via CLI)
 # ============================================================================
 # wrangler secret put ANTHROPIC_API_KEY
+# wrangler secret put WORKER_API_TOKEN   # Stage-1 auth for /api/claude, /, /api/webhook/*
 # wrangler secret put SLACK_WEBHOOK_URL
 # wrangler secret put DISCORD_WEBHOOK_URL
 # wrangler secret put TEAMS_WEBHOOK_URL

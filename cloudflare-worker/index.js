@@ -10,6 +10,8 @@
  * 
  * Secrets required (set via wrangler secret put):
  * - ANTHROPIC_API_KEY
+ * - WORKER_API_TOKEN (Stage-1 hardening: bearer token for /api/claude, /, /api/webhook/*;
+ *   until it is set, protected routes serve unauthenticated — rollout escape hatch)
  * - SLACK_WEBHOOK_URL (optional)
  * - DISCORD_WEBHOOK_URL (optional)
  */
@@ -21,10 +23,16 @@
 const RATE_LIMIT = {
   CLAUDE_API: { requests: 20, window: 60 }, // 20 req/min
   WEBHOOK: { requests: 10, window: 60 },     // 10 req/min
+  PROXY: { requests: 60, window: 60 },       // 60 req/min (EPA/SEC read-only proxies)
 };
 
 async function checkRateLimit(env, key, limit) {
-  if (!env.RATE_LIMITS) return { allowed: true };
+  if (!env.RATE_LIMITS) {
+    // Fail closed in production: without the KV binding there is no way to
+    // count requests, so production refuses rather than serving unlimited.
+    // Non-production environments stay permissive for local dev/preview.
+    return { allowed: env.ENVIRONMENT !== 'production', remaining: 0 };
+  }
   
   const now = Date.now();
   const windowKey = `${key}:${Math.floor(now / (limit.window * 1000))}`;
@@ -43,15 +51,33 @@ async function checkRateLimit(env, key, limit) {
 }
 
 // ============================================================================
-// CORS HELPERS
+// CORS HELPERS (Stage 1 hardening: allowlist instead of *)
 // ============================================================================
 
-const CORS_HEADERS = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-  'Access-Control-Max-Age': '86400',
-};
+const ALLOWED_ORIGINS = [
+  'https://dcim-compliance.pages.dev',
+  'http://localhost:5173',
+];
+
+/** CORS headers for an allowlisted Origin, or null (no CORS) otherwise. */
+function corsHeadersFor(origin) {
+  if (!origin || !ALLOWED_ORIGINS.includes(origin)) return null;
+  return {
+    'Access-Control-Allow-Origin': origin,
+    'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+    'Access-Control-Max-Age': '86400',
+    'Vary': 'Origin',
+  };
+}
+
+/** Apply per-request CORS headers to a finished response (no-op if origin not allowlisted). */
+function withCors(response, corsHeaders) {
+  if (!corsHeaders) return response;
+  const r = new Response(response.body, response);
+  for (const [k, v] of Object.entries(corsHeaders)) r.headers.set(k, v);
+  return r;
+}
 
 function corsResponse(body, status = 200, headers = {}) {
   return new Response(
@@ -60,15 +86,51 @@ function corsResponse(body, status = 200, headers = {}) {
       status,
       headers: {
         'Content-Type': 'application/json',
-        ...CORS_HEADERS,
         ...headers,
       },
     }
   );
 }
 
-function handleOptions() {
-  return new Response(null, { headers: CORS_HEADERS });
+// ============================================================================
+// AUTH (Stage 1 hardening: shared secret on money/notification routes)
+// ============================================================================
+
+/** Constant-time comparison via SHA-256 digests (equal-length XOR fold). */
+async function timingSafeEqual(a, b) {
+  const enc = new TextEncoder();
+  const [da, db] = await Promise.all([
+    crypto.subtle.digest('SHA-256', enc.encode(a)),
+    crypto.subtle.digest('SHA-256', enc.encode(b)),
+  ]);
+  const va = new Uint8Array(da);
+  const vb = new Uint8Array(db);
+  let diff = 0;
+  for (let i = 0; i < va.length; i += 1) diff |= va[i] ^ vb[i];
+  return diff === 0;
+}
+
+/**
+ * Require `Authorization: Bearer <WORKER_API_TOKEN>` on protected routes.
+ * Returns null when the request may proceed, or a 401 Response.
+ *
+ * Stage-1 rollout escape hatch: if WORKER_API_TOKEN is not configured,
+ * requests are allowed (with a log line) so deploying this code before the
+ * secret exists cannot break the live UI. Remove in Stage 2.
+ */
+async function requireAuth(request, env) {
+  if (!env.WORKER_API_TOKEN) {
+    console.log(
+      'AUTH WARNING: WORKER_API_TOKEN unset — protected route served without auth (Stage-1 escape hatch)',
+    );
+    return null;
+  }
+  const header = request.headers.get('Authorization') || '';
+  const token = header.startsWith('Bearer ') ? header.slice(7).trim() : '';
+  if (token && (await timingSafeEqual(token, env.WORKER_API_TOKEN))) {
+    return null;
+  }
+  return corsResponse({ error: 'Unauthorized' }, 401);
 }
 
 // ============================================================================
@@ -187,16 +249,10 @@ async function handleWebhook(request, env, provider) {
  * GET /api/health
  */
 async function handleHealth(env) {
+  // Stage 1 hardening: no per-secret feature disclosure to anonymous callers.
   return corsResponse({
     status: 'healthy',
     timestamp: new Date().toISOString(),
-    features: {
-      claude: !!env.ANTHROPIC_API_KEY,
-      slack: !!env.SLACK_WEBHOOK_URL,
-      discord: !!env.DISCORD_WEBHOOK_URL,
-      teams: !!env.TEAMS_WEBHOOK_URL,
-      rateLimiting: !!env.RATE_LIMITS,
-    },
   });
 }
 
@@ -326,7 +382,6 @@ async function handleSecArchivesProxy(request, path) {
       status: response.status,
       headers: {
         'Content-Type': 'text/plain; charset=utf-8',
-        ...CORS_HEADERS,
       },
     });
   } catch (error) {
@@ -428,66 +483,85 @@ async function runComplianceCheck(env) {
 // MAIN ROUTER
 // ============================================================================
 
+async function routeRequest(request, env, path) {
+  // Health check
+  if (path === '/api/health' || path === '/health') {
+    return handleHealth(env);
+  }
+
+  // Claude API proxy (legacy route for backwards compatibility) — auth required
+  if (path === '/' && request.method === 'POST') {
+    const denied = await requireAuth(request, env);
+    if (denied) return denied;
+    return handleClaudeProxy(request, env);
+  }
+
+  // Claude API proxy (new route) — auth required
+  if (path === '/api/claude' && request.method === 'POST') {
+    const denied = await requireAuth(request, env);
+    if (denied) return denied;
+    return handleClaudeProxy(request, env);
+  }
+
+  // Webhook forwarding — auth required
+  if (path.startsWith('/api/webhook/') && request.method === 'POST') {
+    const denied = await requireAuth(request, env);
+    if (denied) return denied;
+    const provider = path.split('/')[3];
+    return handleWebhook(request, env, provider);
+  }
+
+  // EPA / SEC read-only proxies: unauthenticated but rate limited (Stage 1)
+  if (path.startsWith('/api/epa/') || path.startsWith('/api/sec/')) {
+    const clientIP = request.headers.get('CF-Connecting-IP') || 'unknown';
+    const rateCheck = await checkRateLimit(env, `proxy:${clientIP}`, RATE_LIMIT.PROXY);
+    if (!rateCheck.allowed) {
+      return corsResponse({ error: 'Rate limit exceeded' }, 429, { 'Retry-After': '60' });
+    }
+
+    // EPA ECHO proxy
+    if (path.startsWith('/api/epa/')) {
+      return handleEpaProxy(request, path);
+    }
+
+    // SEC EDGAR filing archives (HTML) — must be registered before /api/sec/ prefix match
+    if (path.startsWith('/api/sec/archives/')) {
+      return handleSecArchivesProxy(request, path);
+    }
+
+    // SEC www.sec.gov/files/* (e.g. company_tickers.json) — before data.sec.gov /api/sec/ catch-all
+    if (path.startsWith('/api/sec/files/')) {
+      return handleSecFilesProxy(request, path);
+    }
+
+    // SEC EDGAR data.sec.gov JSON
+    return handleSecProxy(request, path);
+  }
+
+  // 404 for unknown routes
+  return corsResponse({ error: 'Not found', path }, 404);
+}
+
 export default {
   async fetch(request, env, ctx) {
+    const cors = corsHeadersFor(request.headers.get('Origin'));
+
     // Handle CORS preflight
     if (request.method === 'OPTIONS') {
-      return handleOptions();
+      return new Response(null, { status: 204, headers: cors ?? {} });
     }
 
     const url = new URL(request.url);
     const path = url.pathname;
 
-    // Route requests
+    let response;
     try {
-      // Health check
-      if (path === '/api/health' || path === '/health') {
-        return handleHealth(env);
-      }
-
-      // Claude API proxy (legacy route for backwards compatibility)
-      if (path === '/' && request.method === 'POST') {
-        return handleClaudeProxy(request, env);
-      }
-
-      // Claude API proxy (new route)
-      if (path === '/api/claude' && request.method === 'POST') {
-        return handleClaudeProxy(request, env);
-      }
-
-      // Webhook forwarding
-      if (path.startsWith('/api/webhook/') && request.method === 'POST') {
-        const provider = path.split('/')[3];
-        return handleWebhook(request, env, provider);
-      }
-
-      // EPA ECHO proxy
-      if (path.startsWith('/api/epa/')) {
-        return handleEpaProxy(request, path);
-      }
-
-      // SEC EDGAR filing archives (HTML) — must be registered before /api/sec/ prefix match
-      if (path.startsWith('/api/sec/archives/')) {
-        return handleSecArchivesProxy(request, path);
-      }
-
-      // SEC www.sec.gov/files/* (e.g. company_tickers.json) — before data.sec.gov /api/sec/ catch-all
-      if (path.startsWith('/api/sec/files/')) {
-        return handleSecFilesProxy(request, path);
-      }
-
-      // SEC EDGAR data.sec.gov JSON
-      if (path.startsWith('/api/sec/')) {
-        return handleSecProxy(request, path);
-      }
-
-      // 404 for unknown routes
-      return corsResponse({ error: 'Not found', path }, 404);
-
+      response = await routeRequest(request, env, path);
     } catch (error) {
       console.error('Worker error:', error);
-      return corsResponse({ error: 'Internal server error' }, 500);
+      response = corsResponse({ error: 'Internal server error' }, 500);
     }
+    return withCors(response, cors);
   },
 
   // Cron trigger handler

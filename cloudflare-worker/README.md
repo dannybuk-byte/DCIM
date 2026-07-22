@@ -20,7 +20,20 @@ wrangler secret put ANTHROPIC_API_KEY
 ```
 Enter your API key when prompted.
 
-4. Deploy the worker:
+4. (Stage-1 hardening) Set the shared auth token and create the rate-limit KV namespace:
+```bash
+wrangler secret put WORKER_API_TOKEN
+wrangler kv:namespace create "RATE_LIMITS"
+```
+Then replace the placeholder `id` / `preview_id` under `[[kv_namespaces]]` in
+`wrangler.toml` with the ids printed by the create command. Until
+`WORKER_API_TOKEN` is set, protected routes (`/api/claude`, `/`,
+`/api/webhook/*`) serve without auth (rollout escape hatch); once set, callers
+must send `Authorization: Bearer <token>`. Rate limiting fails closed in
+production if the KV binding is missing. CORS is restricted to the allowlist
+in `ALLOWED_ORIGINS` (index.js).
+
+5. Deploy the worker:
 ```bash
 wrangler deploy
 ```
