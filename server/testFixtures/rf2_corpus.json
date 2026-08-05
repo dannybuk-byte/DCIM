@@ -1,0 +1,35 @@
+[
+  {
+    "id": "rf2_fixture_co",
+    "name": "RF2 Fixture Co (test corpus — not a real case)",
+    "sector": "Test",
+    "period_start": "2025-01-01",
+    "period_end": "2025-12-31",
+    "case_type": "sourced_case",
+    "reviewer_flag": "human_review_required",
+    "sources": [
+      {
+        "id": "rf2_fixture_sec_row",
+        "company_id": "rf2_fixture_co",
+        "origin_id": "sec_edgar:testfixture",
+        "type": "sec_filing",
+        "date": "2025-02-01",
+        "text_excerpt": "Test-fixture excerpt (unit tests only).",
+        "url": "https://example.org/rf2-fixture/sec",
+        "provenance": "real",
+        "warrant_note": "[W-TEST-FIXTURE] Unit-test corpus row; never a product claim."
+      },
+      {
+        "id": "rf2_fixture_warn_row",
+        "company_id": "rf2_fixture_co",
+        "origin_id": "ny_dol_warn:testfixture",
+        "type": "warn_notice",
+        "date": "2025-03-01",
+        "text_excerpt": "Test-fixture excerpt (unit tests only).",
+        "url": "https://example.org/rf2-fixture/warn",
+        "provenance": "real",
+        "warrant_note": "[W-TEST-FIXTURE] Unit-test corpus row; never a product claim."
+      }
+    ]
+  }
+]

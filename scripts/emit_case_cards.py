@@ -72,9 +72,16 @@ def main() -> int:
         if row.get("parsing_confidence") in ("approximate", "failed") and not loc:
             loc = "<section approximate; see filing directly>"
 
+        # Ruling 2 (2026-08-05): every emitted row carries an origin_id so the
+        # engine floor can count independent origins. For SEC filings the origin
+        # is the issuer's EDGAR record: two filings by one issuer are ONE origin.
+        cik = str(row.get("cik") or wr.get("cik") or "").strip()
+        origin_id = f"sec_edgar:{cik}" if cik else f"sec_edgar:{cid}"
+
         src = {
             "id": source_id,
             "company_id": cid,
+            "origin_id": origin_id,
             "type": "sec_filing",
             "date": str(fd or row.get("date") or ""),
             "text_excerpt": excerpt,

@@ -5,7 +5,8 @@
  * two-source gate. These are the machine-checkable sign-off backing:
  *
  *   §6.1  one real source            -> withheld (scores_suppressed), signal still present
- *   §6.2  corpus source + Epoch      -> corroborated (not suppressed) + computed lead time
+ *   §6.2  corpus source + Epoch      -> RE-RULED 2026-08-05 (ruling 3): Epoch is displayed
+ *         confirmation with lead time but is non-counting; candidate stays withheld
  *   §6.3  two Epoch rows, same site  -> one source, single-source candidate stays withheld
  *   §6.6  real vs synthetic provenance is queryable; Epoch rows carry CC-BY attribution
  *
@@ -65,16 +66,19 @@ describe('§6.1 single real source is withheld', () => {
   });
 });
 
-describe('§6.2 corpus source + Epoch corroborates with a lead time', () => {
-  it('reaches the floor -> not suppressed, and a positive lead time is computed', () => {
+describe('§6.2 (re-ruled 2026-08-05) corpus source + Epoch: displayed + lead time, but NOT floor-counted', () => {
+  it('epoch is non-counting confirmation: still suppressed, one independent origin, lead time computed', () => {
     const company = { id: 'meta', name: 'Meta', sources: [corpusSource()] };
     const confirm = { meta: [epochSource()] };
     const merged = mergeEpochConfirmSources([company], confirm)[0];
     expect(merged.sources).toHaveLength(2);
+    // Ruling 3: the merge stamps every appended Epoch row non-counting.
+    expect(merged.sources[1].counts_toward_floor).toBe(false);
 
     const scored = scoreCompany(merged);
-    expect(scored.scores_suppressed).toBe(false);
-    expect(scored.source_count).toBe(2);
+    expect(scored.scores_suppressed).toBe(true); // epoch no longer satisfies the floor
+    expect(scored.source_count).toBe(2); // row is still present and displayed
+    expect(scored.independent_origin_count).toBe(1);
 
     const lead = computeLeadTime(merged);
     expect(lead).not.toBeNull();

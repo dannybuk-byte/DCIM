@@ -57,7 +57,9 @@ export function mergeEpochConfirmSources(companies, confirmSources) {
     for (const record of extra) {
       if (seen.has(record.id)) continue;
       seen.add(record.id);
-      appended.push(record);
+      // Ruling 3 (2026-08-05): Epoch is confirmation/support pending a
+      // per-family admission dossier — displayed, never floor-counted.
+      appended.push({ ...record, counts_toward_floor: false });
     }
     if (appended.length === 0) return company;
     return { ...company, sources: [...existing, ...appended] };

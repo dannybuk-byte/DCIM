@@ -45,6 +45,31 @@ const CERTAINTY = { strong: 1, moderate: 0.72, weak: 0.4, irrelevant: 0.15 };
 const MIN_SOURCES_FOR_SCORES = 2;
 
 /**
+ * Ruling 2 (2026-08-05): the corroboration floor counts INDEPENDENT ORIGINS,
+ * not raw admitted rows. Origin identity is `origin_id` where the producer
+ * assigned one, falling back to the row `id` (legacy rows without origin_id
+ * keep the old per-row semantics). Rows stamped `counts_toward_floor: false`
+ * (e.g. Epoch confirmation rows pending an admission dossier — ruling 3)
+ * are displayed but never counted.
+ * @param {object[]} sources admitted evidence rows (annotations already partitioned out)
+ * @returns {number} distinct counting origins
+ */
+// Ruling 3 (2026-08-05): third-party aggregation types demoted to
+// non-counting confirmation pending a per-family admission dossier.
+// Kept as a literal to avoid a scoring->ingest import edge.
+const NON_COUNTING_SOURCE_TYPES = new Set(['epoch_ai_data_center']);
+
+export function countIndependentOrigins(sources) {
+  const origins = new Set();
+  for (const s of sources ?? []) {
+    if (!s || s.counts_toward_floor === false) continue;
+    if (NON_COUNTING_SOURCE_TYPES.has(s.type)) continue;
+    origins.add(s.origin_id ?? s.id);
+  }
+  return origins.size;
+}
+
+/**
  * @param {string} dateStr
  * @param {Date} referenceDate
  */
@@ -448,9 +473,10 @@ export function scoreCompany(company, referenceDate = new Date()) {
     );
   }
 
-  if (sources.length < MIN_SOURCES_FOR_SCORES) {
+  const independent_origin_count = countIndependentOrigins(sources);
+  if (independent_origin_count < MIN_SOURCES_FOR_SCORES) {
     warnings.push(
-      `VALIDATION: Fewer than ${MIN_SOURCES_FOR_SCORES} sources — numeric scores suppressed (signal not defensible).`,
+      `VALIDATION: Fewer than ${MIN_SOURCES_FOR_SCORES} independent origins — numeric scores suppressed (signal not defensible).`,
     );
     const cb = computeConfidenceBreakdown(sources, referenceDate);
     return {
@@ -458,6 +484,7 @@ export function scoreCompany(company, referenceDate = new Date()) {
       period_start,
       period_end,
       source_count: sources.length,
+      independent_origin_count,
       admission: admission_summary,
       source_types_present,
       missing_expected_sources,
@@ -567,6 +594,7 @@ export function scoreCompany(company, referenceDate = new Date()) {
     period_start,
     period_end,
     source_count: sources.length,
+    independent_origin_count,
     admission: admission_summary,
     source_types_present,
     missing_expected_sources,

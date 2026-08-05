@@ -10,15 +10,23 @@ import { describe, expect, it, beforeEach, afterEach, vi } from 'vitest';
 import http from 'node:http';
 
 const savedDemo = process.env.SIGNALS_DEMO_MODE;
+const savedSeedPath = process.env.SIGNALS_SEED_PATH;
+// The engine fails closed (R-F3) without a corpus artifact. Production-mode
+// assembly is tested against a committed fixture, not the operator's local
+// git-ignored artifact (which may legitimately be absent/retired).
+const FIXTURE_CORPUS = new URL('./testFixtures/rf2_corpus.json', import.meta.url).pathname;
 
 beforeEach(() => {
   vi.resetModules();
   delete process.env.SIGNALS_DEMO_MODE;
+  process.env.SIGNALS_SEED_PATH = FIXTURE_CORPUS;
 });
 
 afterEach(() => {
   if (savedDemo === undefined) delete process.env.SIGNALS_DEMO_MODE;
   else process.env.SIGNALS_DEMO_MODE = savedDemo;
+  if (savedSeedPath === undefined) delete process.env.SIGNALS_SEED_PATH;
+  else process.env.SIGNALS_SEED_PATH = savedSeedPath;
 });
 
 /** @param {boolean} demo */
