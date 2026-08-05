@@ -21,6 +21,7 @@ import { EPOCH_CONFIRM_TYPE } from './epochConfirm.js';
 function corpusSource(overrides = {}) {
   return {
     id: 'meta_press_2025_001',
+    origin_id: 'corporate_disclosure:meta_press_2025_001',
     company_id: 'meta',
     type: 'press_release',
     date: '2025-03-01',
@@ -85,7 +86,14 @@ describe('§2.1 (re-ruled 2026-08-05) floor counts independent origins; Epoch ne
   it('two counting rows with distinct origins still cross the floor', () => {
     const two = scoreCompany({
       id: 'meta',
-      sources: [corpusSource(), corpusSource({ id: 'meta_warn_2025_001', type: 'warn_notice' })],
+      sources: [
+        corpusSource(),
+        corpusSource({
+          id: 'meta_warn_2025_001',
+          origin_id: 'official_warn:meta_warn_2025_001',
+          type: 'warn_notice',
+        }),
+      ],
     });
     expect(two.scores_suppressed).toBe(false);
     expect(two.independent_origin_count).toBe(2);

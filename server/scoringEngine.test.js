@@ -78,8 +78,21 @@ describe('scoreCompany', () => {
     const company = {
       id: 'test_co',
       sources: [
-        { id: 'a', type: 'earnings_call', date: '2025-01-01', ai_attribution_tier: 'moderate' },
-        { id: 'b', type: 'warn_filing', date: '2025-02-01', workers_affected: 100, ai_disclosed_in_warn: false },
+        {
+          id: 'a',
+          origin_id: 'corporate_disclosure:a',
+          type: 'earnings_call',
+          date: '2025-01-01',
+          ai_attribution_tier: 'moderate',
+        },
+        {
+          id: 'b',
+          origin_id: 'official_warn:b',
+          type: 'warn_filing',
+          date: '2025-02-01',
+          workers_affected: 100,
+          ai_disclosed_in_warn: false,
+        },
       ],
     };
     const ref = new Date('2026-06-01T12:00:00Z');
@@ -114,9 +127,28 @@ describe('scoreCompanyForPeriod', () => {
     const company = {
       id: 'p',
       sources: [
-        { id: '1', type: 'earnings_call', date: '2025-01-15', ai_attribution_tier: 'weak' },
-        { id: '2', type: 'earnings_call', date: '2025-06-15', ai_attribution_tier: 'strong' },
-        { id: '3', type: 'warn_filing', date: '2025-06-20', workers_affected: 0, ai_disclosed_in_warn: false },
+        {
+          id: '1',
+          origin_id: 'corporate_disclosure:1',
+          type: 'earnings_call',
+          date: '2025-01-15',
+          ai_attribution_tier: 'weak',
+        },
+        {
+          id: '2',
+          origin_id: 'corporate_disclosure:2',
+          type: 'earnings_call',
+          date: '2025-06-15',
+          ai_attribution_tier: 'strong',
+        },
+        {
+          id: '3',
+          origin_id: 'official_warn:3',
+          type: 'warn_filing',
+          date: '2025-06-20',
+          workers_affected: 0,
+          ai_disclosed_in_warn: false,
+        },
       ],
     };
     const s = scoreCompanyForPeriod(company, new Date('2026-01-01'), { from: '2025-06-01', to: '2025-08-01' });

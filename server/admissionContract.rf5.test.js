@@ -3,15 +3,14 @@
  *
  * R-F5 acceptance — admission contract AHEAD of the raw count.
  *
- * The floor itself (MIN_SOURCES_FOR_SCORES = 2, raw count of the counted
- * list) is UNCHANGED; these tests prove the contract gates what enters that
- * list:
+ * These tests prove the contract gates what enters the counting list:
  *   A1  annotation + one evidence row no longer crosses the two-source floor
  *   A2  duplicate source ids are counted once and no longer cross the floor
  *   A3  malformed candidates fail closed (suppressed, never thrown/scored)
  *   A4  annotations are stored outside the counted list (partition visible)
- *   A5  floor semantics unchanged: two admissible unique evidence rows score
+ *   A5  two unique rows with distinct canonical origins score
  *   A6  rows without admissible identity (id/type) are rejected
+ *   A7  unresolved official origin remains support but cannot count
  */
 import { describe, expect, it } from 'vitest';
 import {
@@ -25,12 +24,14 @@ const REF = new Date('2026-06-01T12:00:00Z');
 
 const EVIDENCE_A = {
   id: 'ev-a',
+  origin_id: 'corporate_disclosure:ev-a',
   type: 'earnings_call',
   date: '2025-03-01',
   ai_attribution_tier: 'strong',
 };
 const EVIDENCE_B = {
   id: 'ev-b',
+  origin_id: 'official_warn:ev-b',
   type: 'warn_filing',
   date: '2025-04-01',
   workers_affected: 200,
@@ -142,8 +143,8 @@ describe('A4 — annotations stored outside the counted list', () => {
   });
 });
 
-describe('A5 — floor value and raw-count semantics unchanged', () => {
-  it('two admissible unique evidence rows still cross the floor', () => {
+describe('A5 — two distinct canonical origins cross the floor', () => {
+  it('two admissible unique evidence origins cross the floor', () => {
     const s = scoreCompany({ id: 'a5', sources: [EVIDENCE_A, EVIDENCE_B] }, REF);
     expect(s.scores_suppressed).toBe(false);
     expect(s.source_count).toBe(2);
@@ -154,6 +155,24 @@ describe('A5 — floor value and raw-count semantics unchanged', () => {
   it('exactly one admissible row is below the floor (raw count, no weighting)', () => {
     const s = scoreCompany({ id: 'a5b', sources: [EVIDENCE_A] }, REF);
     expect(s.scores_suppressed).toBe(true);
+  });
+});
+
+describe('A7 — unresolved official origin is support, never counting evidence', () => {
+  it('keeps the row admitted for display while excluding it from counted', () => {
+    const unresolved = { ...EVIDENCE_A, origin_id: null };
+    const admission = admitCandidateSources([unresolved, EVIDENCE_B]);
+    const summary = buildAdmissionSummary(admission);
+
+    expect(admission.counted.map(source => source.id)).toEqual(['ev-b']);
+    expect(admission.support.map(source => source.id)).toEqual(['ev-a']);
+    expect(summary.admitted_source_count).toBe(2);
+
+    const scored = scoreCompany({ id: 'a7', sources: [unresolved, EVIDENCE_B] }, REF);
+    expect(scored.source_count).toBe(2);
+    expect(scored.independent_origin_count).toBe(1);
+    expect(scored.scores_suppressed).toBe(true);
+    expect(scored.aas).toBeNull();
   });
 });
 

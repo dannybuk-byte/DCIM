@@ -3,13 +3,16 @@
  * AAS, LSS, DS ∈ [0,100]. raw_mismatch_index = AAS + LSS − DS (unbounded).
  * bounded_mismatch_index maps raw ∈ [-100,300] → [0,100].
  *
- * R-F5: scoreCompany admits sources through the admission contract
- * (admissionContract.js) BEFORE the raw count. The two-source floor
- * (MIN_SOURCES_FOR_SCORES) — value and semantics — is unchanged; it now
- * counts only admissible evidence rows with unique source identity.
+ * R-F5: scoreCompany admits sources through the admission contract before
+ * scoring. The floor counts only eligible rows with canonical origin_id.
  */
 
-import { admitCandidateSources, buildAdmissionSummary } from './admissionContract.js';
+import {
+  admitCandidateSources,
+  buildAdmissionSummary,
+  isNonCountingSupportRow,
+  isValidCanonicalOriginId,
+} from './admissionContract.js';
 
 export const AAS_POINTS = { strong: 25, moderate: 12, weak: 4, irrelevant: 0 };
 export const WARN_BASE_POINTS = 15;
@@ -46,25 +49,20 @@ const MIN_SOURCES_FOR_SCORES = 2;
 
 /**
  * Ruling 2 (2026-08-05): the corroboration floor counts INDEPENDENT ORIGINS,
- * not raw admitted rows. Origin identity is `origin_id` where the producer
- * assigned one, falling back to the row `id` (legacy rows without origin_id
- * keep the old per-row semantics). Rows stamped `counts_toward_floor: false`
- * (e.g. Epoch confirmation rows pending an admission dossier — ruling 3)
- * are displayed but never counted.
+ * not raw admitted rows. Only canonical `origin_id` values on eligible rows
+ * count. Missing or malformed origin identity fails closed; row/source IDs
+ * and other record-local fields are never substituted. Explicit support rows
+ * (e.g. Epoch confirmation pending an admission dossier — ruling 3) remain
+ * displayable but never count.
  * @param {object[]} sources admitted evidence rows (annotations already partitioned out)
  * @returns {number} distinct counting origins
  */
-// Ruling 3 (2026-08-05): third-party aggregation types demoted to
-// non-counting confirmation pending a per-family admission dossier.
-// Kept as a literal to avoid a scoring->ingest import edge.
-const NON_COUNTING_SOURCE_TYPES = new Set(['epoch_ai_data_center']);
-
 export function countIndependentOrigins(sources) {
   const origins = new Set();
   for (const s of sources ?? []) {
-    if (!s || s.counts_toward_floor === false) continue;
-    if (NON_COUNTING_SOURCE_TYPES.has(s.type)) continue;
-    origins.add(s.origin_id ?? s.id);
+    if (!s || isNonCountingSupportRow(s)) continue;
+    if (!isValidCanonicalOriginId(s.origin_id)) continue;
+    origins.add(s.origin_id);
   }
   return origins.size;
 }
@@ -441,19 +439,19 @@ export function computeEvidenceQuality(p) {
  * @param {Date} [referenceDate]
  */
 export function scoreCompany(company, referenceDate = new Date()) {
-  // R-F5: admission contract runs AHEAD of the raw count. Only admissible
-  // evidence rows with unique source identity are counted; annotations are
-  // partitioned outside the counted list; a malformed candidate admits
-  // nothing (fail closed), so the unchanged floor suppresses its scores.
+  // Admission separates canonical counting evidence from support rows.
+  // Numeric scoring sees only the former; support remains visible in source
+  // census/count fields without affecting the origin floor or any score.
   const admission = admitCandidateSources(company.sources ?? []);
   const sources = admission.counted;
+  const displaySources = [...sources, ...admission.support];
   const admission_summary = buildAdmissionSummary(admission);
 
-  const derived = derivePeriodBounds(sources);
+  const derived = derivePeriodBounds(displaySources);
   const period_start = company.period_start ?? derived.period_start;
   const period_end = company.period_end ?? derived.period_end;
 
-  const source_types_present = computeSourceTypesPresent(sources);
+  const source_types_present = computeSourceTypesPresent(displaySources);
   const missing_expected_sources = detectMissingExpectedSources(sources);
   const warnings = [];
 
@@ -472,6 +470,11 @@ export function scoreCompany(company, referenceDate = new Date()) {
       `ADMISSION: ${admission.annotations.length} annotation row(s) stored outside the counted list (annotations never corroborate).`,
     );
   }
+  if (admission.support.length > 0) {
+    warnings.push(
+      `ADMISSION: ${admission.support.length} support row(s) excluded from origin counting and numeric scoring.`,
+    );
+  }
 
   const independent_origin_count = countIndependentOrigins(sources);
   if (independent_origin_count < MIN_SOURCES_FOR_SCORES) {
@@ -483,7 +486,7 @@ export function scoreCompany(company, referenceDate = new Date()) {
       company_id: company.id,
       period_start,
       period_end,
-      source_count: sources.length,
+      source_count: displaySources.length,
       independent_origin_count,
       admission: admission_summary,
       source_types_present,
@@ -537,7 +540,7 @@ export function scoreCompany(company, referenceDate = new Date()) {
 
   const { hasPublicAi, hasWarn } = channelBucketsPresent(sources);
   let evidence_quality = computeEvidenceQuality({
-    source_count: sources.length,
+    source_count: displaySources.length,
     suppressed: false,
     confidence_score,
     hasPublicAi,

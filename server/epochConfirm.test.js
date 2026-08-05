@@ -28,6 +28,7 @@ import {
 function corpusSource(overrides = {}) {
   return {
     id: 'meta_press_2025_001',
+    origin_id: 'corporate_disclosure:meta_press_2025_001',
     company_id: 'meta',
     type: 'press_release',
     date: '2025-03-01',

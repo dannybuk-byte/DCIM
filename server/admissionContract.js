@@ -1,12 +1,11 @@
 /**
- * R-F5 — admission contract AHEAD of the raw count.
- *
- * The two-source floor (MIN_SOURCES_FOR_SCORES in scoringEngine.js) and its
- * raw-count semantics are UNCHANGED — this module only gates what enters the
- * counted list before that rule runs:
+ * R-F5 + 2026-08-05 origin amendment — admission ahead of the floor.
  *
  *   - counted rows are admissible EVIDENCE rows: object shape, non-empty
- *     string id (unique within the candidate), non-empty string type;
+ *     string id (unique within the candidate), non-empty string type, and a
+ *     canonical origin_id;
+ *   - unresolved-origin and explicitly non-counting rows remain support
+ *     evidence but stay OUTSIDE the counted list;
  *   - annotation rows (e.g. disclosure_gap_annotation) are stored OUTSIDE
  *     the counted list — an annotation can never corroborate evidence;
  *   - duplicate source ids are admitted once; later occurrences are rejected,
@@ -18,6 +17,24 @@
 /** Source types that annotate a pack but are not evidence. */
 export const ANNOTATION_SOURCE_TYPES = new Set(['disclosure_gap_annotation']);
 
+/** Standing support/owner/discovery classes that never satisfy the official-origin floor. */
+export const NON_COUNTING_SOURCE_TYPES = new Set([
+  'epoch_ai_data_center',
+  'bgp_route_signal',
+  'ct_log_signal',
+  'dns_signal',
+  'ip_signal',
+  'whois_signal',
+  'rdap_signal',
+  'rir_signal',
+  'asn_signal',
+  'peeringdb_signal',
+  'owner_resolution_signal',
+  'app_derived_analysis',
+]);
+
+const NON_COUNTING_PROVENANCE = new Set(['synthetic', 'design', 'fixture']);
+
 /**
  * @param {object} source
  */
@@ -26,8 +43,36 @@ export function isAnnotationRow(source) {
 }
 
 /**
+ * The existing ontology is a lower-case source-family prefix plus a stable
+ * official identity. The gate validates shape only; producers remain
+ * responsible for assigning the correct official identity.
+ * @param {unknown} value
+ */
+export function isValidCanonicalOriginId(value) {
+  return (
+    typeof value === 'string' &&
+    value === value.trim() &&
+    /^[a-z][a-z0-9_]*:\S+$/.test(value)
+  );
+}
+
+/**
+ * @param {object} source
+ */
+export function isNonCountingSupportRow(source) {
+  const provenance =
+    typeof source?.provenance === 'string' ? source.provenance.trim().toLowerCase() : '';
+  return (
+    source?.counts_toward_floor === false ||
+    NON_COUNTING_SOURCE_TYPES.has(source?.type) ||
+    NON_COUNTING_PROVENANCE.has(provenance)
+  );
+}
+
+/**
  * @typedef {{
  *   counted: object[],
+ *   support: object[],
  *   annotations: object[],
  *   rejected: Array<{index: number, id: string|null, reason: string}>,
  *   duplicateIds: string[],
@@ -46,6 +91,7 @@ export function admitCandidateSources(rawSources) {
   if (!Array.isArray(rawSources)) {
     return {
       counted: [],
+      support: [],
       annotations: [],
       rejected: [],
       duplicateIds: [],
@@ -56,6 +102,8 @@ export function admitCandidateSources(rawSources) {
 
   /** @type {object[]} */
   const counted = [];
+  /** @type {object[]} */
+  const support = [];
   /** @type {object[]} */
   const annotations = [];
   /** @type {Array<{index: number, id: string|null, reason: string}>} */
@@ -87,10 +135,22 @@ export function admitCandidateSources(rawSources) {
       return;
     }
     seenIds.add(source.id);
+    if (isNonCountingSupportRow(source) || !isValidCanonicalOriginId(source.origin_id)) {
+      support.push(source);
+      return;
+    }
     counted.push(source);
   });
 
-  return { counted, annotations, rejected, duplicateIds, malformed: false, malformedReason: null };
+  return {
+    counted,
+    support,
+    annotations,
+    rejected,
+    duplicateIds,
+    malformed: false,
+    malformedReason: null,
+  };
 }
 
 /**
@@ -99,7 +159,7 @@ export function admitCandidateSources(rawSources) {
  */
 export function buildAdmissionSummary(admission) {
   return {
-    admitted_source_count: admission.counted.length,
+    admitted_source_count: admission.counted.length + admission.support.length,
     annotation_count: admission.annotations.length,
     annotation_ids: admission.annotations.map(a => (typeof a.id === 'string' ? a.id : null)),
     rejected_rows: admission.rejected,
