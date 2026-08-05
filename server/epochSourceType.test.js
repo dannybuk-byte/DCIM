@@ -2,8 +2,8 @@
  * @vitest-environment node
  *
  * Taskbrief §1.3 / §5, re-ruled 2026-08-05: the `epoch_ai_data_center` source-type
- * token surfaces on the scoring `s.type` axis for identity/reporting
- * (`source_types_present[]`) and contributes no AAS/LSS/DS points. Per rulings 2+3,
+ * token remains available on raw evidence for identity/reporting and contributes
+ * no score-row type, AAS, LSS, or DS points. Per rulings 2+3,
  * the floor now counts INDEPENDENT ORIGINS and `epoch_ai_data_center` is demoted to
  * non-counting confirmation pending a per-family admission dossier — so an Epoch row
  * can no longer be the second "source" that crosses the floor.
@@ -43,14 +43,15 @@ function epochSource(overrides = {}) {
   };
 }
 
-describe('§1.3 epoch_ai_data_center token surfaces for reporting', () => {
-  it('appears in source_types_present[] for a matched Epoch candidate', () => {
+describe('§1.3 epoch_ai_data_center token remains raw support only', () => {
+  it('is excluded from counting source_types_present[] on a matched candidate', () => {
     const company = { id: 'meta', name: 'Meta', sources: [corpusSource(), epochSource()] };
     const scored = scoreCompany(company);
-    expect(scored.source_types_present).toContain('epoch_ai_data_center');
+    expect(company.sources.map(source => source.type)).toContain('epoch_ai_data_center');
+    expect(scored.source_types_present).not.toContain('epoch_ai_data_center');
   });
 
-  it('computeSourceTypesPresent reports the token as its own type', () => {
+  it('the raw type helper can still report the token outside score admission', () => {
     const present = computeSourceTypesPresent([corpusSource(), epochSource()]);
     expect(present).toContain('epoch_ai_data_center');
     expect(present).toContain('press_release');
@@ -72,14 +73,14 @@ describe('§2.1 (re-ruled 2026-08-05) floor counts independent origins; Epoch ne
   it('one Epoch source alone: zero independent origins, suppressed', () => {
     const one = scoreCompany({ id: 'meta', sources: [epochSource()] });
     expect(one.scores_suppressed).toBe(true);
-    expect(one.source_count).toBe(1);
+    expect(one.source_count).toBe(0);
     expect(one.independent_origin_count).toBe(0);
   });
 
   it('corpus + Epoch: Epoch is displayed but non-counting — still suppressed', () => {
     const two = scoreCompany({ id: 'meta', sources: [corpusSource(), epochSource()] });
     expect(two.scores_suppressed).toBe(true);
-    expect(two.source_count).toBe(2); // the row still renders
+    expect(two.source_count).toBe(1);
     expect(two.independent_origin_count).toBe(1);
   });
 

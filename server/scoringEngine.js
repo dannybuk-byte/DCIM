@@ -440,18 +440,17 @@ export function computeEvidenceQuality(p) {
  */
 export function scoreCompany(company, referenceDate = new Date()) {
   // Admission separates canonical counting evidence from support rows.
-  // Numeric scoring sees only the former; support remains visible in source
-  // census/count fields without affecting the origin floor or any score.
+  // Every score-row field is derived from counting evidence only. Support
+  // remains available through the raw company evidence and warning channel.
   const admission = admitCandidateSources(company.sources ?? []);
   const sources = admission.counted;
-  const displaySources = [...sources, ...admission.support];
   const admission_summary = buildAdmissionSummary(admission);
 
-  const derived = derivePeriodBounds(displaySources);
+  const derived = derivePeriodBounds(sources);
   const period_start = company.period_start ?? derived.period_start;
   const period_end = company.period_end ?? derived.period_end;
 
-  const source_types_present = computeSourceTypesPresent(displaySources);
+  const source_types_present = computeSourceTypesPresent(sources);
   const missing_expected_sources = detectMissingExpectedSources(sources);
   const warnings = [];
 
@@ -486,7 +485,7 @@ export function scoreCompany(company, referenceDate = new Date()) {
       company_id: company.id,
       period_start,
       period_end,
-      source_count: displaySources.length,
+      source_count: sources.length,
       independent_origin_count,
       admission: admission_summary,
       source_types_present,
@@ -540,7 +539,7 @@ export function scoreCompany(company, referenceDate = new Date()) {
 
   const { hasPublicAi, hasWarn } = channelBucketsPresent(sources);
   let evidence_quality = computeEvidenceQuality({
-    source_count: displaySources.length,
+    source_count: sources.length,
     suppressed: false,
     confidence_score,
     hasPublicAi,
@@ -659,16 +658,11 @@ export function filterSourcesByPeriod(sources, from, to) {
 export function scoreCompanyForPeriod(company, referenceDate, periodQuery) {
   const { from = null, to = null } = periodQuery || {};
   const filtered = filterSourcesByPeriod(company.sources ?? [], from, to);
-  // R-F5: a malformed sources value yields no period bounds here; scoreCompany
-  // fails the candidate closed via the admission contract.
-  const bounds = Array.isArray(filtered)
-    ? derivePeriodBounds(filtered)
-    : { period_start: null, period_end: null };
   const synthetic = {
     ...company,
     sources: filtered,
-    period_start: from ?? bounds.period_start,
-    period_end: to ?? bounds.period_end,
+    period_start: from ?? undefined,
+    period_end: to ?? undefined,
   };
   const scored = scoreCompany(synthetic, referenceDate);
   return {

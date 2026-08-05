@@ -159,7 +159,7 @@ export function admitCandidateSources(rawSources) {
  */
 export function buildAdmissionSummary(admission) {
   return {
-    admitted_source_count: admission.counted.length + admission.support.length,
+    admitted_source_count: admission.counted.length,
     annotation_count: admission.annotations.length,
     annotation_ids: admission.annotations.map(a => (typeof a.id === 'string' ? a.id : null)),
     rejected_rows: admission.rejected,

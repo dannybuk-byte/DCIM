@@ -77,7 +77,7 @@ describe('T3 — unresolved origin identity fails closed', () => {
         }),
       ],
     });
-    expect(scored.source_count).toBe(2);
+    expect(scored.source_count).toBe(0);
     expect(scored.independent_origin_count).toBe(0);
     expect(scored.scores_suppressed).toBe(true);
     expect(scored.aas).toBeNull();
@@ -142,7 +142,7 @@ describe('T4 — non-counting rows are displayed but never satisfy the floor', (
         }),
       ],
     });
-    expect(scored.source_count).toBe(2);
+    expect(scored.source_count).toBe(1);
     expect(scored.independent_origin_count).toBe(1);
     expect(scored.scores_suppressed).toBe(true);
   });
@@ -221,5 +221,124 @@ describe('T5 — every scoring entry point and source-id dedupe fail closed', ()
     expect(scored.independent_origin_count).toBe(1);
     expect(scored.admission.duplicate_ids).toEqual(['same']);
     expect(scored.scores_suppressed).toBe(true);
+  });
+});
+
+describe('T6 — support cannot alter score-row semantics', () => {
+  const countingSources = [
+    row({
+      id: 'public-ai',
+      origin_id: 'sec_edgar:0000000001',
+      type: 'sec_filing',
+      date: '2025-03-01',
+      ai_attribution_tier: 'strong',
+    }),
+    row({
+      id: 'warn',
+      origin_id: 'ny_dol_warn:2025-001',
+      type: 'warn_filing',
+      date: '2025-03-10',
+      workers_affected: 200,
+      ai_disclosed_in_warn: false,
+    }),
+  ];
+  const supportSources = [
+    row({ id: 'missing-1', origin_id: null, date: '2024-01-01' }),
+    row({ id: 'missing-2', origin_id: '', type: 'dns_signal', date: '2026-01-01' }),
+    row({
+      id: 'epoch',
+      origin_id: 'epoch_ai:site-1',
+      type: 'epoch_ai_data_center',
+      date: '2025-12-01',
+    }),
+    row({
+      id: 'bgp',
+      origin_id: 'network_signal:bgp-1',
+      type: 'bgp_route_signal',
+      date: '2025-11-01',
+    }),
+    row({
+      id: 'ct',
+      origin_id: 'network_signal:ct-1',
+      type: 'ct_log_signal',
+      date: '2025-10-01',
+    }),
+  ];
+  const invariantFields = [
+    'source_count',
+    'independent_origin_count',
+    'source_types_present',
+    'period_start',
+    'period_end',
+    'aas',
+    'lss',
+    'ds',
+    'raw_mismatch_index',
+    'bounded_mismatch_index',
+    'source_coverage_score',
+    'confidence_score',
+    'confidence_breakdown',
+    'evidence_quality',
+    'risk_level',
+    'score_breakdown',
+    'scores_suppressed',
+    'possible_false_positive',
+    'possible_false_negative',
+    'false_positive_reasons',
+    'false_negative_reasons',
+  ];
+
+  it('adding support cannot promote quality or alter any scored field', () => {
+    const referenceDate = new Date('2025-03-15T12:00:00Z');
+    const baseline = scoreCompany({ id: 'acme', sources: countingSources }, referenceDate);
+    const withSupport = scoreCompany(
+      { id: 'acme', sources: [...countingSources, ...supportSources] },
+      referenceDate,
+    );
+
+    expect(baseline.evidence_quality).toBe('low');
+    expect(Object.fromEntries(invariantFields.map(field => [field, withSupport[field]]))).toEqual(
+      Object.fromEntries(invariantFields.map(field => [field, baseline[field]])),
+    );
+    expect(withSupport.admission).toEqual(baseline.admission);
+    expect(withSupport.warnings).toContain(
+      `ADMISSION: ${supportSources.length} support row(s) excluded from origin counting and numeric scoring.`,
+    );
+  });
+
+  it('support-only dates and types cannot alter period-scored metadata', () => {
+    const referenceDate = new Date('2025-03-15T12:00:00Z');
+    const baseline = scoreCompanyForPeriod(
+      { id: 'acme', sources: countingSources },
+      referenceDate,
+      {},
+    );
+    const withSupport = scoreCompanyForPeriod(
+      { id: 'acme', sources: [...countingSources, ...supportSources] },
+      referenceDate,
+      {},
+    );
+
+    expect(withSupport.period_start).toBe('2025-03-01');
+    expect(withSupport.period_end).toBe('2025-03-10');
+    expect(withSupport.source_types_present).toEqual(['sec_filing', 'warn_filing']);
+    expect(Object.fromEntries(invariantFields.map(field => [field, withSupport[field]]))).toEqual(
+      Object.fromEntries(invariantFields.map(field => [field, baseline[field]])),
+    );
+  });
+
+  it('below-floor support does not inflate counting or admission fields', () => {
+    const scored = scoreCompany({
+      id: 'acme',
+      sources: [countingSources[0], ...supportSources],
+    });
+
+    expect(scored.source_count).toBe(1);
+    expect(scored.independent_origin_count).toBe(1);
+    expect(scored.admission.admitted_source_count).toBe(1);
+    expect(scored.scores_suppressed).toBe(true);
+    expect(scored.aas).toBeNull();
+    expect(scored.raw_mismatch_index).toBeNull();
+    expect(scored.bounded_mismatch_index).toBeNull();
   });
 });

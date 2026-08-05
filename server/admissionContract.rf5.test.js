@@ -159,17 +159,18 @@ describe('A5 — two distinct canonical origins cross the floor', () => {
 });
 
 describe('A7 — unresolved official origin is support, never counting evidence', () => {
-  it('keeps the row admitted for display while excluding it from counted', () => {
+  it('keeps the row in support while excluding it from counted/admitted totals', () => {
     const unresolved = { ...EVIDENCE_A, origin_id: null };
     const admission = admitCandidateSources([unresolved, EVIDENCE_B]);
     const summary = buildAdmissionSummary(admission);
 
     expect(admission.counted.map(source => source.id)).toEqual(['ev-b']);
     expect(admission.support.map(source => source.id)).toEqual(['ev-a']);
-    expect(summary.admitted_source_count).toBe(2);
+    expect(summary.admitted_source_count).toBe(admission.counted.length);
+    expect(summary.admitted_source_count).toBe(1);
 
     const scored = scoreCompany({ id: 'a7', sources: [unresolved, EVIDENCE_B] }, REF);
-    expect(scored.source_count).toBe(2);
+    expect(scored.source_count).toBe(1);
     expect(scored.independent_origin_count).toBe(1);
     expect(scored.scores_suppressed).toBe(true);
     expect(scored.aas).toBeNull();

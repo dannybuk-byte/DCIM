@@ -78,7 +78,7 @@ describe('§6.2 (re-ruled 2026-08-05) corpus source + Epoch: displayed + lead ti
 
     const scored = scoreCompany(merged);
     expect(scored.scores_suppressed).toBe(true); // epoch no longer satisfies the floor
-    expect(scored.source_count).toBe(2); // row is still present and displayed
+    expect(scored.source_count).toBe(1); // score count excludes support
     expect(scored.independent_origin_count).toBe(1);
 
     const lead = computeLeadTime(merged);
