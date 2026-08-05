@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { Facility } from '../types';
-import { liveFamilyChromeLabel, liveStatusSectionChromeLabel } from '../runtime/modeChrome';
 import { 
   ChevronDown, 
   ChevronRight, 
@@ -589,7 +588,19 @@ export const DeepDiveView: React.FC<DeepDiveViewProps> = ({ facilities, isFullsc
               />
             </div>
             <div className="text-xs text-gray-400">
-              Maximum granularity • Real-time updates • Infinite scroll
+              Maximum granularity • Simulated updates • Infinite scroll
+            </div>
+            <div
+              className="mt-2 p-2 bg-amber-950/60 border border-amber-500/40 rounded text-xs text-amber-200 flex items-start gap-2"
+              role="note"
+              data-simulated-disclosure="true"
+            >
+              <Info size={14} className="text-amber-300 flex-shrink-0 mt-0.5" />
+              <div>
+                <span className="font-semibold">Simulated detail:</span> the figures on this tab — live metrics,
+                employees, salaries, finances, servers, and transactions — are generated for demonstration and are
+                not real facility records.
+              </div>
             </div>
             <div className="mt-2 p-2 bg-[#00d2d3]/10 border border-[#00d2d3]/20 rounded text-xs text-gray-300 flex items-start gap-2">
               <Info size={14} className="text-[#00d2d3] flex-shrink-0 mt-0.5" />
@@ -603,8 +614,8 @@ export const DeepDiveView: React.FC<DeepDiveViewProps> = ({ facilities, isFullsc
           <div className="flex items-center gap-4 text-xs">
             <div className="flex items-center gap-1">
               <Activity size={12} className="text-[#00d2d3] animate-pulse" />
-              <span className="text-gray-400" data-mode-chrome="live-family">
-                {liveFamilyChromeLabel()}
+              <span className="text-amber-300" data-mode-chrome="simulated">
+                SIMULATED
               </span>
             </div>
             <div className="text-gray-400">
@@ -743,7 +754,7 @@ export const DeepDiveView: React.FC<DeepDiveViewProps> = ({ facilities, isFullsc
                         {renderExpandableSection(
                           facility.id,
                           'liveStatus',
-                          liveStatusSectionChromeLabel(),
+                          'Simulated Status (demonstration)',
                           <Activity size={16} className="animate-pulse" />,
                           <div className="space-y-2">
                             <div className="grid grid-cols-3 gap-2">

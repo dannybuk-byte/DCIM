@@ -769,6 +769,7 @@ export const OmniscientCommandInterface: React.FC = () => {
             isFullscreen={isFullscreen}
             suspendHeavyMotion={isScrollActive}
             onNavigateToMode={setViewMode}
+            statsReady={statsLive}
           />
         )}
         {viewMode === 'intelligence' && (
@@ -992,12 +993,15 @@ const OmniscientView: React.FC<{
   isFullscreen?: boolean;
   suspendHeavyMotion?: boolean;
   onNavigateToMode?: (mode: ViewMode) => void;
+  /** Same withholding contract as the top chrome: figures render only when the console is live. */
+  statsReady?: boolean;
 }> = ({
   facilities,
   onSelect,
   isFullscreen = false,
   suspendHeavyMotion = false,
   onNavigateToMode,
+  statsReady = false,
 }) => {
   const [filteredFacilities, setFilteredFacilities] = useState<Facility[]>(facilities);
   const [showSearch, setShowSearch] = useState(true);
@@ -1075,39 +1079,39 @@ const OmniscientView: React.FC<{
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
           <AnimatedCard
             title="Total Facilities"
-            value={stats.total}
+            value={statsReady ? stats.total : '—'}
             subtitle="Data centers tracked"
             icon={<Building size={24} />}
             color="cyan"
-            animated={true}
+            animated={statsReady}
             glow={true}
           />
           <AnimatedCard
             title="Compliant"
-            value={stats.compliant}
+            value={statsReady ? stats.compliant : '—'}
             subtitle="Meeting promises"
             icon={<Sparkles size={24} />}
             color="green"
             trend="up"
-            trendValue={`${((stats.compliant / stats.total) * 100).toFixed(1)}%`}
-            animated={true}
+            trendValue={statsReady && stats.total > 0 ? `${((stats.compliant / stats.total) * 100).toFixed(1)}%` : '—'}
+            animated={statsReady}
             glow={true}
           />
           <AnimatedCard
             title="Violations"
-            value={stats.nonCompliant}
+            value={statsReady ? stats.nonCompliant : '—'}
             subtitle="Breaking promises"
             icon={<AlertCircle size={24} />}
             color="red"
             trend="down"
-            trendValue={`${((stats.nonCompliant / stats.total) * 100).toFixed(1)}%`}
-            animated={true}
-            pulse={stats.nonCompliant > 0}
+            trendValue={statsReady && stats.total > 0 ? `${((stats.nonCompliant / stats.total) * 100).toFixed(1)}%` : '—'}
+            animated={statsReady}
+            pulse={statsReady && stats.nonCompliant > 0}
             glow={true}
           />
           <AnimatedCard
             title="Subsidy Gap"
-            value={`$${(stats.totalGap / 1e9).toFixed(2)}B`}
+            value={statsReady ? `$${(stats.totalGap / 1e9).toFixed(2)}B` : '—'}
             subtitle="Money not recovered"
             icon={<DollarSign size={24} />}
             color="yellow"
@@ -1116,10 +1120,10 @@ const OmniscientView: React.FC<{
           />
           <AnimatedCard
             title="Jobs Progress"
-            value={`${((stats.createdJobs / stats.totalJobs) * 100).toFixed(1)}%`}
-            subtitle={`${stats.createdJobs.toLocaleString()} / ${stats.totalJobs.toLocaleString()}`}
+            value={statsReady && stats.totalJobs > 0 ? `${((stats.createdJobs / stats.totalJobs) * 100).toFixed(1)}%` : '—'}
+            subtitle={statsReady ? `${stats.createdJobs.toLocaleString()} / ${stats.totalJobs.toLocaleString()}` : 'awaiting data'}
             icon={<Users size={24} />}
-            color={stats.createdJobs / stats.totalJobs >= 0.8 ? 'green' : 'red'}
+            color={statsReady && stats.totalJobs > 0 && stats.createdJobs / stats.totalJobs >= 0.8 ? 'green' : 'red'}
             animated={false}
             glow={true}
           />

@@ -17,9 +17,11 @@ import { trackError } from './utils/errorTracking';
 import { ProvenanceModeProvider } from './components/shared/ProvenanceMode';
 import { Methodology } from './pages/Methodology';
 import { useRaceSafeQuery } from './hooks/useRaceSafeQuery';
+import { isDemoMode } from './db/demoMode';
 
 function App() {
-  const [demoBannerVisible, setDemoBannerVisible] = useState(true);
+  // The demo banner asserts seeded sample data is loaded — only ever true in demo mode.
+  const [demoBannerVisible, setDemoBannerVisible] = useState(isDemoMode());
   const [useNewArchitecture, setUseNewArchitecture] = useState(true); // Toggle between old and new
   const [useTestVersion, setUseTestVersion] = useState(false); // Test version for debugging
   const [chatOpen, setChatOpen] = useState(false);
