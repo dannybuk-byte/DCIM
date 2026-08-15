@@ -2,6 +2,7 @@
   "name": "dcim-compliance-app",
   "version": "1.0.0",
   "description": "Infrastructure Accountability Dashboard with AI Chat",
+  "license": "AGPL-3.0-only",
   "type": "module",
   "scripts": {
     "dev": "vite",
