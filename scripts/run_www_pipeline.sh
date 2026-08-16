@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# RETIRED (2026-08-05): WWW/WARN track — archival only, not the current product.
+# See scripts/WWW_PIPELINE_RETIRED.md and STATUS.md at the repository root.
 # WWW tier-(i) deterministic pipeline — run from repository root.
 set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
