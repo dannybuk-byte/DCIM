@@ -37,18 +37,6 @@ The substrate exists to make disclosure asymmetries reviewable, and reviewabilit
 
 Making the substrate open-source means the surfacing logic, threshold settings, attribution chains, and review-layer mechanics are themselves auditable. The methodological discipline applied to ingested disclosures applies, by extension, to the substrate itself.
 
-## First empirical anchor
-
-The substrate's first concrete instance is the WARN/SEC disclosure asymmetry.
-
-Since March 2025, more than 162 New York WARN Act notices have been filed by employers planning workforce reductions. As of validation in March 2026, none cite artificial intelligence, automation, or related technology adoption as a cause. ⟨source: NY WARN database — URL pending verification at publication⟩
-
-Over the same window, multiple employers among those filers attributed headcount reductions to AI deployment in SEC filings, earnings calls, and investor communications. ⟨source: Bloomberg Law validation, March 2026 — citation pending verification at publication⟩
-
-This is not, on its own, evidence of regulatory evasion. WARN forms ask for specific categorical causes; AI-attributed reductions may be reported under restructuring, cost reduction, or workforce realignment categories without misrepresentation. The asymmetry between these two mandatory-disclosure regimes — one worker-facing, one investor-facing — is itself a documentary phenomenon worth making observable.
-
-The underlying architecture is designed to surface multiple forms of regulator-vs-investor disclosure asymmetry. WARN/SEC is the first; other mismatches between mandatory-disclosure regimes are likely to follow.
-
 ## Architecture in brief
 
 Four data layers feed three analytical outputs through a review layer.
@@ -56,13 +44,13 @@ Four data layers feed three analytical outputs through a review layer.
 **Data layers**
 
 - **L1 — Workforce-side records:** WARN filings, regulatory notices, court records, agency proceedings.
-- **L2 — Operational signals:** Publicly-observable network telemetry (BGP routing, certificate transparency logs, related observables) is the currently-operational class. Operator-permissioned compliance dashboards (DCIM-style) are a future class with different access and inference properties; the project does not currently rely on operator data-sharing.
+- **L2 — Operational signals:** Publicly-observable network telemetry (BGP routing, certificate transparency logs, related observables) is the currently-operational class (owner-layer corroboration only; network signals never satisfy the corroboration floor). Operator-permissioned compliance dashboards (DCIM-style) are a future class with different access and inference properties; the project does not currently rely on operator data-sharing.
 - **L3 — Contractual commitments:** SEC filings, investor disclosures, procurement records, public contracts.
 - **L4 — Infrastructure taxonomies:** OCP, iMasons, and adjacent open-infrastructure framing.
 
 **Analytical outputs**
 
-- **O1 — Documentary contradiction detection** (the WARN/SEC anchor lives here)
+- **O1 — Documentary contradiction detection**
 - **O2 — Operator performance verification**
 - **O3 — Skill-mix demand projection**
 

@@ -132,7 +132,8 @@ export async function getAIConfig(): Promise<AIConfig> {
   
   return {
     provider: 'cloudflare-worker',
-    endpoint: 'https://claude-api-proxy.dannybuk.workers.dev',
+    // Backend decommissioned 2026-08-15; endpoint must be explicitly configured.
+    endpoint: (import.meta.env.VITE_CLAUDE_PROXY_URL as string | undefined) ?? '',
     model: 'claude-3-sonnet',
     offline: false,
     apiKey: localStorage.getItem('claude_api_key') || undefined,

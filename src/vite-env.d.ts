@@ -7,6 +7,8 @@ interface ImportMetaEnv {
   readonly VITE_SEC_EDGAR_PROXY_URL?: string;
   /** Explicit demo-mode selection (R-F1): 'true' opens the demo namespace and enables seeding. */
   readonly VITE_DEMO_MODE?: string;
+  /** Optional AI-chat proxy endpoint. No default: the former Worker was decommissioned 2026-08-15; unset disables AI chat. */
+  readonly VITE_CLAUDE_PROXY_URL?: string;
 }
 
 interface ImportMeta {

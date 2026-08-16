@@ -6,9 +6,9 @@
  * corpus, and computes a lead time from the real Epoch public-visibility timeline.
  *
  * It deliberately does NOT touch the floor. MIN_SOURCES_FOR_SCORES and the
- * `sources.length < MIN_SOURCES_FOR_SCORES` suppress check remain the sole authority
- * in scoringEngine.js. A candidate becomes corroborated only by reaching >= 2 sources;
- * Epoch is one genuinely independent real source, never a way to lower the bar.
+ * independent-origin count (countIndependentOrigins) remain the sole authority
+ * in scoringEngine.js. A candidate becomes corroborated only by reaching >= 2
+ * independent origins; Epoch is displayable support and never counts toward the bar.
  *
  * Independence is by SOURCE, not by row: an Epoch record whose id already appears on
  * the candidate is not appended again, so duplicating one Epoch site cannot manufacture

@@ -32,7 +32,8 @@ export default function ChatInterface({ isOpen, onClose }: { isOpen: boolean; on
   const [allSources, setAllSources] = useState<Source[]>([]);
   const [networkSecurityData, setNetworkSecurityData] = useState<NetworkSecurity[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const WORKER_URL = 'https://claude-api-proxy.dannybuk.workers.dev';
+  // AI chat backend decommissioned 2026-08-15; endpoint must be explicitly configured.
+  const WORKER_URL = (import.meta.env.VITE_CLAUDE_PROXY_URL as string | undefined) ?? '';
   
   // Get AI search suggestions for autocomplete
   const aiSuggestions = useNLPSearchSuggestions({
@@ -181,6 +182,9 @@ export default function ChatInterface({ isOpen, onClose }: { isOpen: boolean; on
   };
 
   const ask = async (q: string, deepMode = false) => {
+    if (!WORKER_URL) {
+      return 'AI chat is not configured — no backend endpoint is set. Local data analysis is still available below.';
+    }
     const d = await getData(q, deepMode);
     const systemPrompt = deepMode
       ? `You are an expert compliance analyst with access to comprehensive data including facility information, source documents, and network security infrastructure. 

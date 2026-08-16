@@ -37,7 +37,8 @@ export default function Dashboard({ onActionRequested }: DashboardProps = {}) {
   const [aiSearchQuery, setAiSearchQuery] = useState('');
   const [isAiProcessing, setIsAiProcessing] = useState(false);
   
-  const WORKER_URL = 'https://claude-api-proxy.dannybuk.workers.dev';
+  // AI chat backend decommissioned 2026-08-15; endpoint must be explicitly configured.
+  const WORKER_URL = (import.meta.env.VITE_CLAUDE_PROXY_URL as string | undefined) ?? '';
 
   const aiSuggestions = useNLPSearchSuggestions({
     context: 'ai',
@@ -191,6 +192,9 @@ export default function Dashboard({ onActionRequested }: DashboardProps = {}) {
         currentTab: activeTab,
       });
       
+      if (!WORKER_URL) {
+        throw new Error('AI chat is not configured — no backend endpoint is set.');
+      }
       const r = await fetch(WORKER_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

@@ -310,8 +310,8 @@ function formatTeamsMessage(payload: AlertPayload): object {
 // ============================================================================
 
 /**
- * Send alert to a specific webhook (via Cloudflare Worker proxy)
- * The Worker URL should be configured to forward to the actual webhook
+ * Send alert to a specific webhook. POSTs directly from the browser to the
+ * user-configured webhook URL (no proxy involved).
  */
 export async function sendAlert(
   webhookId: string,

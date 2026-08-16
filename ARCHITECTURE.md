@@ -62,7 +62,7 @@ L2 encompasses two operationally and epistemically different signal classes. Cur
 
 Publicly-observable network signals: BGP routing announcements, certificate transparency log entries, public DNS records, and adjacent network-side observables. These signals are produced as a byproduct of normal internet operation and do not require operator cooperation or data-sharing agreements.
 
-Implementation lives in `src/network/`, with BGP monitoring and certificate-transparency ingestion as the initial telemetry sources.
+BGP monitoring lives in `src/network/BGPMonitor.ts`; certificate-transparency ingestion lives in `src/utils/expansionTracker.ts` (crt.sh).
 
 **Class B — Operator-permissioned compliance dashboards (future class, not currently relied upon)**
 
@@ -111,7 +111,7 @@ L4's epistemic weight is lower than L1 or L3 — it is organizational framing ra
 
 **O1 — Documentary contradiction detection**
 
-Surfaces gaps between L1 and L3 disclosures by the same employer over comparable time windows. The WARN/SEC anchor is the first operational instance. Other contradiction classes (procurement vs workforce, ESG vs operational, climate disclosure asymmetries) are architecturally in scope but not currently operationalized.
+Surfaces gaps between L1 and L3 disclosures by the same employer over comparable time windows. Other contradiction classes (procurement vs workforce, ESG vs operational, climate disclosure asymmetries) are architecturally in scope but not currently operationalized.
 
 **O2 — Operator performance verification**
 
@@ -127,9 +127,9 @@ The review layer sits between data ingestion and case escalation. Its function i
 
 **Minimum-source thresholds**
 
-Cases require at least two independent sources before they enter the review surface with full scoring. Below threshold, the case is visibly suppressed — the UI displays "Insufficient sources — signal withheld" rather than a partial score. This is a deliberate design choice: the bounded-claims discipline treats visible suppression as more honest than imputed scoring.
+Cases require at least two independent origins (distinct canonical `origin_id` values) before they enter the review surface with full scoring. Below threshold, the case is visibly suppressed — the UI displays "Insufficient sources — signal withheld" rather than a partial score. This is a deliberate design choice: the bounded-claims discipline treats visible suppression as more honest than imputed scoring.
 
-The threshold is configurable (`MIN_SOURCES_FOR_SCORES` in the scoring engine). A single-source entry — for example, a Goldman Sachs case with only an L3 disclosure and no L1 corroboration — triggers suppression by design.
+The threshold is configurable (`MIN_SOURCES_FOR_SCORES` in the scoring engine). A single-origin entry — for example, a case with only an L3 disclosure and no L1 corroboration — triggers suppression by design.
 
 **Warrant enforcement**
 
@@ -159,19 +159,19 @@ These boundaries follow from the architecture, not from stylistic preference. Th
 
 ## Subsystem status
 
-⟨Subsystem status reflects repository snapshot at commit ⟨pending⟩ on `stabilization/2026-05`, ⟨snapshot date pending⟩. Active development drifts; treat this section as time-attested rather than current.⟩
+Subsystem status is attested against the frozen review commit named in STATUS.md at the repository root.
 
 | Subsystem | Status | Location |
 | --- | --- | --- |
-| WARN ingestion (NY) | Operational | `scripts/` |
-| 10-K / 10-Q ingestion | Operational | `scripts/extract_10k_sections.py` |
-| Case-card emission | Operational | `scripts/emit_case_cards.py` |
-| Pipeline summarization | Operational | `scripts/www_pipeline_summarize.py` |
-| Disclosure-monitoring engine (DME) | Operational | `server/` |
-| Vite UI (case review surface) | Operational | port 5173 |
-| BGP monitoring | Operational | `src/network/` |
-| Certificate transparency ingestion | Operational | `src/network/` |
-| Scoring engine | Operational | `scoringEngine.js` |
+| WARN ingestion (NY) | Implemented; retired framing (see STATUS.md) | `scripts/` |
+| 10-K / 10-Q ingestion | Implemented; retired framing (see STATUS.md) | `scripts/extract_10k_sections.py` |
+| Case-card emission | Implemented; manual-accept input; retired framing | `scripts/emit_case_cards.py` |
+| Pipeline summarization | Implemented; retired framing | `scripts/www_pipeline_summarize.py` |
+| Disclosure-monitoring engine (DME) | Implemented; fails closed — zero-row corpus, refuses to serve | `server/` |
+| Vite UI (case review surface) | Implemented | port 5173 |
+| BGP monitoring | Connected (RIPE RIS Live); owner-layer only, never floor-eligible | `src/network/BGPMonitor.ts` |
+| Certificate transparency ingestion | Implemented (crt.sh); owner-layer only, never floor-eligible | `src/utils/expansionTracker.ts` |
+| Scoring engine | Implemented; two-independent-origin floor, WITHHELD below it | `server/scoringEngine.js` |
 | Federal layer (FERC, BLS, NLRB) | Charter drafted, execution pending | — |
 | Entity resolution | Active development | — |
 | OCP disclosure crosswalk | Partial specification | — |
