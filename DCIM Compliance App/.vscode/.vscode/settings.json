@@ -1,8 +1,0 @@
-{
-  "task.autoDetect": "on",
-  "task.quickOpen.history": [],
-  "task.problemMatchers.neverPrompt": true,
-  "files.autoSave": "afterDelay",
-  "files.autoSaveDelay": 1000
-}
-
