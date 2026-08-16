@@ -60,6 +60,9 @@ ENVIRONMENT = "development"
 # ============================================================================
 # wrangler secret put ANTHROPIC_API_KEY
 # wrangler secret put WORKER_API_TOKEN   # Stage-1 auth for /api/claude, /, /api/webhook/*
+# RETIRED PENDING REMOVAL (2026-08-15): webhook alerting is retired — do not
+# set the three webhook secrets below. The URL itself is the bearer
+# credential; revocation happens at the provider, not by deleting a secret.
 # wrangler secret put SLACK_WEBHOOK_URL
 # wrangler secret put DISCORD_WEBHOOK_URL
 # wrangler secret put TEAMS_WEBHOOK_URL

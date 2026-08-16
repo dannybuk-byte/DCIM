@@ -189,10 +189,14 @@ async function handleClaudeProxy(request, env) {
 }
 
 /**
- * Webhook Forwarder
+ * Webhook Forwarder — RETIRED PENDING REMOVAL (ruled 2026-08-15).
  * POST /api/webhook/:provider
- * 
- * Forwards alerts to configured webhooks without exposing URLs to client
+ *
+ * Forwards alerts to webhook URLs bound as Worker secrets. Retired with
+ * the alerting product; route and cron senders await removal in their
+ * own sitting — do not bind new webhook secrets. A webhook URL is itself
+ * the bearer credential: deleting the Cloudflare secret hides a copy,
+ * it does not revoke — revocation happens at Slack/Discord/Teams.
  */
 async function handleWebhook(request, env, provider) {
   // Rate limit

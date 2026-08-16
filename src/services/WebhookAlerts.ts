@@ -1,11 +1,15 @@
 /**
- * Webhook Alert System for DCIM Command Center
- * 
- * Send alerts to Slack, Discord, Microsoft Teams, or custom webhooks
- * when compliance events occur.
- * 
- * All webhooks are stored in IndexedDB (never exposed to client).
- * Actual sends go through Cloudflare Worker to hide URLs.
+ * Webhook Alert System — RETIRED PENDING REMOVAL (ruled 2026-08-15).
+ *
+ * This feature belongs to the retired alerting-product era; with a
+ * zero-row corpus there is nothing to alert on. It is retired pending
+ * removal, not merely idle. Do not extend or re-enable.
+ *
+ * Mechanics, stated honestly: webhook URLs are user-entered, stored in
+ * IndexedDB, and POSTed to DIRECTLY from the browser. A webhook URL is
+ * itself the bearer credential — deleting a stored copy (here or in a
+ * Cloudflare secret) hides a copy rather than revoking it; real
+ * revocation happens at Slack, Discord, or Teams.
  */
 
 import { settingsKey, getSettings, saveSettings } from '../utils/settingsPersistence';
