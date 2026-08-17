@@ -5,7 +5,11 @@ today, what does not, and the method that governs the difference.
 `ARCHITECTURE.md` attests its subsystem status against the frozen
 review commit named here.
 
-**Frozen review commit:** `PENDING — filled at the Phase-1 freeze`
+**Frozen review commit:** the tip of `remediate/rulings-2026-08-05` — verify
+with `git rev-parse HEAD` (see "Verify this yourself"). A commit cannot embed
+its own hash, so no literal is written here; match the printed hash against the
+review cover note accompanying this repository. Freeze baseline (this revision's
+parent): `334040aa0e12bca5aead7e52630480570542b32a`.
 **Reviewer-facing branch:** `remediate/rulings-2026-08-05`
 
 ## The honest zero
@@ -105,7 +109,7 @@ Data and method documentation: CC BY 4.0.
 git clone https://github.com/dannybuk-byte/DCIM.git
 cd DCIM
 git checkout remediate/rulings-2026-08-05
-git rev-parse HEAD          # must print the frozen commit named above
+git rev-parse HEAD          # prints this frozen review commit — match it against the review cover note
 ```
 
 License integrity:
