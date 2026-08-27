@@ -1,347 +1,125 @@
-# AGENTS.md
+# AGENTS.md — DCIM DART v0.9 worktree
 
-**Project**: DCIM Compliance App - Data Center Accountability Dashboard  
-**Last Updated**: January 3, 2026, 7:20 PM PST  
-**Stack**: React 18 + TypeScript + Vite + Tailwind CSS + IndexedDB  
-**Purpose**: Labor union organizing tool to expose Big Tech's broken job creation promises
+**Project:** DCIM / EFF data-center evidence-control application  
+**Workstream:** DART v0.9 source-to-screen proof  
+**Starting commit:** `e7e95553ee44b218077ee3352470364d0a7cb81f`  
+**Planned writer worktree:** `/Users/daniel/Desktop/DCIM_WORKTREES/dart-v0.9`  
+**Planned branch:** `agent/dart-v0.9`
 
----
+## 1. Authority and load order
 
-## 🎯 Project Mission
+Use this order when instructions conflict:
 
-**THIS IS A LABOR ORGANIZING TOOL, NOT A CORPORATE DCIM TOOL**
+1. Daniel Buk's explicit instruction for the exact act.
+2. `specs/dart-v0.9/spec.md`, `architecture.md`, `acceptance.json`, `tasks.json`, `evidence-requirements.md`, and `verification.md`.
+3. `STATUS.md` and the current repository code/tests.
+4. This file.
+5. Other repository documents. Most root-level Markdown predates the current method and is historical unless a newer governing file says otherwise.
 
-Arm labor unions and community organizers with data to fight Big Tech's broken promises. Track 11,992 data center facilities and expose the $2.48B+ subsidy gap. Built specifically for Tech Workers Coalition, CODE-CWA, UPROSE, and worker activists.
+Agent completion is not approval. No agent may authorize a ruling, source admission, rights determination, commit, push, deployment, publication, outreach, purchase, or credential use.
 
-**Every feature must answer: "Does this help organizers win against Big Tech?"**
+## 2. Current verified capability boundary
 
----
+- The real corroborated corpus contains **zero rows**.
+- The serving engine fails closed rather than serve unproven data.
+- Zero New York official-record adapters are connected to scoring.
+- The NYISO adapter exists and is fixture-tested, but is unwired and has not been run against live data.
+- DART research bytes exist outside the application path, but this repository has no DART parser, adapter, connected ingest path, packet, API route, or UI path yet.
+- No current detection or measured lead-time claim is valid.
+- BGP, CT, DNS, WHOIS/RDAP, ASN, peering, and other owner-layer signals are permanently ineligible for the facility corroboration floor.
 
-## 🏗️ Project Structure
+Do not soften, upgrade, or generalize these statements without new dated evidence scoped to the exact commit and environment.
 
+## 3. DART v0.9 objective
+
+Move one real New York DART-derived facility/application packet from exact source bytes through the repository's actual evidence model, API, and functional UI. After same-lineage collapse, the packet must contain exactly one counted facility-level origin and end as:
+
+```text
+subtype = insufficient_sources
+disposition = suppress
+independent_origin_count = 1
+required_origin_count = 2
+score = null
+corroborated = false
+presentation_reason = WITHHELD_ONE_ORIGIN
 ```
-DCIM Compliance App/
-├── src/
-│   ├── components/           # React components
-│   │   ├── tabs/            # Dashboard tabs
-│   │   ├── DCIMCommandCenter.tsx  # Main dashboard
-│   │   ├── ChatInterface.tsx     # AI-powered search
-│   │   └── HelpModal.tsx         # Help system
-│   ├── utils/               # Utility functions
-│   │   ├── circuitBreaker.ts    # API protection
-│   │   ├── dbOperations.ts      # Database resilience
-│   │   ├── errorTracking.ts     # Error logging
-│   │   └── sanitization.ts      # Input cleaning
-│   ├── db.ts                # IndexedDB schema (Dexie)
-│   └── main.tsx             # Entry point
-├── public/                  # Static assets
-├── .vscode/                # Auto-start configuration
-├── docs/ai-context/        # AI-readable documentation
-└── index.html              # Entry point
-```
 
----
+The reviewer must be able to tell what the DART record establishes, what it does not establish, why multiple DART rows do not create corroboration, and what institutionally independent record is needed next.
 
-## 🛠️ Build & Development Commands
+## 4. Non-negotiable data and claim invariants
+
+Keep these identities separate:
+
+- `source_row_id`: physical Socrata row, normally `:id`.
+- `application_id`: DART application/permit identifier; never the unique row key.
+- `dec_id`: facility grouping identifier where warranted; never an evidence origin.
+- `permit_sequence`: retained application sequence; not a new origin.
+- `facility_subject_id`: normalized physical/project subject with explicit granularity.
+- `canonical_origin_id`: counted disclosure lineage for the bounded proposition.
+- `processing_episode_id`: `UNRESOLVED` until supported.
+
+Required conduct:
+
+- Preserve exact raw fields, original spellings, nulls, conflicts, and source bytes.
+- Keep source-event, publication/snapshot, retrieval, and first-observation clocks separate.
+- Collapse same-lineage DART rows, permit variants, applicant variants, updates, and DEC/ENB echoes to one origin unless a supported independence analysis proves otherwise.
+- Never count owner/entity support toward the facility floor.
+- Never substitute zero for a withheld or unavailable score.
+- Never hide mock or demo fallback as real data.
+- Never label the v0.9 packet detected, confirmed, corroborated, alerted, confident, or early.
+
+## 5. Work and agent boundary
+
+- One writer operates in this worktree. Parallel agents may inspect, but only the designated writer edits.
+- Claude Code's default role for this workstream is independent read-only verifier after the writer freezes the diff.
+- During T01, all agents are read-only and must stop after the preflight/code-map report is frozen.
+- Read-only Git commands are allowed when required: `git status`, `git diff`, `git show`, `git log`, and `git rev-parse`.
+- Git mutation and networked Git are prohibited unless Daniel authorizes the exact act: no add, commit, push, pull, fetch, merge, rebase, reset, clean, stash, branch deletion, worktree prune, or `ls-remote`.
+- No network access, dependency installation, source retrieval, build, test, dev server, or application run occurs unless the active task explicitly authorizes it.
+- Do not change `MIN_SOURCES_FOR_SCORES = 2` or the canonical-origin floor semantics.
+- Do not edit the frozen specification or acceptance criteria to make implementation easier. Surface a conflict and stop.
+
+## 6. Stage-0 / T01 commands
+
+Safe now:
 
 ```bash
-# Development server (auto-starts on Cursor open)
-npm run dev                 # Starts Vite on port 5173
-
-# Build for production
-npm run build              # Generates dist/ with build info
-
-# Preview production build
-npm run preview
-
-# Testing
-npm test                   # Run tests (if configured)
+git rev-parse --show-toplevel
+git rev-parse --abbrev-ref HEAD
+git rev-parse HEAD
+git status --short
+git diff -- AGENTS.md CLAUDE.md .cursor .vscode specs schemas scripts/validate_spec_bundle.mjs
+node scripts/validate_spec_bundle.mjs
 ```
 
----
+Discover actual build, test, API, UI, evidence, and origin symbols during T01; do not guess them from legacy documentation.
 
-## 📋 TypeScript/React Conventions
+Caution: loading Vite or Vitest configuration may regenerate build-identity files. Do not run `npm run dev`, `npm run build`, `npm run test`, or `npm run test:run` until the active task authorizes execution and the pre-run status is captured.
 
-### Component Patterns
-- **Functional components only** with React hooks
-- **Named exports only** - no default exports
-- **Props interfaces** must be explicitly defined with TypeScript
-- **File naming**: PascalCase for components (`ChatInterface.tsx`)
-- **Hook naming**: `use` prefix for custom hooks
+## 7. Stop conditions
 
-### Example Component Structure:
-```typescript
-interface ComponentNameProps {
-  prop1: string;
-  prop2?: number;
-}
+Stop and report rather than infer when:
 
-export const ComponentName: React.FC<ComponentNameProps> = ({ prop1, prop2 }) => {
-  // Hooks at top
-  const [state, setState] = useState<Type>(initialValue);
-  
-  // Event handlers
-  const handleEvent = useCallback(() => {
-    // logic
-  }, [dependencies]);
-  
-  // Return JSX
-  return <div>{/* content */}</div>;
-};
-```
+- repository root, branch, HEAD, worktree, or spec hashes differ from the task contract;
+- a required input, retrieval manifest, rights decision, candidate, control, or source byte object is missing;
+- row, application, facility, or origin identity cannot be resolved at the claimed level;
+- a purported second origin is same-lineage, merely another row, or only owner/entity-level;
+- a field's author or warrant is unknown;
+- a source date is impossible or out of range;
+- a hidden fallback, mock, or silent default appears;
+- work would require an unauthorized external or Git act.
 
-### TypeScript Rules
-- **No `any` types** - use `unknown` and type guards instead
-- **Strict null checks** - always handle undefined/null cases
-- **Explicit return types** on functions
-- **Interface over type** for object shapes
-- **Enums for constants** with multiple values
+`WITHHELD`, `UNDERIVED`, `ABSENT`, `UNRESOLVED`, and `NOT_TESTED` are successful outcomes when the evidence requires them.
 
-### State Management
-- **React hooks** for local state (useState, useReducer)
-- **useMemo** for expensive computations
-- **useCallback** for event handlers passed to children
-- **IndexedDB** (via Dexie) for persistent data
+## 8. Completion evidence
 
-### Error Handling
-- **ErrorBoundary** wraps all major components
-- **Circuit breakers** protect API calls
-- **Try-catch** in async functions with error logging
-- **Graceful fallbacks** - app never shows blank screen
+Every task return must include:
 
----
-
-## 🗄️ Database Schema (IndexedDB)
-
-```typescript
-// Facilities table
-interface Facility {
-  id?: number;
-  name: string;
-  operator: string;
-  state: string;
-  jobsPromised: number;
-  jobsActual: number;
-  subsidyAmount: number;
-  complianceStatus: 'compliant' | 'non-compliant' | 'unknown';
-  // ... more fields
-}
-```
-
-**Key Operations:**
-- `db.facilities.toArray()` - Get all facilities
-- `db.facilities.add(facility)` - Insert new
-- `db.facilities.where('state').equals('TX')` - Query by state
-- Always use `safeDbOperation()` wrapper for resilience
-
----
-
-## 🔌 API Integrations
-
-### OpenAI API (Natural Language Search)
-- **Endpoint**: `https://api.openai.com/v1/chat/completions`
-- **Rate Limit**: 60 requests/minute (enforced by rateLimiter)
-- **Circuit Breaker**: Opens after 5 failures, 60s cooldown
-- **Timeout**: 30 seconds per request
-
-### External APIs (Future)
-- EPA API - Environmental data
-- SEC API - Financial filings
-- Census API - Demographic data
-- BLS API - Employment data
-
-**All API calls must:**
-1. Use circuit breaker wrapper
-2. Apply rate limiting
-3. Have timeout protection
-4. Include error tracking
-5. Provide fallback behavior
-
----
-
-## 🛡️ Antifragility Features
-
-### 7 Layers of Protection:
-1. **Error Boundaries** - Component crashes contained
-2. **Circuit Breakers** - API failures handled gracefully
-3. **Database Resilience** - Auto-retry with fallbacks
-4. **Rate Limiting** - Prevents API abuse
-5. **Input Sanitization** - Blocks malicious input
-6. **Global Error Handler** - Catches unhandled errors
-7. **Error Tracking** - Full debugging capability
-
-### Files Implementing Resilience:
-- `src/utils/circuitBreaker.ts` - Circuit breaker logic
-- `src/utils/dbOperations.ts` - Database retry logic
-- `src/utils/errorTracking.ts` - Error logging
-- `src/utils/globalErrorHandler.ts` - Global catch-all
-- `src/utils/rateLimiter.ts` - Rate limiting
-- `src/utils/sanitization.ts` - Input cleaning
-- `src/utils/timeout.ts` - Timeout protection
-
----
-
-## 🎨 Styling Conventions
-
-### Tailwind CSS
-- **Utility-first** approach
-- **No dynamic class generation** - pre-commit hook checks
-- **Responsive**: mobile-first with sm/md/lg/xl breakpoints
-- **Dark theme**: Not currently implemented
-
-### Color Palette:
-- Primary: Blue tones (corporate accountability theme)
-- Success: Green (#22c55e)
-- Error: Red (#ef4444)
-- Warning: Yellow/Orange (#f59e0b)
-
----
-
-## 🚀 Deployment (Cloudflare Pages)
-
-### Build Configuration
-- **Build command**: `npm run build`
-- **Build output**: `dist/`
-- **Node version**: 18+
-- **Environment variables**: Set in Cloudflare dashboard
-
-### Pre-deploy Checklist:
-1. Run `npm run build` locally to test
-2. Check for console.log statements (pre-commit hook)
-3. Verify no TODO/FIXME comments in production code
-4. Test with production API keys
-5. Verify error tracking works
-
-### Deployment URL:
-- Production: https://dcim-compliance.pages.dev
-- Preview: Auto-generated for each PR
-
----
-
-## 🧪 Testing Strategy
-
-### Current Status:
-- No automated tests yet
-- Manual testing in browser required
-
-### Future Testing:
-- **Vitest** for unit tests
-- **React Testing Library** for component tests
-- **Playwright** for E2E tests
-- Test coverage target: 80%+
-
----
-
-## 📝 Common Tasks
-
-### Adding a New Feature
-1. Create component in `src/components/`
-2. Add to `DCIMCommandCenter.tsx` if UI component
-3. Update this file with conventions
-4. Add error boundaries if needed
-5. Test resilience (API failures, bad input, etc.)
-6. Commit with conventional commit message
-
-### Adding API Integration
-1. Create circuit breaker in `circuitBreaker.ts`
-2. Create rate limiter in `rateLimiter.ts`
-3. Add timeout wrapper
-4. Implement in component with error tracking
-5. Test failure scenarios
-6. Document in this file
-
-### Debugging
-1. Check browser console for errors
-2. View error log: `localStorage.getItem('dcim_error_log')`
-3. Check terminal for build errors
-4. Use React DevTools for component state
-5. Check Network tab for API issues
-
----
-
-## 🔧 Configuration Files
-
-### Key Files:
-- `.vscode/tasks.json` - Auto-start dev server on folder open
-- `.vscode/settings.json` - Auto-save after 1 second
-- `vite.config.ts` - Vite configuration
-- `tailwind.config.js` - Tailwind customization
-- `tsconfig.json` - TypeScript compiler options
-- `package.json` - Dependencies and scripts
-
-### Pre-commit Hooks:
-- Check for dynamic Tailwind classes
-- Check for large files (>1MB)
-- Check for console.log statements
-- Check for TODO/FIXME/HACK comments
-- Validate useEffect cleanup functions
-
----
-
-## 🐛 Known Issues & Limitations
-
-### Current Limitations:
-1. No real facility data loaded (shows 0 facilities)
-2. AI search requires OpenAI API key
-3. No authentication system
-4. No data export functionality
-5. No offline support (despite IndexedDB)
-
-### Browser Compatibility:
-- Chrome/Edge: ✅ Full support
-- Firefox: ✅ Full support  
-- Safari: ✅ Should work (not extensively tested)
-- Mobile: ⚠️ Responsive but not optimized
-
----
-
-## 🎯 Next Development Priorities
-
-1. **Data Loading**: Import real facility data into IndexedDB
-2. **API Key Management**: Secure storage for OpenAI key
-3. **Export Features**: CSV/PDF export of compliance reports
-4. **Search Improvements**: Better NLP query parsing
-5. **Offline Support**: Service worker + PWA features
-
----
-
-## 🤝 AI Coding Assistant Guidelines
-
-### When Working with This Codebase:
-
-**DO:**
-- Use functional components with hooks
-- Add error boundaries for new features
-- Wrap API calls with circuit breakers
-- Use TypeScript strict mode
-- Add JSDoc comments for complex functions
-- Test resilience (failures, bad input, edge cases)
-- Update this file when adding major features
-
-**DON'T:**
-- Use class components
-- Use `any` types
-- Create default exports
-- Add console.log in production code
-- Generate dynamic Tailwind classes
-- Skip error handling
-- Forget null checks
-
-### Context Restoration:
-If starting a new session, read:
-1. This file (AGENTS.md) - Project overview
-2. `docs/ai-context/state.md` - Current state
-3. `docs/ai-context/decisions.md` - Past decisions
-4. Recent git commits - What changed
-
-### Code Style:
-- 2 spaces indentation
-- Single quotes for strings
-- Semicolons required
-- Trailing commas in multiline
-- Max line length: 100 characters (soft limit)
-
----
-
-**Remember: This app exists to help workers fight corporate power. Every feature should serve that mission.**
-
+- root, branch/worktree, HEAD, and status;
+- spec and acceptance hashes;
+- files inspected or changed;
+- commands run with actual exit codes;
+- acceptance-criterion verdicts;
+- test and runtime evidence where authorized;
+- known limitations and indeterminate items;
+- confirmation that no prohibited act occurred.

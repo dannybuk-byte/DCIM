@@ -1,0 +1,67 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "DCIM DART v0.9 Acceptance Criteria",
+  "type": "object",
+  "required": [
+    "version",
+    "criteria"
+  ],
+  "properties": {
+    "version": {
+      "type": "string",
+      "minLength": 1
+    },
+    "criteria": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "requirement",
+          "verification_type",
+          "required_evidence",
+          "blocking",
+          "status"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^E[0-9]{2}$"
+          },
+          "requirement": {
+            "type": "string",
+            "minLength": 1
+          },
+          "verification_type": {
+            "enum": [
+              "DETERMINISTIC_CHECK",
+              "RUNTIME_OBSERVATION",
+              "HUMAN_REVIEW",
+              "PRINCIPAL_RULING",
+              "EXTERNAL_DEPENDENCY"
+            ]
+          },
+          "required_evidence": {
+            "type": "string",
+            "minLength": 1
+          },
+          "blocking": {
+            "type": "boolean"
+          },
+          "status": {
+            "enum": [
+              "PENDING",
+              "PASS",
+              "FAIL",
+              "INDETERMINATE",
+              "NOT_TESTED"
+            ]
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}

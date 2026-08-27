@@ -2,7 +2,7 @@
   "version": "2.0.0",
   "tasks": [
     {
-      "label": "Start Dev Server",
+      "label": "Start Dev Server (manual only)",
       "type": "npm",
       "script": "dev",
       "problemMatcher": [],
@@ -10,11 +10,8 @@
         "reveal": "always",
         "panel": "dedicated"
       },
-      "runOptions": {
-        "runOn": "folderOpen"
-      },
-      "isBackground": true
+      "isBackground": true,
+      "detail": "Manual task. Never starts automatically when the folder opens."
     }
   ]
 }
-

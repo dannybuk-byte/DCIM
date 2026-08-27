@@ -1,0 +1,205 @@
+{
+  "version": "dcim-dart-v0.9-2026-08-20",
+  "criteria": [
+    {
+      "id": "E01",
+      "requirement": "Repository and HEAD verified",
+      "verification_type": "DETERMINISTIC_CHECK",
+      "required_evidence": "read-only preflight transcript",
+      "blocking": true,
+      "status": "PENDING"
+    },
+    {
+      "id": "E02",
+      "requirement": "One implementation owner and isolated worktree frozen",
+      "verification_type": "PRINCIPAL_RULING",
+      "required_evidence": "quoted scope record plus branch/worktree path",
+      "blocking": true,
+      "status": "PENDING"
+    },
+    {
+      "id": "E03",
+      "requirement": "Every required present input hash verified",
+      "verification_type": "DETERMINISTIC_CHECK",
+      "required_evidence": "machine-generated hash report",
+      "blocking": true,
+      "status": "PENDING"
+    },
+    {
+      "id": "E04",
+      "requirement": "Retrieval is reproducible",
+      "verification_type": "EXTERNAL_DEPENDENCY",
+      "required_evidence": "complete retrieval manifest plus exact response bytes",
+      "blocking": true,
+      "status": "PENDING"
+    },
+    {
+      "id": "E05",
+      "requirement": "Use-specific rights are decided",
+      "verification_type": "HUMAN_REVIEW",
+      "required_evidence": "written determination covering retrieval, storage, fixtures, display, export, and assets",
+      "blocking": true,
+      "status": "PENDING"
+    },
+    {
+      "id": "E06",
+      "requirement": "Field warrants are mapped",
+      "verification_type": "HUMAN_REVIEW",
+      "required_evidence": "field-warrant table",
+      "blocking": true,
+      "status": "PENDING"
+    },
+    {
+      "id": "E07",
+      "requirement": "Source and system clocks are separated",
+      "verification_type": "DETERMINISTIC_CHECK",
+      "required_evidence": "clock fixture and serialized packet",
+      "blocking": true,
+      "status": "PENDING"
+    },
+    {
+      "id": "E08",
+      "requirement": "An actual NY data-center candidate is demonstrated",
+      "verification_type": "EXTERNAL_DEPENDENCY",
+      "required_evidence": "exact official rows, candidate rationale, and false-positive controls",
+      "blocking": true,
+      "status": "PENDING"
+    },
+    {
+      "id": "E09",
+      "requirement": "Positive and negative fixtures are frozen",
+      "verification_type": "DETERMINISTIC_CHECK",
+      "required_evidence": "fixture manifest and hashes",
+      "blocking": true,
+      "status": "PENDING"
+    },
+    {
+      "id": "E10",
+      "requirement": "Raw rows and original fields are preserved",
+      "verification_type": "DETERMINISTIC_CHECK",
+      "required_evidence": "parser test and raw locator",
+      "blocking": true,
+      "status": "PENDING"
+    },
+    {
+      "id": "E11",
+      "requirement": "application_id is never the unique row key",
+      "verification_type": "DETERMINISTIC_CHECK",
+      "required_evidence": "focused failing/passing test",
+      "blocking": true,
+      "status": "PENDING"
+    },
+    {
+      "id": "E12",
+      "requirement": "Duplicate claims use the full compared field set",
+      "verification_type": "DETERMINISTIC_CHECK",
+      "required_evidence": "comparison test and evidence",
+      "blocking": true,
+      "status": "PENDING"
+    },
+    {
+      "id": "E13",
+      "requirement": "Facility resolution granularity and conflicts are explicit",
+      "verification_type": "DETERMINISTIC_CHECK",
+      "required_evidence": "normalized fixture",
+      "blocking": true,
+      "status": "PENDING"
+    },
+    {
+      "id": "E14",
+      "requirement": "All candidate DART rows collapse to one counted origin",
+      "verification_type": "DETERMINISTIC_CHECK",
+      "required_evidence": "origin-collapse test",
+      "blocking": true,
+      "status": "PENDING"
+    },
+    {
+      "id": "E15",
+      "requirement": "Owner/entity support cannot count toward the facility floor",
+      "verification_type": "DETERMINISTIC_CHECK",
+      "required_evidence": "gate test",
+      "blocking": true,
+      "status": "PENDING"
+    },
+    {
+      "id": "E16",
+      "requirement": "Packet decision is exactly WITHHELD_ONE_ORIGIN",
+      "verification_type": "DETERMINISTIC_CHECK",
+      "required_evidence": "serialized packet",
+      "blocking": true,
+      "status": "PENDING"
+    },
+    {
+      "id": "E17",
+      "requirement": "Score is null/absent and corroborated is false",
+      "verification_type": "DETERMINISTIC_CHECK",
+      "required_evidence": "schema and test output",
+      "blocking": true,
+      "status": "PENDING"
+    },
+    {
+      "id": "E18",
+      "requirement": "The real API path returns the typed packet",
+      "verification_type": "RUNTIME_OBSERVATION",
+      "required_evidence": "route test and captured response",
+      "blocking": true,
+      "status": "PENDING"
+    },
+    {
+      "id": "E19",
+      "requirement": "The functional UI renders the exact reason and 1-of-2 count",
+      "verification_type": "RUNTIME_OBSERVATION",
+      "required_evidence": "UI test and local capture",
+      "blocking": true,
+      "status": "PENDING"
+    },
+    {
+      "id": "E20",
+      "requirement": "Mock fallback is impossible or visibly labeled",
+      "verification_type": "DETERMINISTIC_CHECK",
+      "required_evidence": "failure-state test",
+      "blocking": true,
+      "status": "PENDING"
+    },
+    {
+      "id": "E21",
+      "requirement": "The complete test command returns nonzero on a controlled failure",
+      "verification_type": "DETERMINISTIC_CHECK",
+      "required_evidence": "controlled failure proof",
+      "blocking": true,
+      "status": "PENDING"
+    },
+    {
+      "id": "E22",
+      "requirement": "Existing regression suite passes",
+      "verification_type": "DETERMINISTIC_CHECK",
+      "required_evidence": "full test transcript and exit code",
+      "blocking": true,
+      "status": "PENDING"
+    },
+    {
+      "id": "E23",
+      "requirement": "Independent verifier report is frozen before repairs",
+      "verification_type": "HUMAN_REVIEW",
+      "required_evidence": "verifier report hash",
+      "blocking": true,
+      "status": "PENDING"
+    },
+    {
+      "id": "E24",
+      "requirement": "One expert/user review is documented",
+      "verification_type": "HUMAN_REVIEW",
+      "required_evidence": "dated review record",
+      "blocking": true,
+      "status": "PENDING"
+    },
+    {
+      "id": "E25",
+      "requirement": "No prohibited act occurred",
+      "verification_type": "HUMAN_REVIEW",
+      "required_evidence": "action log plus final Git status",
+      "blocking": true,
+      "status": "PENDING"
+    }
+  ]
+}
