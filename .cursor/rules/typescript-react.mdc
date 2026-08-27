@@ -1,19 +1,15 @@
 ---
-description: TypeScript and React patterns for DCIM
+description: Implementation discipline for the DCIM TypeScript, React, and server surfaces
 alwaysApply: true
 ---
 
-# TypeScript/React Patterns
+# Implementation discipline
 
-## State Management
-- Use Jotai for atomic state
-- Prefer useMemo/useCallback for expensive operations
-- Virtual scrolling for lists > 100 items (TanStack Virtual)
-
-## Error Boundaries
-Wrap major sections in error boundaries to prevent full-page crashes.
-
-## Performance
-- Lazy load heavy components
-- Use Suspense for code splitting
-- Debounce search inputs (300ms)
+- Follow the existing code and test patterns discovered in the current tree; do not impose legacy conventions from old dashboard documents.
+- Do not introduce Jotai or any other state-management library unless the active task explicitly requires and authorizes a dependency change.
+- Preserve the typed epistemic state and the distinction between score suppression, corroboration, evidence count, and presentation reason.
+- Prefer small reversible changes with focused regression tests.
+- Preserve semantic HTML and accessibility; HTML form elements are allowed when appropriate.
+- Do not create hidden mock, seed, or demo fallbacks.
+- Do not use `localStorage`, IndexedDB, or another persistence layer merely because an old rule names it; follow the verified existing path and the active specification.
+- Capture real exit codes and failure states. A passing UI appearance is not evidence that the data or claim path is correct.

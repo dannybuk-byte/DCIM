@@ -1,34 +1,22 @@
 ---
-description: DCIM Dashboard project context - auto-loaded for every conversation
+description: Current DCIM DART v0.9 worktree context; load for every conversation
 alwaysApply: true
 ---
 
-# DCIM Compliance Dashboard
+# DCIM DART v0.9 context
 
-## Project Overview
-Global Infrastructure Command Center monitoring 11,992 facilities from 118 providers using edge-inclusive methodology.
+Read `AGENTS.md`, `STATUS.md`, and every file under `specs/dart-v0.9/` before acting.
 
-## Tech Stack
-- React 18+ with TypeScript
-- Vite build system
-- Tailwind CSS (static classes only - NO dynamic classes)
-- IndexedDB via Dexie.js (NO localStorage/sessionStorage)
-- Cloudflare Pages deployment
+Current capability boundary:
 
-## Critical Safety Rules
-1. **NO localStorage/sessionStorage** - Use IndexedDB via Dexie.js only
-2. **NO dynamic Tailwind classes** - Use static classes or inline styles
-3. **NO HTML form elements in React** - Use onClick handlers
-4. **Files under 50KB** - Split large components
-5. **useEffect must have cleanup** - Return cleanup functions
+- zero real corroborated rows;
+- zero New York official-record adapters connected to scoring;
+- NYISO exists but is unwired;
+- no DART parser, adapter, packet, API route, or UI path exists yet;
+- no current detection or measured lead-time claim is valid.
 
-## File Structure
-- /src/components/ - React components
-- /src/hooks/ - Custom hooks
-- /src/utils/ - Utility functions
-- /docs/ - Documentation
+The active objective is one real DART-derived packet that collapses to one canonical origin and renders `WITHHELD_ONE_ORIGIN` / `insufficient_sources` / `suppress`, with no score and no corroboration.
 
-## Commands
-- npm run dev - Local development
-- npm run build - Production build
-- npm run preview - Preview build locally
+During T01, operate read-only and stop after the repository/code-map report. Do not run the application, build, tests, dependency installation, network retrieval, Git mutation, push, deployment, publication, or outreach unless the active task explicitly authorizes the exact act.
+
+Do not treat legacy root documentation as current product authority. Do not introduce a second writer, a new framework, a state library, or a dependency without explicit task authority.

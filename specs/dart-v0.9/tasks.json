@@ -1,0 +1,138 @@
+{
+  "version": "dcim-dart-v0.9-tasks-2026-08-20",
+  "tasks": [
+    {
+      "id": "T01",
+      "title": "Freeze and preflight",
+      "depends_on": [],
+      "acceptance_ids": [
+        "E01",
+        "E02",
+        "E03"
+      ],
+      "mode": "AUDIT",
+      "status": "NOT_STARTED"
+    },
+    {
+      "id": "T02",
+      "title": "Complete or sharply bound the DART retrieval, rights, warrant, clock, and identity dossier",
+      "depends_on": [
+        "T01"
+      ],
+      "acceptance_ids": [
+        "E04",
+        "E05",
+        "E06",
+        "E07"
+      ],
+      "mode": "RESEARCH",
+      "status": "NOT_STARTED"
+    },
+    {
+      "id": "T03",
+      "title": "Select and preserve one actual data-center candidate and controls",
+      "depends_on": [
+        "T02"
+      ],
+      "acceptance_ids": [
+        "E08",
+        "E09"
+      ],
+      "mode": "RESEARCH",
+      "status": "NOT_STARTED"
+    },
+    {
+      "id": "T04",
+      "title": "Implement raw-row parser and preservation",
+      "depends_on": [
+        "T03"
+      ],
+      "acceptance_ids": [
+        "E10",
+        "E11",
+        "E12"
+      ],
+      "mode": "WRITE",
+      "status": "NOT_STARTED"
+    },
+    {
+      "id": "T05",
+      "title": "Implement identity, granularity, clocks, and lineage collapse",
+      "depends_on": [
+        "T04"
+      ],
+      "acceptance_ids": [
+        "E13",
+        "E14",
+        "E15"
+      ],
+      "mode": "WRITE",
+      "status": "NOT_STARTED"
+    },
+    {
+      "id": "T06",
+      "title": "Implement bounded packet and withheld gate behavior",
+      "depends_on": [
+        "T05"
+      ],
+      "acceptance_ids": [
+        "E16",
+        "E17"
+      ],
+      "mode": "WRITE",
+      "status": "NOT_STARTED"
+    },
+    {
+      "id": "T07",
+      "title": "Wire the real API path",
+      "depends_on": [
+        "T06"
+      ],
+      "acceptance_ids": [
+        "E18"
+      ],
+      "mode": "WRITE",
+      "status": "NOT_STARTED"
+    },
+    {
+      "id": "T08",
+      "title": "Render the functional UI evidence panel and failure states",
+      "depends_on": [
+        "T07"
+      ],
+      "acceptance_ids": [
+        "E19",
+        "E20"
+      ],
+      "mode": "WRITE",
+      "status": "NOT_STARTED"
+    },
+    {
+      "id": "T09",
+      "title": "Run complete regression and freeze independent review input",
+      "depends_on": [
+        "T08"
+      ],
+      "acceptance_ids": [
+        "E21",
+        "E22",
+        "E23"
+      ],
+      "mode": "VERIFY",
+      "status": "NOT_STARTED"
+    },
+    {
+      "id": "T10",
+      "title": "Conduct user review and evidence-generated closeout",
+      "depends_on": [
+        "T09"
+      ],
+      "acceptance_ids": [
+        "E24",
+        "E25"
+      ],
+      "mode": "REVIEW",
+      "status": "NOT_STARTED"
+    }
+  ]
+}
