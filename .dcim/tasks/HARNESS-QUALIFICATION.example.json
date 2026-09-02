@@ -39,7 +39,8 @@
       "command": [
         "node",
         "--test",
-        "tools/dcim-control/test/control-plane.test.mjs"
+        "tools/dcim-control/test/control-plane.test.mjs",
+        "tools/dcim-control/test/control-plane-hardening.test.mjs"
       ],
       "timeout_ms": 120000,
       "expected_exit_code": 0
@@ -52,7 +53,8 @@
         "command": [
           "node",
           "--test",
-          "tools/dcim-control/test/control-plane.test.mjs"
+          "tools/dcim-control/test/control-plane.test.mjs",
+          "tools/dcim-control/test/control-plane-hardening.test.mjs"
         ],
         "timeout_ms": 120000,
         "expected_exit_code": 0
