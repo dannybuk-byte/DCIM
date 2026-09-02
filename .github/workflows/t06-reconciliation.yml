@@ -125,7 +125,7 @@ jobs:
         run: |
           set -euo pipefail
           fixture='data/dart-v0.9/fixtures/h8r1/candidate/orangetown/source/R04_ROWS_DATA_CENTER_RESPONSE_BODY.json'
-          test ! -e "$fixtur"
+          test ! -e "$fixture"
           {
             echo '### T06 reconciliation boundary'
             echo
