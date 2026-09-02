@@ -18,6 +18,9 @@ public/commit-hash.txt
 src/generated/buildIdentity.ts
 www_pipeline_out/
 
+# DCIM control-plane runtime (durable locally, never canonical source)
+.dcim/runtime/
+
 # committed-env / WIP — must never enter the slice commit
 # NOTE: docs/ intentionally NOT ignored — it holds 19 already-tracked files.
 .venv-federal/
