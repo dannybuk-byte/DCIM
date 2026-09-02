@@ -1,0 +1,111 @@
+name: T06 reconciliation
+
+on:
+  pull_request:
+    branches:
+      - agent/dart-v0.9
+    paths:
+      - 'server/dart/candidatePacket.js'
+      - 'server/dart/candidatePacket.test.js'
+      - 'server/dart/index.js'
+      - 'docs/engineering/T06_RECONCILIATION_MANIFEST.json'
+      - '.github/workflows/t06-reconciliation.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: t06-reconciliation-${{ github.event.pull_request.number }}-${{ matrix.os }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: verify (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - ubuntu-latest
+          - macos-latest
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 25
+
+    steps:
+      - name: Check out exact PR head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Enforce exact reconciliation path set
+        shell: bash
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          actual="$(git diff --name-only "$BASE_SHA" "$HEAD_SHA" | LC_ALL=C sort)"
+          expected="$(printf '%s\n' \
+            .github/workflows/t06-reconciliation.yml \
+            docs/engineering/T06_RECONCILIATION_MANIFEST.json \
+            server/dart/candidatePacket.js \
+            server/dart/candidatePacket.test.js \
+            server/dart/index.js | LC_ALL=C sort)"
+          printf '%s\n' 'ACTUAL_CHANGED_PATHS_BEGIN'
+          printf '%s\n' "$actual"
+          printf '%s\n' 'ACTUAL_CHANGED_PATHS_END'
+          test "$actual" = "$expected"
+
+      - name: Verify exact accepted T06 postimage identities
+        shell: bash
+        run: |
+          node <<'NODE'
+          const fs = require('node:fs');
+          const crypto = require('node:crypto');
+
+          const expected = [
+            {
+              path: 'server/dart/candidatePacket.js',
+              bytes: 16581,
+              sha256: '8da30ce8a2d748db655af40f83ddb1560fc5ca787b54ac1c9a1b6a71fe5bbce7',
+            },
+            {
+              path: 'server/dart/candidatePacket.test.js',
+              bytes: 30464,
+              sha256: '68adad38f5be74f20e7aea54413b1e487eaa6cacc75348ead19e5065935f6e72',
+            },
+            {
+              path: 'server/dart/index.js',
+              bytes: 323,
+              sha256: '1bfb1ac09a317bc0e718ed5abf760b33e161ffb50f8b722a294619511f8675e4',
+            },
+          ];
+
+          for (const item of expected) {
+            const bytes = fs.readFileSync(item.path);
+            const sha256 = crypto.createHash('sha256').update(bytes).digest('hex');
+            console.log(`${item.path}\tbytes=${bytes.length}\tsha256=${sha256}`);
+            if (bytes.length !== item.bytes || sha256 !== item.sha256) process.exitCode = 1;
+          }
+          NODE
+
+      - name: Install locked dependencies
+        run: npm ci
+
+      - name: Validate governed specification bundle
+        run: node scripts/validate_spec_bundle.mjs
+
+      - name: CandidatePacket focused suite
+        run: ./node_modules/.bin/vitest run server/dart/candidatePacket.test.js
+
+      - name: Governed DART suite
+        run: ./node_modules/.bin/vitest run server/dart server/originFloor.test.js server/admissionContract.rf5.test.js
+
+      - name: Full repository suite
+        run: npm run test:run
