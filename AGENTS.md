@@ -123,3 +123,19 @@ Every task return must include:
 - test and runtime evidence where authorized;
 - known limitations and indeterminate items;
 - confirmation that no prohibited act occurred.
+
+## 9. Stable control plane for all new implementation tasks
+
+After `HARNESS-1` is qualified, do not create new bespoke mega-carriers or use a conversation as the state database. New implementation tasks must use:
+
+- one manifest under `.dcim/tasks/`;
+- the stable executor at `tools/dcim-control/cli.mjs`;
+- repository-local durable runtime storage under `.dcim/runtime/`;
+- a disposable writer worktree and separate read-only verifier worktree;
+- exact write allowlists and protected paths;
+- no more than two same-scope correction turns;
+- machine-readable results and content-addressed artifacts;
+- separate execution, governance, and transport states;
+- exact principal acceptance before promotion.
+
+The drift guard blocks duplicate-digest transfer requests, approval fatigue, nested repair chains, and control-artifact creation without product progress. See `docs/engineering/DCIM_CONTROL_PLANE.md` and `tools/dcim-control/README.md`.
