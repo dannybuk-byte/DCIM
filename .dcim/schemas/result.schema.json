@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:dcim:task-result:v1",
+  "title": "DCIM task result v1",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "task_id",
+    "run_id",
+    "execution_state",
+    "governance_state",
+    "transport_state"
+  ],
+  "properties": {
+    "schema_version": { "const": 1 },
+    "task_id": { "type": "string" },
+    "run_id": { "type": "string" },
+    "execution_state": { "enum": ["CREATED", "RUNNING", "SUCCEEDED", "FAILED", "INTERRUPTED", "REUSED"] },
+    "governance_state": { "enum": ["DRAFT", "AUTHORIZED", "IMPLEMENTED_UNVERIFIED", "VERIFIED_PASS", "VERIFIED_FAIL", "PRINCIPAL_ACCEPTED", "PRINCIPAL_REJECTED", "SUPERSEDED"] },
+    "transport_state": { "enum": ["NOT_MATERIALIZED", "PRESENT", "HASH_VERIFIED", "CONSUMED"] }
+  }
+}

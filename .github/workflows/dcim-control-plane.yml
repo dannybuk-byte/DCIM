@@ -1,0 +1,39 @@
+name: DCIM control plane
+
+on:
+  pull_request:
+    paths:
+      - 'tools/dcim-control/**'
+      - '.dcim/**'
+      - '.github/workflows/dcim-control-plane.yml'
+      - 'package.json'
+      - 'AGENTS.md'
+  push:
+    paths:
+      - 'tools/dcim-control/**'
+      - '.dcim/**'
+      - '.github/workflows/dcim-control-plane.yml'
+      - 'package.json'
+      - 'AGENTS.md'
+
+permissions:
+  contents: read
+
+jobs:
+  qualify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Control-plane unit and adversarial tests
+        run: node --test tools/dcim-control/test/control-plane.test.mjs
+      - name: Validate qualification manifest
+        run: node tools/dcim-control/cli.mjs validate .dcim/tasks/HARNESS-QUALIFICATION.example.json
+      - name: Verify generated canonical state is reproducible
+        run: |
+          cp .dcim/state/current.generated.json /tmp/current.before.json
+          node tools/dcim-control/cli.mjs rebuild-state >/tmp/rebuild.json
+          diff -u /tmp/current.before.json .dcim/state/current.generated.json

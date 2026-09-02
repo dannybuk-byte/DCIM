@@ -1,0 +1,7 @@
+{
+  "max_approval_requests_per_task": 2,
+  "max_control_artifacts_without_product_delta": 2,
+  "max_duplicate_digest_requests": 1,
+  "max_repair_depth": 2,
+  "max_same_scope_correction_turns": 2
+}

@@ -1,0 +1,15 @@
+{
+  "artifacts": {},
+  "generated_at": "2026-09-02T00:00:00.000Z",
+  "schema_version": 1,
+  "tasks": {
+    "HARNESS-1": {
+      "execution_state": "CREATED",
+      "governance_state": "DRAFT",
+      "last_event_at": "2026-09-02T00:00:00.000Z",
+      "run_ids": [],
+      "task_id": "HARNESS-1",
+      "transport_state": "NOT_MATERIALIZED"
+    }
+  }
+}
