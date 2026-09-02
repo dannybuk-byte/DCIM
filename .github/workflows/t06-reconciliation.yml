@@ -14,10 +14,6 @@ on:
 permissions:
   contents: read
 
-concurrency:
-  group: t06-reconciliation-${{ github.event.pull_request.number }}-${{ matrix.os }}
-  cancel-in-progress: true
-
 jobs:
   verify:
     name: verify (${{ matrix.os }})
@@ -27,6 +23,9 @@ jobs:
         os:
           - ubuntu-latest
           - macos-latest
+    concurrency:
+      group: t06-reconciliation-${{ github.event.pull_request.number }}-${{ matrix.os }}
+      cancel-in-progress: true
     runs-on: ${{ matrix.os }}
     timeout-minutes: 25
 
