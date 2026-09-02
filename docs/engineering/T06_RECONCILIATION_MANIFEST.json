@@ -1,0 +1,61 @@
+{
+  "schema_version": 1,
+  "task_id": "T06-GIT-RECONCILIATION-1",
+  "status": "PENDING_EXACT_POSTIMAGE_IMPORT",
+  "base": {
+    "branch": "agent/dart-v0.9",
+    "commit": "9ee19aa8700f564fdbda0aab72a08392d4b3acf0",
+    "tree": "bcc9de81ae355a366f3e10803e46545093599b9f"
+  },
+  "host_result": {
+    "package_name": "DCIM_T06_IV2_B4B5_BOUNDED_REPAIR_1_CORRECTION_1_20260902T153552Z.zip",
+    "bytes": 179492,
+    "sha256": "b0bd3bd93d6deefc1ff242770628ddfc4e97d6e7a9e7d0756a8120c1061c0fce",
+    "result": "PASS_PENDING_CORRECTED_IV3",
+    "tests": {
+      "candidate": "63/63",
+      "governed": "161/161",
+      "full_host": "362/362"
+    }
+  },
+  "corrected_iv3": {
+    "task_id": "T06-CORRECTED-IV3-1",
+    "result": "PASS_PENDING_PRINCIPAL_CLOSEOUT",
+    "finding_count": 0,
+    "read_only_invariants": "PASS",
+    "reported_package_sha256": "466191b50e41bf7a8e7d1726e855c719da72cf6b396b291b310a0d66895c2925",
+    "terminal_transcript_sha256": "7e6b0f1f57e2a1c9ba36528e38a44e1e8f8e95c0f7322c4a4eeabba527e4e0f2"
+  },
+  "expected_postimages": [
+    {
+      "path": "server/dart/candidatePacket.js",
+      "bytes": 16581,
+      "sha256": "8da30ce8a2d748db655af40f83ddb1560fc5ca787b54ac1c9a1b6a71fe5bbce7"
+    },
+    {
+      "path": "server/dart/candidatePacket.test.js",
+      "bytes": 30464,
+      "sha256": "68adad38f5be74f20e7aea54413b1e487eaa6cacc75348ead19e5065935f6e72"
+    },
+    {
+      "path": "server/dart/index.js",
+      "bytes": 323,
+      "sha256": "1bfb1ac09a317bc0e718ed5abf760b33e161ffb50f8b722a294619511f8675e4"
+    }
+  ],
+  "write_allowlist": [
+    "server/dart/candidatePacket.js",
+    "server/dart/candidatePacket.test.js",
+    "server/dart/index.js",
+    "docs/engineering/T06_RECONCILIATION_MANIFEST.json"
+  ],
+  "prohibited": [
+    "rerun_T06",
+    "rewrite_historical_evidence",
+    "change_evidence_law",
+    "live_source_admission",
+    "deployment",
+    "publication"
+  ],
+  "promotion_condition": "All three repository files must match the exact expected postimage hashes and CI must pass before review or merge."
+}
