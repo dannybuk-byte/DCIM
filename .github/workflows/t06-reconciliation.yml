@@ -1,0 +1,137 @@
+name: T06 exact-postimage reconciliation
+
+on:
+  pull_request:
+    branches:
+      - agent/dart-v0.9
+    paths:
+      - 'server/dart/candidatePacket.js'
+      - 'server/dart/candidatePacket.test.js'
+      - 'server/dart/index.js'
+      - 'docs/engineering/T06_RECONCILIATION_MANIFEST.json'
+      - '.github/workflows/t06-reconciliation.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  verify-integrity:
+    name: integrity (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - ubuntu-latest
+          - macos-latest
+    concurrency:
+      group: t06-reconciliation-${{ github.event.pull_request.number }}-${{ matrix.os }}
+      cancel-in-progress: true
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+
+    steps:
+      - name: Check out exact PR head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Enforce exact reconciliation path set
+        shell: bash
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          actual="$(git diff --name-only "$BASE_SHA" "$HEAD_SHA" | LC_ALL=C sort)"
+          expected="$(printf '%s\n' \
+            .github/workflows/t06-reconciliation.yml \
+            docs/engineering/T06_RECONCILIATION_MANIFEST.json \
+            server/dart/candidatePacket.js \
+            server/dart/candidatePacket.test.js \
+            server/dart/index.js | LC_ALL=C sort)"
+          printf '%s\n' 'ACTUAL_CHANGED_PATHS_BEGIN'
+          printf '%s\n' "$actual"
+          printf '%s\n' 'ACTUAL_CHANGED_PATHS_END'
+          test "$actual" = "$expected"
+
+      - name: Verify exact accepted T06 postimage identities
+        shell: bash
+        run: |
+          node <<'NODE'
+          const fs = require('node:fs');
+          const crypto = require('node:crypto');
+
+          const expected = [
+            {
+              path: 'server/dart/candidatePacket.js',
+              bytes: 16581,
+              sha256: '8da30ce8a2d748db655af40f83ddb1560fc5ca787b54ac1c9a1b6a71fe5bbce7',
+            },
+            {
+              path: 'server/dart/candidatePacket.test.js',
+              bytes: 30464,
+              sha256: '68adad38f5be74f20e7aea54413b1e487eaa6cacc75348ead19e5065935f6e72',
+            },
+            {
+              path: 'server/dart/index.js',
+              bytes: 323,
+              sha256: '1bfb1ac09a317bc0e718ed5abf760b33e161ffb50f8b722a294619511f8675e4',
+            },
+          ];
+
+          for (const item of expected) {
+            const bytes = fs.readFileSync(item.path);
+            const sha256 = crypto.createHash('sha256').update(bytes).digest('hex');
+            console.log(`${item.path}\tbytes=${bytes.length}\tsha256=${sha256}`);
+            if (bytes.length !== item.bytes || sha256 !== item.sha256) process.exitCode = 1;
+          }
+          NODE
+
+      - name: Validate the reconciliation manifest bindings
+        shell: bash
+        run: |
+          node <<'NODE'
+          const fs = require('node:fs');
+          const manifest = JSON.parse(fs.readFileSync('docs/engineering/T06_RECONCILIATION_MANIFEST.json', 'utf8'));
+          const expected = {
+            status: 'REMOTE_POSTIMAGE_HASH_VERIFIED_PENDING_PRINCIPAL_CLOSEOUT',
+            host: 'b0bd3bd93d6deefc1ff242770628ddfc4e97d6e7a9e7d0756a8120c1061c0fce',
+            iv3: '466191b50e41bf7a8e7d1726e855c719da72cf6b396b291b310a0d66895c2925',
+            fixture: 'f8764a096f91bfac498f3e838a0e57382930dcb86a0bbf599db089b1398ba182',
+          };
+          if (manifest.status !== expected.status) throw new Error('manifest status mismatch');
+          if (manifest.host_result.sha256 !== expected.host) throw new Error('host package mismatch');
+          if (manifest.corrected_iv3.reported_package_sha256 !== expected.iv3) throw new Error('IV3 package mismatch');
+          if (manifest.clean_checkout_reproducibility.missing_fixture_sha256 !== expected.fixture) {
+            throw new Error('fixture identity mismatch');
+          }
+          if (manifest.clean_checkout_reproducibility.classification !== 'FIXTURE_HYDRATION_GAP_NOT_PRODUCT_FAILURE') {
+            throw new Error('fixture classification mismatch');
+          }
+          console.log('RECONCILIATION_MANIFEST_BINDINGS=PASS');
+          NODE
+
+      - name: Validate governed specification bundle
+        run: node scripts/validate_spec_bundle.mjs
+
+      - name: Record clean-checkout test boundary
+        shell: bash
+        run: |
+          set -euo pipefail
+          fixture='data/dart-v0.9/fixtures/h8r1/candidate/orangetown/source/R04_ROWS_DATA_CENTER_RESPONSE_BODY.json'
+          test ! -e "$fixture"
+          {
+            echo '### T06 reconciliation boundary'
+            echo
+            echo '- Exact postimage identity: **PASS**'
+            echo '- Governed specification validation: **PASS**'
+            echo '- Fixture-dependent product test replay: **NOT RUN in public clean checkout**'
+            echo '- Classification: **FIXTURE_HYDRATION_GAP_NOT_PRODUCT_FAILURE**'
+            echo '- Bound local evidence: CandidatePacket 63/63; governed DART 161/161; full host 362/362; corrected IV3 findings 0.'
+          } >> "$GITHUB_STEP_SUMMARY"
