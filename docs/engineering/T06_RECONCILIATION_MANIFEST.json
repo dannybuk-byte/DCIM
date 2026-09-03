@@ -1,0 +1,109 @@
+{
+  "schema_version": 1,
+  "task_id": "T06-GIT-RECONCILIATION-1",
+  "status": "REMOTE_POSTIMAGE_HASH_VERIFIED_PENDING_PRINCIPAL_CLOSEOUT",
+  "base": {
+    "branch": "agent/dart-v0.9",
+    "commit": "9ee19aa8700f564fdbda0aab72a08392d4b3acf0",
+    "tree": "bcc9de81ae355a366f3e10803e46545093599b9f"
+  },
+  "github_reconciliation": {
+    "repository": "dannybuk-byte/DCIM",
+    "branch": "reconcile/t06-corrected-candidate-packet",
+    "pull_request": 6,
+    "exact_postimage_import_commit": "e81978601845995a876a5cb787c0d11d6b890bb4",
+    "remote_blob_identity_verification": "PASS",
+    "verified_paths": [
+      "server/dart/candidatePacket.js",
+      "server/dart/candidatePacket.test.js",
+      "server/dart/index.js"
+    ]
+  },
+  "host_result": {
+    "package_name": "DCIM_T06_IV2_B4B5_BOUNDED_REPAIR_1_CORRECTION_1_20260902T153552Z.zip",
+    "bytes": 179492,
+    "sha256": "b0bd3bd93d6deefc1ff242770628ddfc4e97d6e7a9e7d0756a8120c1061c0fce",
+    "result": "PASS_PENDING_CORRECTED_IV3",
+    "tests": {
+      "candidate": "63/63",
+      "governed": "161/161",
+      "full_host": "362/362"
+    }
+  },
+  "corrected_iv3": {
+    "task_id": "T06-CORRECTED-IV3-1",
+    "result": "PASS_PENDING_PRINCIPAL_CLOSEOUT",
+    "finding_count": 0,
+    "read_only_invariants": "PASS",
+    "reported_package_sha256": "466191b50e41bf7a8e7d1726e855c719da72cf6b396b291b310a0d66895c2925",
+    "terminal_transcript_sha256": "7e6b0f1f57e2a1c9ba36528e38a44e1e8f8e95c0f7322c4a4eeabba527e4e0f2"
+  },
+  "expected_postimages": [
+    {
+      "path": "server/dart/candidatePacket.js",
+      "bytes": 16581,
+      "sha256": "8da30ce8a2d748db655af40f83ddb1560fc5ca787b54ac1c9a1b6a71fe5bbce7",
+      "git_blob_sha1": "7d5ad55df1af04e93c9fff89148caa4e2424b8f0"
+    },
+    {
+      "path": "server/dart/candidatePacket.test.js",
+      "bytes": 30464,
+      "sha256": "68adad38f5be74f20e7aea54413b1e487eaa6cacc75348ead19e5065935f6e72",
+      "git_blob_sha1": "7c3ceee86e010e8362e2ce58ec7b00499a675be4"
+    },
+    {
+      "path": "server/dart/index.js",
+      "bytes": 323,
+      "sha256": "1bfb1ac09a317bc0e718ed5abf760b33e161ffb50f8b722a294619511f8675e4",
+      "git_blob_sha1": "66c65ae13a53c3a96d1102f496d5a1ec399947a7"
+    }
+  ],
+  "clean_checkout_reproducibility": {
+    "fixture_path": "data/dart-v0.9/fixtures/h8r1/candidate/orangetown/source/R04_ROWS_DATA_CENTER_RESPONSE_BODY.json",
+    "fixture_present_in_public_git": false,
+    "missing_fixture_bytes": 26184,
+    "missing_fixture_sha256": "f8764a096f91bfac498f3e838a0e57382930dcb86a0bbf599db089b1398ba182",
+    "classification": "FIXTURE_HYDRATION_GAP_NOT_PRODUCT_FAILURE",
+    "candidate_suite_clean_checkout_observation": "2/63 passed; 61/63 failed with ENOENT for the same missing fixture",
+    "affected_platforms": [
+      "ubuntu-latest",
+      "macos-latest"
+    ],
+    "policy": "Do not alter the accepted T06 source or tests to make a public clean checkout pass. Establish a privacy-reviewed, content-addressed fixture hydration path as a separate durability task before fixture-dependent CI becomes a required promotion gate."
+  },
+  "ci_history": [
+    {
+      "commit": "97e2051b4fbf04efe87e85edc6d4f454b7ca12c9",
+      "classification": "WORKFLOW_CONSTRUCTION_FAILURE",
+      "reason": "matrix context was referenced at workflow-level concurrency before matrix expansion"
+    },
+    {
+      "commit": "b2c0158a220577158d064de518ca205bce69520a",
+      "run_id": 33680929690,
+      "classification": "FIXTURE_HYDRATION_GAP_NOT_PRODUCT_FAILURE",
+      "passed_before_stop": [
+        "exact changed-path set",
+        "all three accepted postimage byte counts and SHA-256 values",
+        "locked dependency installation",
+        "25-criteria/10-task specification validation"
+      ]
+    }
+  ],
+  "write_allowlist": [
+    "server/dart/candidatePacket.js",
+    "server/dart/candidatePacket.test.js",
+    "server/dart/index.js",
+    "docs/engineering/T06_RECONCILIATION_MANIFEST.json",
+    ".github/workflows/t06-reconciliation.yml"
+  ],
+  "prohibited": [
+    "rerun_T06",
+    "rewrite_historical_evidence",
+    "change_evidence_law",
+    "publish_internal_exact_fixture",
+    "live_source_admission",
+    "deployment",
+    "publication"
+  ],
+  "promotion_condition": "All three GitHub files match the exact accepted postimages; the integrity workflow passes; the principal explicitly accepts the imported host and corrected-IV3 evidence; and no claim is made that public clean-checkout fixture-dependent tests ran."
+}
