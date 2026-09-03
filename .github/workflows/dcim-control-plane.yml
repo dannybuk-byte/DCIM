@@ -2,25 +2,20 @@ name: DCIM control plane
 
 on:
   pull_request:
-    paths:
-      - 'tools/dcim-control/**'
-      - '.dcim/**'
-      - '.github/workflows/dcim-control-plane.yml'
-      - 'package.json'
-      - 'AGENTS.md'
-  push:
-    paths:
-      - 'tools/dcim-control/**'
-      - '.dcim/**'
-      - '.github/workflows/dcim-control-plane.yml'
-      - 'package.json'
-      - 'AGENTS.md'
+    branches:
+      - agent/dart-v0.9
+  workflow_dispatch:
 
 permissions:
   contents: read
 
+concurrency:
+  group: dcim-control-plane-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
   qualify:
+    name: qualify (${{ matrix.os }})
     strategy:
       fail-fast: false
       matrix:
@@ -28,18 +23,166 @@ jobs:
           - ubuntu-latest
           - macos-latest
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 10
+    timeout-minutes: 15
+
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - name: Check out exact task head
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+
+      - name: Set up Node 22
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with:
           node-version: '22'
+
+      - name: Verify canonical T06 predecessor
+        if: github.head_ref == 'feat/dcim-control-plane-v1' || github.ref_name == 'feat/dcim-control-plane-v1'
+        shell: bash
+        run: |
+          set -euo pipefail
+          node <<'NODE'
+          const fs = require('node:fs');
+          const crypto = require('node:crypto');
+
+          const expected = [
+            {
+              path: 'server/dart/candidatePacket.js',
+              bytes: 16581,
+              sha256: '8da30ce8a2d748db655af40f83ddb1560fc5ca787b54ac1c9a1b6a71fe5bbce7',
+            },
+            {
+              path: 'server/dart/candidatePacket.test.js',
+              bytes: 30464,
+              sha256: '68adad38f5be74f20e7aea54413b1e487eaa6cacc75348ead19e5065935f6e72',
+            },
+            {
+              path: 'server/dart/index.js',
+              bytes: 323,
+              sha256: '1bfb1ac09a317bc0e718ed5abf760b33e161ffb50f8b722a294619511f8675e4',
+            },
+          ];
+
+          for (const item of expected) {
+            const bytes = fs.readFileSync(item.path);
+            const sha256 = crypto.createHash('sha256').update(bytes).digest('hex');
+            console.log(`${item.path}\tbytes=${bytes.length}\tsha256=${sha256}`);
+            if (bytes.length !== item.bytes || sha256 !== item.sha256) {
+              throw new Error(`T06 predecessor mismatch: ${item.path}`);
+            }
+          }
+
+          const manifest = JSON.parse(
+            fs.readFileSync('docs/engineering/T06_RECONCILIATION_MANIFEST.json', 'utf8'),
+          );
+          if (manifest.status !== 'PRINCIPAL_ACCEPTED_CANONICAL') {
+            throw new Error('T06 reconciliation status is not canonical');
+          }
+          if (
+            manifest.canonical_merge?.commit !==
+            'a2082dba90be990818c293a42a425f9bbd86707a'
+          ) {
+            throw new Error('T06 canonical merge commit mismatch');
+          }
+          if (manifest.canonical_merge?.decision !== 'T06_CLOSED') {
+            throw new Error('T06 closeout decision mismatch');
+          }
+          console.log('T06_CANONICAL_PREDECESSOR=PASS');
+          NODE
+
+      - name: Validate governed specification bundle
+        run: node scripts/validate_spec_bundle.mjs
+
       - name: Control-plane unit and adversarial tests
         run: node --test tools/dcim-control/test/control-plane.test.mjs tools/dcim-control/test/control-plane-hardening.test.mjs
-      - name: Validate qualification manifest
-        run: node tools/dcim-control/cli.mjs validate .dcim/tasks/HARNESS-QUALIFICATION.example.json
-      - name: Verify generated canonical state is reproducible
+
+      - name: Validate and diagnose qualification manifest
+        shell: bash
         run: |
-          cp .dcim/state/current.generated.json /tmp/current.before.json
-          node tools/dcim-control/cli.mjs rebuild-state >/tmp/rebuild.json
-          diff -u /tmp/current.before.json .dcim/state/current.generated.json
+          set -euo pipefail
+          node tools/dcim-control/cli.mjs validate .dcim/tasks/HARNESS-QUALIFICATION.example.json
+          node tools/dcim-control/cli.mjs doctor .dcim/tasks/HARNESS-QUALIFICATION.example.json
+
+      - name: Verify generated canonical state is reproducible
+        shell: bash
+        run: |
+          set -euo pipefail
+          before="$RUNNER_TEMP/current.before.json"
+          cp .dcim/state/current.generated.json "$before"
+          node tools/dcim-control/cli.mjs rebuild-state > "$RUNNER_TEMP/rebuild-output.json"
+          chmod 0644 .dcim/state/current.generated.json
+          diff -u "$before" .dcim/state/current.generated.json
+          git diff --exit-code -- .dcim/state/current.generated.json
+
+          node <<'NODE'
+          const fs = require('node:fs');
+          const state = JSON.parse(
+            fs.readFileSync('.dcim/state/current.generated.json', 'utf8'),
+          );
+          const t06 = state.tasks?.T06;
+          if (!t06) throw new Error('T06 missing from canonical state');
+          if (t06.execution_state !== 'SUCCEEDED') {
+            throw new Error(`Unexpected T06 execution state: ${t06.execution_state}`);
+          }
+          if (t06.governance_state !== 'PRINCIPAL_ACCEPTED') {
+            throw new Error(`Unexpected T06 governance state: ${t06.governance_state}`);
+          }
+          if (t06.transport_state !== 'CONSUMED') {
+            throw new Error(`Unexpected T06 transport state: ${t06.transport_state}`);
+          }
+          console.log('T06_CANONICAL_STATE=PASS');
+          NODE
+
+      - name: Run, independently verify, and reuse the qualification task
+        shell: bash
+        run: |
+          set -euo pipefail
+          manifest='.dcim/tasks/HARNESS-QUALIFICATION.example.json'
+          run_json="$RUNNER_TEMP/run.json"
+          verify_json="$RUNNER_TEMP/verify.json"
+          reuse_json="$RUNNER_TEMP/reuse.json"
+
+          node tools/dcim-control/cli.mjs run "$manifest" > "$run_json"
+          run_id="$(
+            node -e "const r=require(process.argv[1]); if(r.execution_state!=='SUCCEEDED'||!r.run_id) process.exit(1); process.stdout.write(r.run_id)" "$run_json"
+          )"
+
+          node tools/dcim-control/cli.mjs verify "$run_id" > "$verify_json"
+          node tools/dcim-control/cli.mjs run "$manifest" > "$reuse_json"
+
+          node - "$run_json" "$verify_json" "$reuse_json" <<'NODE'
+          const fs = require('node:fs');
+          const [runPath, verifyPath, reusePath] = process.argv.slice(2);
+          const run = JSON.parse(fs.readFileSync(runPath, 'utf8'));
+          const verify = JSON.parse(fs.readFileSync(verifyPath, 'utf8'));
+          const reuse = JSON.parse(fs.readFileSync(reusePath, 'utf8'));
+
+          if (run.execution_state !== 'SUCCEEDED') {
+            throw new Error('Qualification execution did not succeed');
+          }
+          if (verify.governance_state !== 'VERIFIED_PASS') {
+            throw new Error('Read-only qualification verification did not pass');
+          }
+          if (verify.read_only_invariants !== 'PASS') {
+            throw new Error('Verifier read-only invariants did not pass');
+          }
+          if (reuse.execution_state !== 'REUSED' || reuse.reused !== true) {
+            throw new Error('Successful idempotency key was not reused');
+          }
+          if (reuse.run_id !== run.run_id) {
+            throw new Error('Idempotent reuse returned a different run');
+          }
+          console.log('HARNESS_EXECUTION=PASS');
+          console.log('HARNESS_READ_ONLY_VERIFICATION=PASS');
+          console.log('HARNESS_IDEMPOTENT_REUSE=PASS');
+          NODE
+
+      - name: Confirm product source remained untouched
+        shell: bash
+        run: |
+          set -euo pipefail
+          git diff --exit-code -- \
+            server/dart/candidatePacket.js \
+            server/dart/candidatePacket.test.js \
+            server/dart/index.js

@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "task_id": "T06-GIT-RECONCILIATION-1",
-  "status": "REMOTE_POSTIMAGE_HASH_VERIFIED_PENDING_PRINCIPAL_CLOSEOUT",
+  "status": "PRINCIPAL_ACCEPTED_CANONICAL",
   "base": {
     "branch": "agent/dart-v0.9",
     "commit": "9ee19aa8700f564fdbda0aab72a08392d4b3acf0",
@@ -18,6 +18,14 @@
       "server/dart/candidatePacket.test.js",
       "server/dart/index.js"
     ]
+  },
+  "canonical_merge": {
+    "pull_request": 6,
+    "commit": "a2082dba90be990818c293a42a425f9bbd86707a",
+    "merged_at": "2026-09-03T03:57:32Z",
+    "principal": "Daniel Buk",
+    "decision": "T06_CLOSED",
+    "fixture_hydration_gap": "OPEN_SEPARATE_DURABILITY_TASK"
   },
   "host_result": {
     "package_name": "DCIM_T06_IV2_B4B5_BOUNDED_REPAIR_1_CORRECTION_1_20260902T153552Z.zip",
@@ -105,5 +113,5 @@
     "deployment",
     "publication"
   ],
-  "promotion_condition": "All three GitHub files match the exact accepted postimages; the integrity workflow passes; the principal explicitly accepts the imported host and corrected-IV3 evidence; and no claim is made that public clean-checkout fixture-dependent tests ran."
+  "promotion_condition": "SATISFIED: exact postimages verified; integrity workflow passed; principal accepted T06; PR #6 squash-merged at a2082dba90be990818c293a42a425f9bbd86707a; public clean-checkout fixture-dependent replay remains explicitly unclaimed."
 }

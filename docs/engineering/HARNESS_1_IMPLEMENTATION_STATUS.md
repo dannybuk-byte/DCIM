@@ -2,8 +2,21 @@
 
 **Version:** 0.1.1  
 **Branch:** `feat/dcim-control-plane-v1`  
-**Base:** `agent/dart-v0.9`  
-**Status:** implemented in an isolated review branch; not yet merged or admitted as the canonical executor
+**Base:** canonical T06 commit `a2082dba90be990818c293a42a425f9bbd86707a` on `agent/dart-v0.9`  
+**Reconciliation merge:** `3bc390a60c41f835678130cd0956cc12978462ef`  
+**Status:** reconciled onto canonical T06; renewed qualification pending; not yet merged or admitted as the canonical executor
+
+## Canonical predecessor
+
+T06 is closed and canonical at `a2082dba90be990818c293a42a425f9bbd86707a`.
+
+The exact protected product identities carried into this branch are:
+
+- `server/dart/candidatePacket.js` — SHA-256 `8da30ce8a2d748db655af40f83ddb1560fc5ca787b54ac1c9a1b6a71fe5bbce7`;
+- `server/dart/candidatePacket.test.js` — SHA-256 `68adad38f5be74f20e7aea54413b1e487eaa6cacc75348ead19e5065935f6e72`;
+- `server/dart/index.js` — SHA-256 `1bfb1ac09a317bc0e718ed5abf760b33e161ffb50f8b722a294619511f8675e4`.
+
+The accepted host evidence remains CandidatePacket `63/63`, governed DART `161/161`, and full host `362/362`. Corrected IV3 passed with zero findings and read-only invariants PASS. The private H8-R1 fixture-hydration gap remains open as a separate durability task and does not reopen T06.
 
 ## Implemented controls
 
@@ -25,7 +38,15 @@
 
 ## Qualification contract
 
-The checked-in qualification runs the base and hardening suites, validates the example manifest, and proves that the committed generated state can be rebuilt byte-for-byte from the accepted event ledger.
+The branch must now requalify on both Ubuntu and macOS after T06 reconciliation. Qualification requires:
+
+1. exact verification of the three accepted T06 postimages;
+2. validation of the governed 25-criteria/10-task specification bundle;
+3. all control-plane unit and adversarial tests passing;
+4. the qualification manifest validating and passing `doctor`;
+5. canonical state rebuilding byte-for-byte from `.dcim/state/events.jsonl`;
+6. the T06 task reducing to `SUCCEEDED / PRINCIPAL_ACCEPTED / CONSUMED`;
+7. no product-source mutation by HARNESS-1.
 
 The tests cover the T06 failure corpus at the control boundary: `/tmp` dependencies, shell/argv ambiguity, stage-label comparison, dirty-host input binding, unauthorized writes, protected-path mutation, writer Git mutation, canonical-repository mutation, repeated execution, duplicate artifact requests, bounded correction exhaustion, state-machine conflation, read-only verification, and failed-promotion cleanup.
 
@@ -35,16 +56,15 @@ Version 0.1.1 rejects manifests that request network access, sockets, dependency
 
 No hosted model integration, push, deployment, live-source admission, or automatic merge is included.
 
-## Integration boundary
-
-The current corrected T06 CandidatePacket result exists in Daniel Buk's separate Mac worktree and evidence packages. This branch was intentionally based on the last available GitHub `agent/dart-v0.9` commit and does not claim to contain or close that later local T06 state. Merge planning must first reconcile the exact Mac postimage with the GitHub branch without rewriting either evidence history.
-
 ## Merge acceptance
 
-HARNESS-1 should become canonical only after:
+HARNESS-1 may become canonical only after:
 
-1. CI succeeds on Linux and macOS;
-2. the PR diff receives principal review;
-3. the exact T06 postimage is reconciled into Git history through a separate bounded task;
-4. the first real task manifest is prepared for M1/M2;
-5. no new bespoke mega-carrier is introduced during that migration.
+1. renewed CI succeeds on Linux and macOS at the reconciled branch head;
+2. exact T06 postimage checks pass;
+3. generated state is reproducible and records T06 as principal-accepted;
+4. the PR diff receives principal review;
+5. no new bespoke mega-carrier is introduced during migration;
+6. the fixture-hydration and host-containment limitations remain explicit.
+
+After canonical merge, M1/M2 will be the first real task commissioned through HARNESS-1. T07, provider-gateway work, live-source admission, deployment, and publication remain separate tasks.
