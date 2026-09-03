@@ -17,6 +17,9 @@
     "test:ui": "vitest --ui",
     "test:run": "vitest run",
     "test:coverage": "vitest run --coverage",
+    "dcim:control": "node tools/dcim-control/cli.mjs",
+    "dcim:control:test": "node --test tools/dcim-control/test/control-plane.test.mjs tools/dcim-control/test/control-plane-hardening.test.mjs",
+    "dcim:control:doctor": "node tools/dcim-control/cli.mjs doctor",
     "postinstall": "node -e \"const fs = require('fs'); const dir = 'node_modules/echarts/lib/chart/sankey'; try { fs.mkdirSync(dir, { recursive: true }); fs.writeFileSync(dir + '/install.js', '// Stub file\\nexport function install() {}\\n'); console.log('✅ Created echarts stub'); } catch(e) { console.warn('⚠️ Could not create echarts stub:', e.message); }\""
   },
   "dependencies": {

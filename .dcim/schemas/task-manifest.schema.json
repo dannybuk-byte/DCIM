@@ -1,0 +1,143 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:dcim:task-manifest:v1",
+  "title": "DCIM task manifest v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "task_id",
+    "objective",
+    "repository",
+    "write_allowlist",
+    "protected_paths",
+    "capabilities",
+    "budgets",
+    "writer",
+    "gates"
+  ],
+  "properties": {
+    "schema_version": { "const": 1 },
+    "task_id": { "type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{2,127}$" },
+    "objective": { "type": "string", "minLength": 8 },
+    "repository": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["base_ref"],
+      "properties": {
+        "base_ref": { "type": "string", "minLength": 1 },
+        "expected_commit": { "type": "string", "pattern": "^[0-9a-fA-F]{40}$" }
+      }
+    },
+    "inputs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["path", "sha256"],
+        "properties": {
+          "path": { "$ref": "#/$defs/repoPath" },
+          "sha256": { "type": "string", "pattern": "^[0-9a-fA-F]{64}$" }
+        }
+      }
+    },
+    "write_allowlist": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": { "$ref": "#/$defs/repoPath" }
+    },
+    "protected_paths": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": { "$ref": "#/$defs/repoPath" }
+    },
+    "capabilities": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["network", "git_mutation", "sockets", "dependency_install", "publication"],
+      "properties": {
+        "network": { "type": "boolean" },
+        "git_mutation": { "type": "boolean" },
+        "sockets": { "type": "boolean" },
+        "dependency_install": { "type": "boolean" },
+        "publication": { "type": "boolean" }
+      }
+    },
+    "budgets": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["correction_turns"],
+      "properties": {
+        "correction_turns": { "type": "integer", "minimum": 0, "maximum": 2 }
+      }
+    },
+    "writer": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["mode"],
+      "properties": {
+        "mode": { "enum": ["command", "none"] },
+        "command": { "$ref": "#/$defs/argv" },
+        "timeout_ms": { "type": "integer", "minimum": 100 }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "mode": { "const": "command" } } },
+          "then": { "required": ["command"] }
+        }
+      ]
+    },
+    "gates": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/gate" }
+    },
+    "verification": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "gates": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/gate" }
+        }
+      }
+    },
+    "promotion": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "commit_message": { "type": "string", "minLength": 1 },
+        "gates": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/gate" }
+        }
+      }
+    },
+    "metadata": { "type": "object" }
+  },
+  "$defs": {
+    "repoPath": {
+      "type": "string",
+      "minLength": 1,
+      "not": { "pattern": "(^/|(^|/)\\.\\.(/|$)|\\\\|^\\.$)" }
+    },
+    "argv": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "type": "string" }
+    },
+    "gate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "command"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^[A-Za-z0-9._-]+$" },
+        "command": { "$ref": "#/$defs/argv" },
+        "timeout_ms": { "type": "integer", "minimum": 100 },
+        "expected_exit_code": { "type": "integer", "minimum": 0 }
+      }
+    }
+  }
+}

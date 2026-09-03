@@ -1,0 +1,68 @@
+{
+  "schema_version": 1,
+  "task_id": "HARNESS-QUALIFICATION-1",
+  "objective": "Qualify the stable control plane without changing product source files.",
+  "repository": {
+    "base_ref": "HEAD"
+  },
+  "inputs": [],
+  "write_allowlist": [
+    "tools/dcim-control/.qualification-sentinel"
+  ],
+  "protected_paths": [
+    "server/dart/index.js",
+    "server/dart/candidatePacket.js",
+    "server/dart/candidatePacket.test.js"
+  ],
+  "capabilities": {
+    "network": false,
+    "git_mutation": false,
+    "sockets": false,
+    "dependency_install": false,
+    "publication": false
+  },
+  "budgets": {
+    "correction_turns": 0
+  },
+  "writer": {
+    "mode": "command",
+    "command": [
+      "node",
+      "-e",
+      "require('node:fs').writeFileSync('tools/dcim-control/.qualification-sentinel','qualified\\n')"
+    ],
+    "timeout_ms": 10000
+  },
+  "gates": [
+    {
+      "id": "control-plane-tests",
+      "command": [
+        "node",
+        "--test",
+        "tools/dcim-control/test/control-plane.test.mjs",
+        "tools/dcim-control/test/control-plane-hardening.test.mjs"
+      ],
+      "timeout_ms": 120000,
+      "expected_exit_code": 0
+    }
+  ],
+  "verification": {
+    "gates": [
+      {
+        "id": "control-plane-tests",
+        "command": [
+          "node",
+          "--test",
+          "tools/dcim-control/test/control-plane.test.mjs",
+          "tools/dcim-control/test/control-plane-hardening.test.mjs"
+        ],
+        "timeout_ms": 120000,
+        "expected_exit_code": 0
+      }
+    ]
+  },
+  "metadata": {
+    "allow_empty_delta": false,
+    "classification": "HARNESS_SELF_TEST_NOT_PRODUCT_EVIDENCE"
+  }
+}

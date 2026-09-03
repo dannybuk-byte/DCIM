@@ -1,0 +1,8 @@
+# Principal review is required for project-control and evidence-law surfaces.
+/.dcim/ @dannybuk-byte
+/tools/dcim-control/ @dannybuk-byte
+/.github/workflows/dcim-control-plane.yml @dannybuk-byte
+/AGENTS.md @dannybuk-byte
+/specs/ @dannybuk-byte
+/schemas/ @dannybuk-byte
+/server/dart/ @dannybuk-byte

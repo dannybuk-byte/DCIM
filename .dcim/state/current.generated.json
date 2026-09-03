@@ -1,0 +1,32 @@
+{
+  "artifacts": {
+    "b0bd3bd93d6deefc1ff242770628ddfc4e97d6e7a9e7d0756a8120c1061c0fce": {
+      "artifact_sha256": "b0bd3bd93d6deefc1ff242770628ddfc4e97d6e7a9e7d0756a8120c1061c0fce",
+      "consumed": 1,
+      "present": 1,
+      "requested": 0
+    }
+  },
+  "generated_at": "2026-09-03T04:06:06.000Z",
+  "schema_version": 1,
+  "tasks": {
+    "HARNESS-1": {
+      "execution_state": "CREATED",
+      "governance_state": "DRAFT",
+      "last_event_at": "2026-09-02T00:00:00.000Z",
+      "run_ids": [],
+      "task_id": "HARNESS-1",
+      "transport_state": "NOT_MATERIALIZED"
+    },
+    "T06": {
+      "execution_state": "SUCCEEDED",
+      "governance_state": "PRINCIPAL_ACCEPTED",
+      "last_event_at": "2026-09-03T04:06:06.000Z",
+      "latest_run_id": "T06-IV2-B4B5-BOUNDED-REPAIR-1-CORRECTION-1-RESUME-1",
+      "latest_verification_id": "T06-CORRECTED-IV3-1",
+      "run_ids": [],
+      "task_id": "T06",
+      "transport_state": "CONSUMED"
+    }
+  }
+}
