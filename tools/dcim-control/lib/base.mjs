@@ -14,7 +14,7 @@ export class ControlPlaneError extends Error {
   }
 }
 
-export const CONTROL_PLANE_VERSION = '0.1.1';
+export const CONTROL_PLANE_VERSION = '0.1.2';
 
 const EXECUTION_TERMINAL = new Set(['SUCCEEDED', 'FAILED', 'INTERRUPTED', 'REUSED']);
 const GOVERNANCE_ORDER = [
@@ -85,6 +85,19 @@ export async function writeJsonAtomic(filePath, value) {
   const handle = await fsp.open(temp, 'wx', 0o600);
   try {
     await handle.writeFile(data, 'utf8');
+    await handle.sync();
+  } finally {
+    await handle.close();
+  }
+  await fsp.rename(temp, filePath);
+}
+
+export async function writeTextAtomic(filePath, text, { mode = 0o600 } = {}) {
+  await fsp.mkdir(path.dirname(filePath), { recursive: true });
+  const temp = `${filePath}.${process.pid}.${crypto.randomUUID()}.tmp`;
+  const handle = await fsp.open(temp, 'wx', mode);
+  try {
+    await handle.writeFile(String(text), 'utf8');
     await handle.sync();
   } finally {
     await handle.close();

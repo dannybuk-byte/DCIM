@@ -128,3 +128,44 @@ No new bespoke mega-carrier should be introduced after this control plane is qua
 ## Containment limitation and next hardening boundary
 
 The v0.1.1 executor uses disposable worktrees and verifies canonical repository and Git invariants. Those controls prevent ordinary drift from being accepted and expose many escape attempts, but they are postcondition controls. They do not constitute a kernel-enforced sandbox around an arbitrary executable. Before a hosted or locally network-capable coding agent is admitted, add and qualify a platform containment adapter that restricts filesystem roots, network namespaces or egress, sockets, subprocesses, credentials, and environment inheritance. Until then, all four external capabilities remain fail-closed.
+## H1A canonical lifecycle boundary
+
+H1A repairs one trust-boundary defect: the v0.1.1 promotion path records only `PRINCIPAL_ACCEPTED` in canonical state. Version 0.1.2 instead imports an evidence-bound native lifecycle from the accepted run and its independent verification.
+
+### Native lifecycle profile
+
+Native accepted events carry `payload.lifecycle_profile = DCIM_NATIVE_ACCEPTED_V1`, a one-based sequence number, a declared event count, and one stable run ID. The ledger rejects duplicate event IDs, mixed run IDs, and any native transition that is not the exact canonical prefix/order.
+
+Historical imported events remain shape- and duplicate-validated but are not retroactively reclassified as native. This preserves the accepted T06 import while preventing new tasks from using the weaker historical shape.
+
+### Evidence binding
+
+Before branch creation, promotion verifies:
+
+- the exact manifest digest, base commit, task ID, run ID, and idempotency key;
+- exactly one runtime execution-start, execution-success, transport-present, and verification-success event;
+- the frozen patch digest and verification record;
+- every file and checksum in the content-addressed artifact directory;
+- the exact product path and product-file hash set.
+
+Promotion-generated `TRANSPORT_HASH_VERIFIED`, `TRANSPORT_CONSUMED`, and `PRINCIPAL_ACCEPTED` records are deterministic functions of the accepted evidence. Canonical event IDs are deterministic and collision checked.
+
+### Exact promotion path
+
+After the lifecycle is atomically appended in a disposable worktree, canonical state is regenerated and must report:
+
+```text
+execution_state   SUCCEEDED
+governance_state  PRINCIPAL_ACCEPTED
+transport_state   CONSUMED
+```
+
+The final path set must equal the writer-produced product paths plus the canonical ledger and generated state. Promotion gates may not alter any of those bytes. The implementation resets the index and stages only those named paths.
+
+### Recovery and idempotency
+
+A successful promotion writes a runtime-only `promotion.json` record binding the branch and commit. A repeated exact request reuses that commit only after checking its branch, parent, manifest, patch, verification, and final canonical task state. A mismatch fails closed. Failed attempts remove their temporary worktree and branch.
+
+### Meanings H1A does not claim
+
+A local promotion commit candidate is not a pushed branch, an open pull request, a passing trusted PR contract, or a merged canonical change. H1B will add accepted manifests, receipts, and base-trusted PR verification. H1C remains responsible for process isolation, credentials, locks, output/resource limits, and arbitrary agentic-writer safety.

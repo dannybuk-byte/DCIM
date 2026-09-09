@@ -62,3 +62,33 @@ Manifests declare `network`, `sockets`, `dependency_install`, `publication`, and
 ## Deliberate limitations
 
 v0.1.1 does not call a hosted model directly, push branches, deploy, publish, or provide an operating-system sandbox around an arbitrary child process. It detects end-state canonical-repository and Git mutations, but detection is not equivalent to kernel-level prevention. Until a macOS/Linux containment layer is qualified, manifests should invoke only deterministic local commands or a separately contained writer. Network publication remains a separate, explicit act.
+## Canonical native lifecycle in v0.1.2
+
+H1A narrows promotion to one evidence-bound native lifecycle. A promoted task is not merely marked accepted; its canonical ledger records, in order:
+
+```text
+EXECUTION_STARTED
+EXECUTION_SUCCEEDED
+TRANSPORT_PRESENT
+VERIFICATION_SUCCEEDED
+TRANSPORT_HASH_VERIFIED
+TRANSPORT_CONSUMED
+PRINCIPAL_ACCEPTED
+```
+
+The first four canonical records bind the exact corresponding runtime events. Promotion rehashes every content-addressed artifact file before creating a branch, binds the frozen patch and verification record, writes the lifecycle atomically in the disposable promotion worktree, regenerates canonical state, and requires the task to reduce to `SUCCEEDED / PRINCIPAL_ACCEPTED / CONSUMED`.
+
+`TRANSPORT_CONSUMED` in v0.1.2 means that the frozen run artifact was consumed into the promotion commit candidate. It does not claim that the branch was pushed, a pull request was opened, or the commit was merged. Those remote trust states remain outside H1A and are addressed by H1B.
+
+Promotion stages only the exact product paths plus:
+
+```text
+.dcim/state/events.jsonl
+.dcim/state/current.generated.json
+```
+
+It does not use `git add --all`. A repeated exact promotion reuses the already verified local promotion commit through a runtime-only promotion record; conflicting branches or records fail closed.
+
+### Explicit limits
+
+Version 0.1.2 does not add a promotion receipt, PR base-to-head verifier, GitHub workflow trust change, task lock, credential isolation, or OS-enforced filesystem/network sandbox. Arbitrary agentic writers remain prohibited until H1C containment is implemented.

@@ -279,10 +279,38 @@ test('transport ledger blocks requesting the same digest twice', async (t) => {
 
 test('event reduction keeps execution, governance, and transport states independent', () => {
   const events = [
-    { schema_version: 1, type: 'EXECUTION_STARTED', task_id: 'T', observed_at: '1', payload: { run_id: 'r' } },
-    { schema_version: 1, type: 'EXECUTION_SUCCEEDED', task_id: 'T', observed_at: '2', payload: { run_id: 'r' } },
-    { schema_version: 1, type: 'TRANSPORT_HASH_VERIFIED', task_id: 'T', observed_at: '3', payload: { artifact_sha256: 'b'.repeat(64) } },
-    { schema_version: 1, type: 'VERIFICATION_SUCCEEDED', task_id: 'T', observed_at: '4', payload: { verification_id: 'v' } },
+    {
+      schema_version: 1,
+      event_id: 'fixture-execution-started',
+      type: 'EXECUTION_STARTED',
+      task_id: 'T',
+      observed_at: '2026-09-04T00:00:00.000Z',
+      payload: { run_id: 'r' },
+    },
+    {
+      schema_version: 1,
+      event_id: 'fixture-execution-succeeded',
+      type: 'EXECUTION_SUCCEEDED',
+      task_id: 'T',
+      observed_at: '2026-09-04T00:00:01.000Z',
+      payload: { run_id: 'r' },
+    },
+    {
+      schema_version: 1,
+      event_id: 'fixture-transport-hash-verified',
+      type: 'TRANSPORT_HASH_VERIFIED',
+      task_id: 'T',
+      observed_at: '2026-09-04T00:00:02.000Z',
+      payload: { artifact_sha256: 'b'.repeat(64) },
+    },
+    {
+      schema_version: 1,
+      event_id: 'fixture-verification-succeeded',
+      type: 'VERIFICATION_SUCCEEDED',
+      task_id: 'T',
+      observed_at: '2026-09-04T00:00:03.000Z',
+      payload: { verification_id: 'v' },
+    },
   ];
   const state = reduceState(events).tasks.T;
   assert.equal(state.execution_state, 'SUCCEEDED');
