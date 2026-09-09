@@ -7,6 +7,10 @@ import {
   loadJson,
   writeJsonAtomic,
 } from './base.mjs';
+import {
+  isNativeAcceptedLifecycleEvent,
+  validateLedgerEvents,
+} from './promotion-lifecycle.mjs';
 
 export function controlPaths(repoRoot) {
   return {
@@ -71,10 +75,12 @@ export async function readJsonl(filePath, { allowMissing = true } = {}) {
       });
     }
   }
+  validateLedgerEvents(events);
   return events;
 }
 
 export function reduceState(events) {
+  validateLedgerEvents(events);
   const tasks = {};
   const artifacts = {};
   for (const event of events) {
@@ -92,13 +98,19 @@ export function reduceState(events) {
     };
     const task = tasks[taskId];
     task.last_event_at = event.observed_at;
+    if (isNativeAcceptedLifecycleEvent(event)) {
+      task.lifecycle_profile = event.payload.lifecycle_profile;
+      task.accepted_run_id = event.payload.run_id;
+    }
     switch (event.type) {
       case 'TASK_AUTHORIZED':
         task.governance_state = 'AUTHORIZED';
         break;
       case 'EXECUTION_STARTED':
         task.execution_state = 'RUNNING';
-        if (event.payload?.run_id) task.run_ids.push(event.payload.run_id);
+        if (event.payload?.run_id && !task.run_ids.includes(event.payload.run_id)) {
+          task.run_ids.push(event.payload.run_id);
+        }
         break;
       case 'EXECUTION_SUCCEEDED':
         task.execution_state = 'SUCCEEDED';
@@ -106,8 +118,9 @@ export function reduceState(events) {
         task.latest_run_id = event.payload?.run_id;
         break;
       case 'EXECUTION_REUSED':
-        task.execution_state = 'REUSED';
-        task.latest_run_id = event.payload?.run_id;
+        if (task.execution_state !== 'SUCCEEDED') task.execution_state = 'REUSED';
+        task.latest_reuse_run_id = event.payload?.run_id;
+        task.reuse_count = (task.reuse_count ?? 0) + 1;
         break;
       case 'EXECUTION_FAILED':
         task.execution_state = event.payload?.interrupted ? 'INTERRUPTED' : 'FAILED';
@@ -150,9 +163,7 @@ export function reduceState(events) {
       if (event.type === 'TRANSPORT_CONSUMED') artifacts[digest].consumed += 1;
     }
   }
-  const generatedAt = events.length
-    ? events.map((event) => event.observed_at).filter(Boolean).sort().at(-1) ?? null
-    : null;
+  const generatedAt = events.at(-1)?.observed_at ?? null;
   return {
     schema_version: 1,
     generated_at: generatedAt,

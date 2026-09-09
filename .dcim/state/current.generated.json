@@ -1,5 +1,11 @@
 {
   "artifacts": {
+    "40b9821cdbf44bfe78b4fa5ee3ca0f3a79c043149f9b36ce3c9c4a1c1a18af00": {
+      "artifact_sha256": "40b9821cdbf44bfe78b4fa5ee3ca0f3a79c043149f9b36ce3c9c4a1c1a18af00",
+      "consumed": 1,
+      "present": 1,
+      "requested": 0
+    },
     "b0bd3bd93d6deefc1ff242770628ddfc4e97d6e7a9e7d0756a8120c1061c0fce": {
       "artifact_sha256": "b0bd3bd93d6deefc1ff242770628ddfc4e97d6e7a9e7d0756a8120c1061c0fce",
       "consumed": 1,
@@ -7,7 +13,7 @@
       "requested": 0
     }
   },
-  "generated_at": "2026-09-03T04:06:06.000Z",
+  "generated_at": "2026-09-09T13:38:38.547Z",
   "schema_version": 1,
   "tasks": {
     "HARNESS-1": {
@@ -17,6 +23,20 @@
       "run_ids": [],
       "task_id": "HARNESS-1",
       "transport_state": "NOT_MATERIALIZED"
+    },
+    "HARNESS-1-H1A-CANONICAL-LIFECYCLE-1": {
+      "accepted_run_id": "HARNESS-1-H1A-CANONICAL-LIFECYCLE-1-1788586402653-70354ba24afd",
+      "execution_state": "SUCCEEDED",
+      "governance_state": "PRINCIPAL_ACCEPTED",
+      "last_event_at": "2026-09-09T13:38:38.547Z",
+      "latest_run_id": "HARNESS-1-H1A-CANONICAL-LIFECYCLE-1-1788586402653-70354ba24afd",
+      "latest_verification_id": "HARNESS-1-H1A-CANONICAL-LIFECYCLE-1-1788586402653-70354ba24afd-verify-1788629112077",
+      "lifecycle_profile": "DCIM_NATIVE_ACCEPTED_V1",
+      "run_ids": [
+        "HARNESS-1-H1A-CANONICAL-LIFECYCLE-1-1788586402653-70354ba24afd"
+      ],
+      "task_id": "HARNESS-1-H1A-CANONICAL-LIFECYCLE-1",
+      "transport_state": "CONSUMED"
     },
     "T06": {
       "execution_state": "SUCCEEDED",
