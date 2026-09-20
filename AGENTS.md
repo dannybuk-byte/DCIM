@@ -2,9 +2,10 @@
 
 **Project:** DCIM / EFF data-center evidence-control application  
 **Workstream:** DART v0.9 source-to-screen proof  
-**Starting commit:** `e7e95553ee44b218077ee3352470364d0a7cb81f`  
-**Planned writer worktree:** `/Users/daniel/Desktop/DCIM_WORKTREES/dart-v0.9`  
-**Planned branch:** `agent/dart-v0.9`
+**Historical starting commit:** `e7e95553ee44b218077ee3352470364d0a7cb81f`  
+**Historical workspace plan:** worktree `dart-v0.9`, branch `agent/dart-v0.9`.
+
+Use the active task to identify the root, branch, HEAD, and worktree role. A selected local checkout is not automatically a designated canonical, writer, or verifier worktree.
 
 ## 1. Authority and load order
 
@@ -18,17 +19,19 @@ Use this order when instructions conflict:
 
 Agent completion is not approval. No agent may authorize a ruling, source admission, rights determination, commit, push, deployment, publication, outreach, purchase, or credential use.
 
-## 2. Current verified capability boundary
+## 2. Capability and claim boundary
 
-- The real corroborated corpus contains **zero rows**.
+Read these boundaries with the dated evidence in `STATUS.md`; code presence alone does not establish current test or runtime success.
+
+- The historical Phase-1 corpus baseline in `STATUS.md` records **zero corroborated rows**. A later corpus claim requires dated evidence; this code-and-record review does not remeasure it.
 - The serving engine fails closed rather than serve unproven data.
-- Zero New York official-record adapters are connected to scoring.
-- The NYISO adapter exists and is fixture-tested, but is unwired and has not been run against live data.
-- DART research bytes exist outside the application path, but this repository has no DART parser, adapter, connected ingest path, packet, API route, or UI path yet.
+- No live New York official-record ingest into the serving corpus is established by the reviewed records.
+- Historical Phase-1 records describe NYISO as fixture-tested, unwired, and not run against live data. This review does not requalify its current connection or runtime state.
+- DART parser, identity, clock, lineage, and CandidatePacket code exist under `server/dart/`; the packet code calls the admission/scoring gate. This does not establish live ingest or a DART API/UI path.
 - No current detection or measured lead-time claim is valid.
 - BGP, CT, DNS, WHOIS/RDAP, ASN, peering, and other owner-layer signals are permanently ineligible for the facility corroboration floor.
 
-Do not soften, upgrade, or generalize these statements without new dated evidence scoped to the exact commit and environment.
+Do not soften, upgrade, or generalize these statements without new dated evidence scoped to the exact commit and environment. Reconcile historical plans and draft task entries with the applicable accepted lifecycle records; they do not by themselves reopen closed work or authorize a new act.
 
 ## 3. DART v0.9 objective
 
@@ -70,7 +73,7 @@ Required conduct:
 
 ## 5. Work and agent boundary
 
-- One writer operates in this worktree. Parallel agents may inspect, but only the designated writer edits.
+- One writer operates in the authorized writer worktree. Parallel agents may inspect, but only the designated writer edits.
 - Claude Code's default role for this workstream is independent read-only verifier after the writer freezes the diff.
 - During T01, all agents are read-only and must stop after the preflight/code-map report is frozen.
 - Read-only Git commands are allowed when required: `git status`, `git diff`, `git show`, `git log`, and `git rev-parse`.
@@ -79,9 +82,9 @@ Required conduct:
 - Do not change `MIN_SOURCES_FOR_SCORES = 2` or the canonical-origin floor semantics.
 - Do not edit the frozen specification or acceptance criteria to make implementation easier. Surface a conflict and stop.
 
-## 6. Stage-0 / T01 commands
+## 6. Historical Stage-0 / T01 command reference
 
-Safe now:
+These initial-preflight examples are not standing execution authorization; the active task must authorize execution:
 
 ```bash
 git rev-parse --show-toplevel
@@ -126,7 +129,7 @@ Every task return must include:
 
 ## 9. Stable control plane for all new implementation tasks
 
-After `HARNESS-1` is qualified, do not create new bespoke mega-carriers or use a conversation as the state database. New implementation tasks must use:
+Use the adopted `HARNESS-1` control plane; do not create new bespoke mega-carriers or use a conversation as the state database. Adoption does not establish OS-enforced containment or authorize arbitrary agentic writers; the explicit capability limits in `tools/dcim-control/README.md` still apply. New implementation tasks must use:
 
 - one manifest under `.dcim/tasks/`;
 - the stable executor at `tools/dcim-control/cli.mjs`;
