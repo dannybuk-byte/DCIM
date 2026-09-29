@@ -1,6 +1,8 @@
-# Architecture
+# Architecture — earlier WWW disclosure-observability design
 
-This document describes the architecture of the WWW disclosure-observability project. It expands on the compact summary in [`README.md`](./README.md) and is the canonical reference for the four-layer data architecture, the three analytical outputs, and the review layer that sits between them.
+> **Scope note · 29 September 2026:** This page records the four-layer, three-output WWW architecture. It is background for Data Center Docket, whose current public-record buildout direction is introduced in [`README.md`](./README.md). Read its “current” and “operational” descriptions as statements from this earlier architecture, not as a fresh runtime check. For the dated implementation record and facility-claim boundary, use [`STATUS.md`](./STATUS.md), [`AGENTS.md`](./AGENTS.md), and the [DART specification](./specs/dart-v0.9/spec.md). Public network observations remain support-only for facility claims; they never satisfy the independent-official-act floor.
+
+This document explains how the earlier WWW disclosure-observability design grouped four data layers, three analytical outputs, and a review layer. It remains available so collaborators can trace that design and see where later Data Center Docket work grew from it.
 
 ## Contents
 
@@ -159,7 +161,7 @@ These boundaries follow from the architecture, not from stylistic preference. Th
 
 ## Subsystem status
 
-Subsystem status is attested against the frozen review commit named in STATUS.md at the repository root.
+This table reflects the dated review described in [`STATUS.md`](./STATUS.md). It is not a live status dashboard; check that record and the active specification before relying on a listed subsystem.
 
 | Subsystem | Status | Location |
 | --- | --- | --- |
@@ -188,7 +190,7 @@ Documented for collaborator visibility:
 
 ## Colophon
 
-- Document version: v1 draft, ⟨publication date pending⟩
-- Repository snapshot: ⟨commit hash pending⟩ on `stabilization/2026-05`
-- Methodological standard: Meta-Methodological Operating Standard v3.6
-- Link verification status: ⟨pending behavioral attestation at publication⟩
+- Original draft metadata retained: v1; publication date and commit were not filled in.
+- Earlier branch named by the draft: `stabilization/2026-05`.
+- Methodological standard named by the draft: Meta-Methodological Operating Standard v3.6. Check later governing records for the current method.
+- Original link-attestation placeholder was not completed in this document.
