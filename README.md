@@ -4,7 +4,16 @@
 
 I'm building Data Center Docket to connect those original records to a site and phase: who is named, what changed, what conflicts and which act comes next. A municipality can prepare to negotiate; workers and neighbors can ask their own questions from the same source-linked case.
 
-[Open the visual Docket](https://dannybuk-byte.github.io/DCIM/) · [Explore public signals](https://dannybuk-byte.github.io/DCIM/public-signal-atlas.html) · [Compare existing tools](https://dannybuk-byte.github.io/DCIM/comparison.html)
+[Open the visual guide](https://dannybuk-byte.github.io/DCIM/) · [Explore public signals](https://dannybuk-byte.github.io/DCIM/public-signal-atlas.html) · [Compare existing tools](https://dannybuk-byte.github.io/DCIM/comparison.html)
+
+## Two products, two kinds of permission
+
+| Intended product | Question it helps answer | Evidence it may use |
+|---|---|---|
+| **Public Docket** | What is taking shape here, and which public decision comes next? | Original public acts, with network observations kept as leads. |
+| **Traffic and Workload Stewardship Console** | Where did a service, task or recovery attempt break down, and did a control help? | Only scoped operational data supplied with permission and worker/privacy protections. |
+
+Both are intended parts of the project. Public Docket is the first shipping focus; the Console has its own authority and review. Neither is a deployed, integrated product, and private telemetry cannot turn a weak public facility claim into a confirmed one.
 
 ![One sourced case can support different questions from workers, residents, buyers and reviewers](docs/audiences/overview.svg)
 
@@ -23,7 +32,7 @@ I'm building Data Center Docket to connect those original records to a site and 
 
 The proposed public workflow starts with **money, permission and power**: incentive agreements, planning and environmental decisions, municipal records and relevant power proceedings. Public BGP/RIPE RIS, DNS, certificate transparency, RDAP/ASN, peering, parcel and imagery observations can point toward a lead. They cannot confirm a facility, identify a tenant or reveal private traffic.
 
-A facility claim needs **two eligible, institutionally independent official acts about the same proposition, site and phase**, with human review of copies, amendments and contrary records. Packet inspection and private telemetry belong in a separate, expressly authorized operational study. A public clue grants no access to an operator's network.
+A facility claim needs **two eligible, institutionally independent official acts about the same proposition, site and phase**, with human review of copies, amendments and contrary records. Packet inspection and private telemetry belong only in a separately authorized Console study. A public clue grants no access to an operator's network.
 
 The [issue pitches](docs/audiences/issue-bridges.md) show how one reviewed case could inform municipal procurement, Computational Antitrust, CAP policy attention, insurance, community obligations and worker decisions. Each use has its own authority and proof requirement.
 
@@ -31,6 +40,6 @@ The [issue pitches](docs/audiences/issue-bridges.md) show how one reviewed case 
 
 ## Build and review
 
-[Current status](STATUS.md) · [Claim rules](AGENTS.md) · [Architecture](ARCHITECTURE.md) · [Contribute](CONTRIBUTING.md)
+[Current status](STATUS.md) · [Claim rules](AGENTS.md) · [Earlier WWW architecture](ARCHITECTURE.md) · [Contribute](CONTRIBUTING.md)
 
 The visual guides are published on GitHub Pages. Older implementation notes record earlier experiments and should be read against the current [STATUS](STATUS.md).

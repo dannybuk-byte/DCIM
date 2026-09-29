@@ -1,3 +1,5 @@
+> **Historical interface milestone · reviewed 29 September 2026.** The “production ready,” 11,992-facility and real-time language below refers to earlier UI implementation and demo behavior, not a live official-record detector or deployed product. The dated [STATUS.md](./STATUS.md) records a zero-row corroborated baseline; [AGENTS.md](./AGENTS.md) governs current claims.
+
 # Mission Control Grid - Implementation Summary
 
 ## ✅ COMPLETED: New Architecture for Data Density & Navigability
@@ -535,4 +537,5 @@ All architecture decisions documented in:
 **This is how you hold data centers accountable at scale.**
 
 ✅ IMPLEMENTATION COMPLETE
+
 

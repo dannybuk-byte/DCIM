@@ -1,3 +1,5 @@
+> **Historical handoff · reviewed 29 September 2026.** “Production Ready,” 11,992 facilities and updating metrics below describe an earlier browser prototype and its simulated data, not a production detector or live facility telemetry. The dated [STATUS.md](./STATUS.md) records a zero-row corroborated baseline and no live official-record-to-interface path; use [AGENTS.md](./AGENTS.md) for the current claim boundary.
+
 # DCIM Compliance Dashboard - Comprehensive Handoff Document
 
 **Date**: January 1, 2026  
@@ -1372,4 +1374,5 @@ All major features implemented:
 For questions or clarifications, refer to this document first, then ask Daniel.
 
 Good luck! 🚀
+
 

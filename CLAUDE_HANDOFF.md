@@ -1,3 +1,5 @@
+> **Historical handoff · reviewed 29 September 2026.** This January 2026 dashboard handoff preserves an earlier prototype. Its “fully functional” language, 11,992-facility count, live indicators and organizing examples do not establish a corroborated real-site corpus or deployed product. The dated [STATUS.md](./STATUS.md) records a zero-row corroborated baseline; [AGENTS.md](./AGENTS.md) sets the current claim and work boundaries.
+
 # 🤝 Claude Handoff Document
 
 **Project**: DCIM Compliance App - Data Center Accountability Dashboard  
@@ -1088,3 +1090,4 @@ Recent screenshots demonstrate the visual interactivity:
 This document should provide complete context for continuing development. If anything is unclear or missing, consult the referenced documentation files or examine the codebase directly.
 
 **Good luck! 🚀**
+

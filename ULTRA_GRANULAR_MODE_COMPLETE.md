@@ -1,3 +1,5 @@
+> **Historical UI prototype · reviewed 29 September 2026.** Per-server CPU, memory, network and two-second metrics below describe an earlier simulated deep-dive design. Public records and BGP/DNS observations cannot supply those readings; real operator data requires separate authorization. The dated [STATUS.md](./STATUS.md) and [AGENTS.md](./AGENTS.md) govern current status and claim eligibility.
+
 # ULTRA-GRANULAR MODE - Beyond Maximum Depth ✅
 
 ## Overview
