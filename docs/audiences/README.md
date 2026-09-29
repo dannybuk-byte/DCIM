@@ -1,6 +1,6 @@
 # Data Center Docket: audience-specific development invitations
 
-> **Start with the visual comparison:** [Open the rendered product matrix](./comparison.md). GitHub shows the SVG inside that page. The interactive HTML files are available as [standalone downloads](https://raw.githubusercontent.com/dannybuk-byte/DCIM/docs/audience-development-invitations-20260929/docs/audiences/index.html); opening an HTML file in GitHub's repository viewer shows its source until Pages is deployed.
+> **Start with the visual comparison:** [Open the rendered product matrix](./comparison.md). GitHub shows the SVG inside that page. The interactive HTML files are retained for later hosting; the Markdown links below are the visual reading path now.
 
 ![Audience atlas overview: open public signals through distinct constituency decisions](./overview.svg)
 
