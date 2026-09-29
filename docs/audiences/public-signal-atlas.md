@@ -35,7 +35,7 @@ These are proposed audience views, not proven automated products or claims about
 
 ## Full source register
 
-Each entry states what a source reveals, how it can enrich a case, where inference stops and what access or reuse review is needed. A filterable HTML research edition is also stored in this directory for local or hosted viewing. This Markdown edition is the reading path that renders directly on GitHub.
+Each entry states what a source reveals, how it can enrich a case, where inference stops and what access or reuse review is needed. The [filterable interactive atlas](https://dannybuk-byte.github.io/DCIM/public-signal-atlas.html) is published on GitHub Pages. This Markdown edition renders directly inside the repository.
 
 ### Official decisions
 
