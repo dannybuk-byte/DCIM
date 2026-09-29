@@ -1,0 +1,29 @@
+name: Publish audience atlas
+on:
+  push:
+    branches: [agent/dart-v0.9]
+    paths:
+      - docs/audiences/**
+      - .github/workflows/audience-pages.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+concurrency:
+  group: audience-pages
+  cancel-in-progress: false
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: docs/audiences
+      - id: deployment
+        uses: actions/deploy-pages@v4
