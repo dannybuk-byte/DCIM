@@ -4,6 +4,8 @@
 
 ![Audience atlas overview: open public signals through distinct constituency decisions](./overview.svg)
 
+> **Comparison:** [Read the GitHub comparison chart](./comparison.md) · [Open the interactive product map](./comparison.html) · [Explore 61 public signal families](./public-signal-atlas.html).
+
 > **Issue-first pitches:** [Buildout detection, Computational Antitrust, CAP policy tracking, DPI municipal procurement, assurance and coalition bridges](./issue-bridges.md).
 
 **Daniel Buk · 29 September 2026**
