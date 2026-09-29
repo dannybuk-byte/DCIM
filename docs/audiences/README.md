@@ -2,19 +2,36 @@
 
 > **Visual edition:** [Open the audience atlas HTML](./index.html) · [Download the standalone HTML](https://raw.githubusercontent.com/dannybuk-byte/DCIM/docs/audience-development-invitations-20260929/docs/audiences/index.html). The interactive page is prepared for GitHub Pages; deployment follows repository review and Pages configuration.
 
-![Audience atlas overview: one evidence trail and four editorial clusters](./overview.svg)
+![Audience atlas overview: open public signals through distinct constituency decisions](./overview.svg)
+
+> **Issue-first pitches:** [Buildout detection, Computational Antitrust, CAP policy tracking, DPI municipal procurement, assurance and coalition bridges](./issue-bridges.md).
 
 **Daniel Buk · 29 September 2026**
 
-Data Center Docket is Daniel Buk's personal research and software project to make digital infrastructure's public commitments, technical dependencies, work, costs, rights, and useful services easier to inspect and act upon. Its proposed **Public Docket** would connect original records, versions, entities, site and project phases, contrary evidence, and corrections. A separately permissioned **Traffic and Workload Stewardship Console** is also part of the intended product: a consenting operator or user could examine an authorized task, artifact, service event, or recovery question. Public records do not grant access to private operational data. These are intended capabilities. Isolated local interface prototypes and bounded engineering work exist, but they do not establish live integration, accessible production use, formal qualification, or a deployable combined product.
+Data Center Docket is Daniel Buk's personal research and software project. Its **Public Docket begins with a proposed open-source, public-record and outside-the-fence OSINT buildout workflow**: gather dated, non-proprietary signals about potential data-center projects; preserve original records and revisions; resolve the relevant entity, site, building and phase; distinguish independent agency acts from echoes; show changes, contrary evidence and what record to seek next. Historical source families include IDA/PILOT incentives (**money**), DEC ENB/SEQR and municipal proceedings (**permission**), PSC/DPS and appropriate NYISO/utility records (**power**), retired-plant context, permits and imagery, with public entity/parcel/network metadata as **support**. Each proposed adapter needs source admission; a claim then needs eligibility review; publication is a separate human-governed decision. These source families have been researched, but this guide does not assert that they are all wired, admitted or running.
+
+A facility confirmation under the project's method requires **two eligible, institutionally independent official acts about the same proposition, site and phase**. Repeated rows, mirrors, press echoes, model agreement, DNS, certificate transparency, RDAP/ASN, BGP or peering hints do not satisfy that floor. Those public network signals can suggest questions but do not reveal a tenant, private workload, cable path or building-level traffic. A withheld or unresolved result is a valid output. No broad live detector or measured early-warning lead time is claimed.
+
+The same source-linked case can be structured for different decisions: residents see land use, cost and promised benefits; workers see job and training claims and who can act; public agencies see process and changed commitments; municipal buyers see requirements, supplier dependencies and exit; competition researchers see public procurement and intermediary patterns with benign comparators; risk engineers see a precisely defined exposure; reporters see original acts and corrections. This is a proposed common evidence layer, **not one unrestricted data pool or one score**. A separately permissioned **Traffic and Workload Stewardship Console** remains a coequal intended product for authorized task, service and recovery evidence. Public records do not grant access to that plane. Local prototypes and bounded engineering work do not establish a deployable combined product.
 
 The same documented case can help several constituencies make *different* decisions. A resident can question a public benefit; a worker can test whether a repair task is safe, authorized, skilled, and paid; a buyer can require a usable exit; a service team can measure restoration under consent. Each keeps its own authority and may disagree. Canadian digital sovereignty is one possible application of these methods, alongside repair, labor governance, public procurement, community accountability, useful AI, and shared infrastructure.
 
-**Common invitation:** Help choose one real decision and an adverse or contrary case. With an authorized lead, permissions, and an actual budget, we could scope a bounded, compensated research or development exercise with explicit data rights, an authorized reviewer, comparison to current practice, a reusable software component where appropriate, and an output the relevant people can challenge. An initial contribution can instead be a narrow technical or methodological critique with no access to protected records. A plausible result is that the existing practice performs better. A public facility-confirmation claim requires two eligible, institutionally independent official acts addressing the same site, phase, and proposition; that rule does not decide every legal, technical, or social question elsewhere in the product.
+**Common invitation:** Help choose one real public buildout case, a decision it affects and an adverse or contrary case. For a non-buildout lens, specify its own object, evidence rights and reviewer. With an authorized lead, permissions, and an actual budget, we could scope a bounded, compensated research or development exercise with explicit data rights, an authorized reviewer, comparison to current practice, a reusable software component where appropriate, and an output the relevant people can challenge. An initial contribution can instead be a narrow technical or methodological critique with no access to protected records. A plausible result is that the existing practice performs better. A public facility-confirmation claim requires two eligible, institutionally independent official acts addressing the same site, phase, and proposition; that rule does not decide every legal, technical, or social question elsewhere in the product.
 
-**How to use this page:** Each entry states a recipient-owned decision, a concrete way to assist development, and a bridge to other constituencies. One candidate first software experiment is a source/version/claim/correction record that a second reviewer can reconstruct and challenge. A permissioned operational test requires a separately consenting operator and restricted environment. The wider entries are collaboration hypotheses, not 46 simultaneous MVP commitments, customers, funded work packages, or invitations to publish anyone's private correspondence. If proposing code or data, first agree on a small test fixture, rights, review authority, and maintenance owner; a public GitHub issue is not a place for confidential records or personal contact details.
+**How to use this page:** Each entry states a recipient-owned decision, a concrete way to assist development, and a bridge to other constituencies. One candidate first software experiment is an open-source adapter and source/version/site/phase/origin/claim/correction record that a second reviewer can reconstruct and challenge. A permissioned operational test requires a separately consenting operator and restricted environment. The wider entries are collaboration hypotheses, not 46 simultaneous MVP commitments, customers, funded work packages, or invitations to publish anyone's private correspondence. If proposing code or data, first agree on a small test fixture, rights, review authority, and maintenance owner; a public GitHub issue is not a place for confidential records or personal contact details.
 
 The invitations below are **proposals, not established collaborations or contact commitments**. Named organizations identify topical audiences, not their support for Docket. No historical correspondence, affiliate organization, award, program, or draft confers authority to speak for anyone else. The project should not publish protected worker, patron, customer, or operational records without a separately valid basis. Any public demo must mark illustrative material, public evidence, authorized test results, and inference separately.
+
+## The common source-to-decision method
+
+| Stage | Proposed output | Claim boundary |
+|---|---|---|
+| Public discovery | Dated official acts, versions and support-only OSINT leads in a candidate queue | A clue or requested MW is not a facility finding or built capacity. |
+| Resolution | Explicit entity, parcel/site, building, phase, event clocks and SAME/DISTINCT/UNRESOLVED origins | A repeated institutional source cannot create a second independent act. |
+| Review | Claim-specific evidence, conflicts, human disposition, correction history and next record | Two eligible independent official acts are required for a public facility confirmation at the same site/phase/proposition. |
+| Tailored views | A source card, timeline, map and decision memo or export appropriate to the recipient | A geographic rendering or synthetic coalition bridge adds no evidence. |
+
+See the [issue-first and coalition pitches](./issue-bridges.md) for detailed development requests across detection, competition, CAP, DPI procurement, insurance and other lenses. The 46 cards below are audience entry points, not the complete technical pitchbook.
 
 ## Repair, labor, and accountable commitments
 
@@ -54,10 +71,10 @@ The invitations below are **proposals, not established collaborations or contact
 - **Development invitation:** Define a decision memo's necessary fields and review a prototype that exposes original acts, institutional independence, conflicts, and the next record to request.
 - **Bridge and check:** Residents and buyers test whether the missing act would change their decisions. A release or queue megawatt number is neither site approval nor completed capacity.
 
-### 07. Public-service purchasers and procurement teams
+### 07. Municipal and public-service purchasers — DPI procurement and usable exit
 
-- **Decision and case:** Can an authorized receiving team actually diagnose, update, recover, or transfer a named service after a supplier change?
-- **Development invitation:** Write one pre-award functional acceptance test and its exception/remedy fields; test our export with a second qualified reviewer.
+- **Decision and case:** Can a municipality or public-service buyer trace a buildout-dependent service requirement from tender to award, contract amendment, implementation and an authorized receiving-side test after supplier change?
+- **Development invitation:** Map one public procurement lifecycle into versioned requirements, supplier dependencies, evidence, exceptions and remedies; write one functional acceptance and exit test with a second qualified reviewer.
 - **Bridge and check:** Repair practitioners and workers check usable access and safe paid skill. An export file or passing profile may still fail in service, and integrated support is a legitimate comparator.
 
 ### 08. Pension and labor-capital institutions
@@ -86,13 +103,13 @@ The invitations below are **proposals, not established collaborations or contact
 - **Development invitation:** If personally interested, critique a minimal, privacy-preserving event model and a falsifiable question about its errors before any specialist referral. Any later risk-engineering study needs its own qualified counterpart and permission.
 - **Bridge and check:** Bring user authorization, technical service, and risk terms into one bounded test. A personal discussion is no insurance sponsorship or access to customer data.
 
-### 12. Insurers, reinsurers, brokers, and risk engineers
+### 12. Insurance and risk engineering — defined recovery exposures
 
 - **Decision and case:** In a consented fault drill, which diagnostic, authorization, repair, and restoration intervals affect a specifically defined loss?
 - **Development invitation:** Help define incident-stage data and a comparator for a permissioned prototype; keep policy wording and actual coverage review separate.
 - **Bridge and check:** Operators supply authorized records, workers define safe task authority, buyers define continuity. Faster recovery in one stage does not automatically reduce insured loss; parallel intervals and transferred harm matter.
 
-### 13. Technical assurance, legal, and investigation professionals
+### 13. Independent assurance — reconstructable claims and exceptions
 
 - **Decision and case:** Can an independent reviewer reconstruct a version-qualified claim, contrary evidence, correction, and authority from an export?
 - **Development invitation:** Critique a structured provenance/exception package and run a blinded receiving-side reconstruction test.
@@ -104,7 +121,7 @@ The invitations below are **proposals, not established collaborations or contact
 - **Development invitation:** With rights-holder and customer permission, help model a versioned reference and contract-dependency case adjacent to existing price and site products.
 - **Bridge and check:** Buyers, operators, and risk reviewers test different exposures. Docket claims no index feed rights, price prediction, exchange status, or guarantee that a hedge restores service.
 
-### 15. Competition researchers, regulators, and antimonopoly organizations
+### 15. Computational Antitrust — procurement and intermediary controls
 
 - **Decision and case:** Does a particular procurement or service dependency constrain meaningful alternatives, and what innocent or superior-service explanation remains?
 - **Development invitation:** Help specify a counter-hypothesis and public-evidence review workflow, with bidder-sensitive material segregated if an authorized case requires it.
@@ -196,7 +213,7 @@ The invitations below are **proposals, not established collaborations or contact
 - **Development invitation:** Help specify a public-source adapter and decision table with uncertainty, provenance, and phase changes; compare it with existing planning practice.
 - **Bridge and check:** Residents test burden and workers test task/skills implications. Queue megawatts, observed load, household bills, and jobs are not interchangeable.
 
-### 27. Governments, public-compute institutions, and DPI implementers
+### 27. DPI and municipal public-compute procurement implementers
 
 - **Decision and case:** Can a public institution procure, operate, support, move, and govern a useful service after supplier or leadership change?
 - **Development invitation:** Choose one institutional receiving-side test with authority, accessible service, maintenance, training, and contractual remedies; compare jurisdiction-specific options.
@@ -208,7 +225,7 @@ The invitations below are **proposals, not established collaborations or contact
 - **Development invitation:** Support a bounded evidence/authority prototype only with a named decision maker and independent evaluator.
 - **Bridge and check:** Public-capability and safety questions intersect; a benchmark, building, or grant cannot itself establish regulatory authority.
 
-### 29. DPI, public-capability, and public-value researchers
+### 29. DPI, public-capability and public-value researchers — policy overlay
 
 - **Decision and case:** In a library or public-compute case, does reuse produce a maintained, accessible, accountable service with an effective exit?
 - **Development invitation:** Help test a governance-and-maintenance schema and receiving-side user task against ordinary documents and existing navigators.
