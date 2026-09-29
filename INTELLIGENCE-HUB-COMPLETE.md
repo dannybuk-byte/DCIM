@@ -1,3 +1,5 @@
+> **Historical prototype note · reviewed 29 September 2026.** The facility, findings, confidence, root-cause and predicted-degradation examples below are illustrative UI content, not adjudicated cases or current production results. See [STATUS](STATUS.md) and [claim rules](AGENTS.md).
+
 # 🎉 Unified Intelligence Hub - COMPLETE!
 
 ## ✅ What Was Just Built
