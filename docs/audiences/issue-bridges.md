@@ -1,11 +1,11 @@
-# Data Center Docket: eleven ways to use the same evidence well
+# Data Center Docket: eleven questions, several starting points
 
 **Daniel Buk · 29 September 2026 · public development proposals**  
 [Interactive audience atlas](https://dannybuk-byte.github.io/DCIM/) · [Audience guide](./README.md) · [Visual comparison](./comparison.md) · [Public signal atlas](./public-signal-atlas.md)
 
-![Proposed public evidence workflow: eligible official acts and support-only network clues become a reviewed case, then five distinct audience decisions](./issue-bridge-workflow.svg)
+![Proposed Public Docket and separately authorized Stewardship Console begin with different evidence and permissions, while reusing review and correction methods](./issue-bridge-workflow.svg)
 
-Public records can tell us a great deal about a data-center project, but rarely in one place. An incentive agreement may name the developer. An environmental notice may describe a new phase. A power proceeding may show a changed request. I want Data Center Docket to bring those records together, show where they agree or conflict, and let people use the same reviewed case to ask different questions. This remains my personal research and software project; worker-centered work informs it, but no organization or prospective partner has authorized me to speak for it here.
+An incentive agreement, environmental notice and power filing may describe one project under different names. That is one way into Data Center Docket. A repair question can instead start with a product version and access term; a public-service question with a contract; a workload question with separately authorized task events. The tools could reuse source versions, exact claims, review and correction. The evidence and permission do not travel with them. This remains my personal research and software project; worker-centered work informs it, but no organization or prospective partner has authorized me to speak for it here.
 
 ## Start with the buildout record
 
@@ -13,9 +13,19 @@ The first development task is an open-source workflow for finding and reviewing 
 
 BGP/RIPE RIS and other routing data, DNS, certificate transparency, RDAP/ASN and peering records can sharpen a question. They cannot identify a tenant, read a private workload or packet, locate a cable, or confirm a facility. A public facility claim needs **two eligible, institutionally independent official acts** for the same proposition, site and phase. Admission of a source, eligibility of a claim and authorization to publish are separate decisions. A case can remain a candidate, disputed or withheld.
 
-The reusable case record is deliberately plain: **original source, version, dates, precise claim, entity, site, phase, institutional origin, contrary evidence, status and correction**. A policy code, contract, product test or financial instrument needs its own documented link and evidence rule. The proposed Public Docket and separately permissioned Traffic and Workload Stewardship Console are distinct, coequal products; public records do not grant access to operational telemetry. The source families have been researched, but this page does not claim a live statewide detector, complete adapters or measured early-warning lead time.
+The public facility case keeps **original source, version, dates, precise claim, entity, site, phase, institutional origin, contrary evidence, status and correction**. A policy code, contract, product test or financial instrument needs its own documented link and evidence rule. The proposed Public Docket and separately permissioned Traffic and Workload Stewardship Console are coequal intended products; public records do not grant access to operational telemetry. The source families have been researched, but this page does not claim a live statewide detector, complete adapters or measured early-warning lead time.
 
 **First build request:** Take one permitted public source, one disputed site match and one changed phase. Build a source adapter, an origin-aware review queue and a case export that another person can reconstruct. Compare it with manual research and an existing tracker: missed acts, false joins, time to reviewed answer and correction effort. Agree on rights, reviewers, paid participation where needed and a maintainer before a pilot.
+
+## Choose the evidence for the question
+
+| Start with | What must be checked | Possible decisions |
+|---|---|---|
+| A public project act | Same proposition, site and phase; two eligible independent institutional acts for a facility confirmation | Community bargain, hearing, jobs or power question |
+| A contract, policy item, disclosure or market instrument | Exact clause or statement, parties, version, scope and a relevant contrary explanation | Procurement, CAP, competition, WARN–SEC or compute-market review |
+| A product test, incident or task event | Separate authority, exact version and requirement, protected records, a comparator and a way to challenge the result | Repair, recovery, assurance or useful-workload decision |
+
+The diagram shows these separate doors. A public site case can inform another inquiry when a documented link exists; it cannot supply a private test, a legal conclusion or a market price by proximity alone.
 
 ## Eleven issue pitches
 

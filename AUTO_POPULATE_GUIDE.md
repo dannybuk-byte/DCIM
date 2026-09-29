@@ -1,3 +1,5 @@
+> **Historical prototype guide · reviewed 29 September 2026.** The 11,992-facility network-data coverage and operator-specific RPKI/security statements below are earlier prototype examples, not verified coverage of real data centers. Public network observations cannot confirm a facility and do not satisfy the official-act floor. See the dated [STATUS.md](./STATUS.md) and [AGENTS.md](./AGENTS.md).
+
 # 🚀 Auto-Population Feature Added!
 
 ## What's New
@@ -227,4 +229,5 @@ After auto-population, you can:
 ---
 
 **🎉 Congratulations!** Your DCIM Compliance App now has NotebookLM-level research capabilities with real data from your BGP security research!
+
 

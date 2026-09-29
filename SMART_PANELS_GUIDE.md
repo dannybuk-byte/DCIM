@@ -1,3 +1,5 @@
+> **Historical UI guide · reviewed 29 September 2026.** The “LIVE” counters, 11,992-facility denominator, dollar gap and “production ready” status below describe an earlier interface concept and demo state, not measured live facility data. The dated [STATUS.md](./STATUS.md) records a zero-row corroborated baseline; [AGENTS.md](./AGENTS.md) governs current claims.
+
 # Smart Panels: Maximum Density Interface Guide
 
 ## Overview
@@ -417,4 +419,5 @@ This is the future of command center interfaces.
 **Last Updated**: January 1, 2026  
 **Version**: 1.0.0  
 **Status**: ✅ Production Ready
+
 

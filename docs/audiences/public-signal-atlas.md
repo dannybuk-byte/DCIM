@@ -2,11 +2,11 @@
 
 ![Four source lanes: 15 official-record families, 17 site and community families, 19 Internet-observation families, and 10 conditional or restricted families. Only eligible, independent official acts can confirm a public facility claim.](./public-signal-map.svg)
 
-A data center can appear in a tax request, a power filing or an environmental notice before neighbors see construction. The question is whether those records describe the **same place and phase**—and what the decisions mean for jobs, public money and the people who live nearby.
+An IDA considers a tax break. A utility files a power request. A local board reviews a site plan. If those records concern the **same place and phase**, what is the public being asked to approve—and what comes back to workers and neighbors?
 
 This atlas maps **61 candidate source families**. Fifteen concern official records, seventeen help resolve place, people and ownership, nineteen are Internet observations, and ten have conditional or restricted access. It is a research guide, not 61 feeds connected to the app.
 
-**How the pieces fit:** identify the applicant and site; put original acts, amendments and corrections in date order; set power and jobs commitments alongside them; use BGP, RIPE RIS, DNS and registration clues to decide what else to check. Then write a brief that links the acts, names the conflicts and says what is still unknown. A longer list of clues can deepen a case without making a weak claim stronger.
+**How the pieces fit:** find the applicant and parcel, then put original decisions, amendments and corrections on a timeline. Read the power request beside the jobs and tax terms. BGP, RIPE RIS, DNS and registration changes can point to a record worth seeking; they do not establish a building. The resulting brief should let a reader open each act, see any conflict and know the next question to ask.
 
 **What would confirm a facility claim:** the strict public floor requires two eligible official acts from institutionally independent sources about the same site, phase and proposition. An agency notice that repeats another agency's act shares its origin. An aggregator, company statement or network observation cannot supply a second official act. Source admission, claim review and publication are separate decisions.
 
@@ -27,21 +27,21 @@ The bars in the graphic count entries in this guide. They do not measure evidenc
 
 | Reader | First question | Useful handoff |
 |:--|:--|:--|
-| Residents | What is proposed near us, and when is the next decision? | Dated timeline, original acts, open questions and next hearing |
-| Municipal buyers / DPI | What does the public get in return, and can it change vendors? | Contract terms, amendments and repair or interoperability questions |
-| Workers / training groups | Who gets the work, at what wage, and is the promise enforceable? | Jobs pledge next to signed terms and later compliance records |
-| Insurance / assurance | Which risks have a documented control and which need a test? | Permit conditions and authorized evidence still to request |
-| Competition / CAP researchers | Who gets access, and when did the issue enter the public agenda? | Subsidy, grid and procurement inquiry tied to original acts and coded policy items |
+| Residents | What is proposed here, and when can we weigh in? | Original site plan, decisions so far, unresolved questions and next public date |
+| Municipal buyers / DPI | What does the city get, and can it change vendors? | Signed terms, amendments and the clause governing repair, data access or exit |
+| Workers / training groups | Which jobs were promised, at what wage, and who can enforce that? | Jobs pledge beside signed terms and later compliance reports |
+| Insurance / assurance | Which failure has a documented control, and what still needs testing? | Permit condition beside the authorized test or continuity record to request |
+| Competition / CAP researchers | Who gets access, and when did public bodies take up the issue? | Original subsidy, grid and procurement terms beside coded agenda items |
 
 These are proposed briefs for different readers, not validated automated products or findings about a named facility. The [interactive atlas](https://dannybuk-byte.github.io/DCIM/public-signal-atlas.html) lets you search and filter the families and try a fictional evidence example.
 
 ## Full source register
 
-Start with your question, then choose a source. Each entry says what it shows, what to pair it with, where the inference stops and what access or reuse terms to check.
+Start with the decision someone faces, then find its original record. Each entry shows what the source can answer, what other record to seek, where the inference stops and which access terms to check.
 
 ### Official decisions
 
-The original decision and the exact project matter. A statewide table or notice may repeat a local act; that repetition does not create another independent decision.
+Keep the board vote, order or permit tied to the exact project. A statewide table may repeat a local act; a second appearance is still one decision.
 
 - **[IDA agendas, resolutions & PILOT agreements](https://www.ny.gov/agencies/industrial-development-agencies)** · Local IDA. A project asks for or receives public financial assistance. **Join:** Tie named project, entity, site, dated jobs and tax terms to later environmental and power acts. **Limit:** An application is not an executed benefit or a built site. **Access:** Public local records; terms vary.
 - **[IDA project data / PARIS](https://data.ny.gov/Government-Finance/Industrial-Development-Agencies-Project-Data/sady-n996)** · NY Authorities Budget Office / OSC. Annual IDA-reported projects and assistance. **Join:** Compare local packets with later statewide reporting and revisions. **Limit:** A report of the same IDA act is an echo, not independent corroboration. **Access:** Public dataset; check license and lag.
@@ -83,7 +83,7 @@ Use these layers to locate a site, sort out company names and ask who may be aff
 
 ### Internet observations
 
-BGP, RIPE RIS, DNS, RDAP and public measurements show what was visible from a particular vantage at a particular time. They can guide a records search. They cannot identify the building, tenant, packet payload or physical cable path behind a route.
+A route changes; a domain appears; a registry lists a new holder. BGP, RIPE RIS, DNS, RDAP and public measurements can help decide which original record to seek next. Their vantage and date matter. None locates a building or tenant, exposes packet contents or maps a physical cable path.
 
 - **[BGP announcements and withdrawals](https://ris-live.ripe.net/manual/)** · RIPE RIS / RIS Live. Observed prefix, origin ASN and AS path at participating collectors. **Join:** Sequence network-footprint change against public project acts. **Limit:** No traffic volume, tenant, server address or building proof. **Access:** Public observations; commercial permission may be required.
 - **[BGP archive and API](https://api.routeviews.org/docs/)** · RouteViews. Collector RIBs and updates across vantage points. **Join:** Cross-check first/last observations and coverage. **Limit:** More collectors are measurement coverage, not agency independence. **Access:** Public API; rate limits/terms.
@@ -107,7 +107,7 @@ BGP, RIPE RIS, DNS, RDAP and public measurements show what was visible from a pa
 
 ### Conditional / restricted
 
-These ten families include paid, request-access and consented data. They are here to show what a later, authorized inquiry might use and what the public OSINT lane cannot claim to have.
+These ten families include paid, request-access and consented data. A later inquiry may use them with the right permission. This public guide does not claim access to operator flows, packets or service logs.
 
 - **[Internet scan summaries](https://docs.censys.com/docs/data-access-tiers-entitlements)** · Censys / Shodan. Third-party public-service observations. **Join:** Suggest a bounded organization-level research question. **Limit:** Free tiers limited; scan result does not locate internal hardware. **Access:** Proprietary tiers and reuse terms; no app scanning presumed.
 - **[Historical passive DNS / scans](https://opendata.rapid7.com/sonar.fdns_v2/)** · Rapid7 Sonar. Bulk DNS and scan snapshots. **Join:** Compare naming history where permission and license allow. **Limit:** Request access; scan data do not establish a facility. **Access:** Conditional access and redistribution.

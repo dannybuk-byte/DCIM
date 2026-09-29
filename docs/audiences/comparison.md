@@ -10,6 +10,15 @@
 
 A council staffer hears about a proposed data center. The power filing, permit and tax deal may be public, yet live in different portals under different names. **Docket is being built to connect the original acts to one site and phase, show conflicts, and prepare a brief that a council staffer, worker group or reporter can check.** Public BGP, DNS, certificate, RDAP and peering data can suggest a lead; they cannot replace two independent official acts for a facility claim. At the reviewed checkpoint, the facility corpus had zero corroborated rows, with no production automated memo pipeline or measured cost/speed advantage. See [`STATUS.md`](../../STATUS.md) and [`AGENTS.md`](../../AGENTS.md).
 
+## Two intended products
+
+| Route | Input and decision | Current boundary |
+|---|---|---|
+| **Public Docket** | Original public acts become a reviewed site case and a brief for a town, worker group or resident. | First shipping focus; no live official-record-to-interface path or production memo pipeline established. |
+| **Traffic and Workload Stewardship Console** | With separate permission, service, task and incident events could support a scoped recovery or useful-work test. | Coequal intention, separately governed; no operator integration or deployed Console established. |
+
+The chart below compares **public case outputs**. DCIM and DCAM tools answer operator questions with operator data. A future authorized Console study could compare a specified task with them; public OSINT and private telemetry do not count toward each other's evidence gates.
+
 ## One reviewed case, eight possible uses
 
 A site map, a hearing timeline and a worker brief can ask different questions of the same case. These are formats to pilot, not eight finished products. Original agency records may be free to read. Reuse rights, computing, upkeep, human review and corrections still have costs.
@@ -34,8 +43,8 @@ A site map, a hearing timeline and a worker brief can ask different questions of
 | National facility/market inventory and forecasts | GridTracker, DC Byte, datacenterHawk, Cleanview | Use these for market coverage. Docket would examine a bounded New York public case. |
 | Facility maps, timelines, briefs and alerts | Compute Atlas, datacenter.fyi, Civitar, FracTracker, GridTracker, AI GridWatch | Start with their map or brief. Test whether checking original acts, site/phase and conflicts changes the decision. |
 | Passive network OSINT and entity links | RIPE/RouteViews, Aleph, SpiderFoot, Maltego | BGP, DNS and related clues point to the next check. They cannot confirm a facility. No person profiling or unauthorized packet access. |
-| Asset inventory and IPAM | NetBox, Device42, Oomnitza, Sunbird dcTrack | Use these inside a facility. Any future Docket link needs operator authorization. |
-| Live rack power/cooling, alarms and incidents | Sunbird Power IQ, Schneider, Nlyte, Vertiv, Hyperview, openDCIM | Use these for operations. Public permits and network clues cannot reveal live racks; a future link would need authorized equipment data. |
+| Asset inventory and IPAM | NetBox, Device42, Oomnitza, Sunbird dcTrack | Use these inside a facility. A proposed Console export needs operator authorization, access controls and a task-specific purpose. |
+| Live rack power/cooling, alarms and incidents | Sunbird Power IQ, Schneider, Nlyte, Vertiv, Hyperview, openDCIM | Use these for operations. Public permits and network clues cannot reveal live racks; A Console study would need authorized equipment data and a defined incident question. |
 | Document OCR, annotation and retrieval | DocumentCloud, Aleph, Foundry | Use these to work with source documents. Docket could receive or export a reviewed packet. |
 | Automated policy memos and reports | FiscalNote, Quorum, Foundry, Civitar, AI GridWatch | Brief writing already exists. Test Docket on original acts, contrary evidence and an answer the intended reader can use. |
 | Independent-official-act publication gate | Configurable workbenches and trackers vary | Proposed rule: two independent official acts for the same claim, site and phase, with a visible reason to withhold. Test duplicates and negative cases. |
@@ -112,3 +121,4 @@ The links below lead to provider or official product pages. We summarize what th
 **What we can say now:** Docket is designed to turn one versioned public case into briefs for different readers, with a possible low source-license cost for a bounded case. We have not established a free total product, a discount, faster delivery, national coverage or parity with operator-side DCIM/DCAM.
 
 The interactive page also lists products explored earlier. We do not make current pricing or feature claims for them without a primary-source check.
+

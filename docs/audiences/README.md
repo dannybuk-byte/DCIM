@@ -18,7 +18,7 @@ A proposed data center may first appear in a tax agreement, an environmental not
 
 The proposed public workflow starts with **money, permission and power**: IDA/PILOT, DEC ENB/SEQR, municipal and relevant PSC/DPS, NYISO or utility acts. Retired-plant, permit, parcel and imagery records add context. Public BGP/RIPE RIS, DNS, certificate transparency, RDAP/ASN and peering observations can help find a lead; they cannot establish a tenant, private traffic or a facility. To confirm one precise facility proposition, the case needs **two eligible, institutionally independent official acts for the same site and phase**. Copies and press echoes do not count twice. A human reviewer can dispute or withhold the claim. The adapters are not all wired; there is no established live statewide detector or measured lead time.
 
-The same reviewed case can answer different questions. What did a community actually get? Which employer owes paid training? Can a public buyer replace a supplier and keep the service working? Each answer needs its own evidence and decision maker. A separate, permissioned Traffic and Workload Stewardship Console is an intended product for authorized service and recovery tests. Public records grant no access to private systems; existing prototypes do not amount to a deployable combined product.
+A reviewed public case can show whether a promised community benefit became binding and delivered, or which employer was named for training. A buyer testing supplier exit begins with its own tender, contract and authorized receiving-side task. Each has a different decision maker and evidence boundary. A separate, permissioned Traffic and Workload Stewardship Console is an intended product for authorized service and recovery tests. Public records grant no access to private systems; existing prototypes do not amount to a deployable combined product.
 
 **A useful first test:** Bring one public case, the decision it affects and a plausible contrary explanation. Build one source adapter and a site/phase/claim record a second reviewer can challenge. Compare it with current practice, including missed records, false matches, staff time and correction effort. Agree on rights, paid participation where appropriate, budget and maintenance before a pilot.
 
@@ -39,285 +39,279 @@ The [issue pitches](./issue-bridges.md) follow detection into competition, CAP, 
 
 ### 01. Interoperability critics and repair communicators — usable exit after interoperability promises
 
-If a provider moves a service, can the next qualified team actually repair this version? Follow the handoff through diagnostic history, credentials and contract rights, not just exported files.
+The exit test comes after the files move: can the next qualified team repair this service on its actual version? The technician tests the function; workers define paid authority; the buyer decides acceptance. Compare a case where integrated support performs better. An export alone proves no usable exit.
 
-**First test:** Ask a repair practitioner to try one receiving-side task and explain the failure in a one-page result. Workers define paid authority and buyers set acceptance; compare a case where integrated support works better. Any personal feedback request is opt-in.
+**First test:** Give a repair practitioner one authorized receiving-side task. Record the missing history, credential or right, and invite an opt-in critique of the result.
 
 ### 02. EFF interoperability and repair audiences
 
-A device can pass an interface test while the credential needed to maintain it stays locked away. Name the device, firmware, access term and lawful task before saying anything about repairability.
+A device may speak an open interface while the credential needed to fix it remains unavailable. Which exact task is blocked? Technical reviewers test function, workers paid authority and buyers the contract. Qualified counsel or specialists must assess repair-law scope and security exceptions; Docket makes no legal finding.
 
-**First test:** Review a public rights-and-dependency record and run one authorized function test with privacy controls. The technical team tests the function, workers test paid authority and the buyer tests a contract clause. Qualified reviewers decide which repair laws and security exceptions apply; any specialist referral needs permission.
+**First test:** With permission, test one device and firmware against a rights-and-dependency record and a privacy-controlled function trial. Ask before any specialist referral.
 
 ### 03. Unions and worker centers
 
-Let members choose the task: the maintenance job or AI-mediated decision they cannot safely perform or contest today. Then ask what equipment, access, paid training time and rights would change it.
+Members should choose the task first: the repair they cannot safely perform or the AI decision they cannot contest. Repairers may test tools and apprenticeship sponsors the skill path. Check whether added visibility could enable deskilling or outsourcing. Workers speak for themselves.
 
-**First test:** Co-design a protected evidence workflow with paid member trials and role-based disclosure. Include the possibility that greater diagnostic visibility enables outsourcing. Repairers and apprenticeship sponsors can test tools and skills, but workers decide their own question.
+**First test:** Pay members to test one protected workflow. Ask what access, training time, wages and appeal rights would change the task; let them set disclosure rules.
 
 ### 04. Labor, subsidy, and corporate-accountability researchers
 
-A project is sold or split into phases. Which party still owes the promised public benefit, and where is the obligation written? A corporate chart alone cannot transfer a duty.
+A project changes hands. Does its training or community promise travel with it, and which signed document says so? Residents name the promise, workers the employer and oversight staff the missing act. Corporate affiliation alone does not transfer a duty.
 
-**First test:** Trace one agreement through amendments and entity changes, keeping each original document. Compare false matches, correction time and analyst effort with current practice. Residents choose the promise; workers identify the employer; oversight staff locate the missing act.
+**First test:** Trace one agreement through amendments, phases and entity changes. Compare mistaken matches, correction time and analyst effort with current review.
 
 ### 05. Residents, host communities, and ratepayers
 
-A neighborhood should be able to ask whether one promised upgrade, service, training route or cost protection was ever made binding and delivered. Announced guidance and benchmarks are not enforceable benefits.
+When a developer promises jobs, an upgrade or rate protection, residents need to know what became binding and what arrived. Utility researchers examine bills, workers examine jobs and libraries examine whether a promised asset became a maintained service. An announcement is not delivery.
 
-**First test:** Build a readable source card and correction path with a paid community reviewer who controls disclosure and next action. Utility researchers can check bill effects, workers the jobs claim and libraries whether an asset became a maintained service.
+**First test:** Pay a community reviewer to test one source card and correction path; let that group decide what can be disclosed and what action follows.
 
 ### 06. Legislators, public agencies, and oversight offices
 
-For one site and phase, show the difference between a policy inquiry, queue entry, proposal, permit, executed agreement and delivered project. Those are different moments; a queue megawatt figure is not a completed facility.
+A legislator deciding whether to intervene needs the stage in plain view: inquiry, queue request, permit, agreement or delivery. Residents and public buyers can say whether the missing act changes their decision. Requested megawatts and a press announcement are not built capacity.
 
-**First test:** Have legislative or oversight staff specify the fields they need in a decision memo. Show original acts, independent origins, conflicts and the next record to request. Let residents and buyers say whether that record would change their decision.
+**First test:** Bring one oversight question. Draft a memo that links original acts, independent origins, conflicts and the next record staff should request.
 
 ### 07. Municipal and public-service purchasers — DPI procurement and usable exit
 
-A public buyer may receive every promised file and still be unable to run the service after a supplier change. Follow one requirement from tender through award, amendment, implementation and a qualified receiving-side test.
+A city can receive every contracted file and still be unable to run its service with another supplier. Repairers test access; workers test paid skill and safety; the public buyer decides acceptance. Compare incumbent support fairly. An export or passing profile alone does not settle the exit.
 
-**First test:** Map versions, dependencies, evidence, exceptions and remedies for one procurement. Write an acceptance and exit task that a second reviewer can try. Repairers and workers check access and paid skill; compare integrated support fairly.
+**First test:** Choose one procurement. Follow tender, award, amendment and implementation into an authorized handoff task, exception and proposed remedy term.
 
 ### 08. Pension and labor-capital institutions
 
-Workers may have an economic stake in an infrastructure investment without a right to obtain evidence or change a contractor's conduct. Trace one worker-chosen obligation through the fund, manager, vehicle, operator and contractor until an actual decision right appears.
+An investment gives workers an economic stake. Which written right lets the fund or its agent act on a worker-chosen obligation? Workers define the obligation and contract reviewers locate the decision right. Financial exposure by itself grants neither control nor benefit.
 
-**First test:** Model that instrument and authority chain using public documents, then compare it with current diligence. Keep protected member input separate. A contractual reviewer checks remedy; exposure alone establishes neither control nor benefit.
+**First test:** Follow one instrument from fund to manager, vehicle, operator and contractor. Compare its evidence and remedy rights with current diligence; protect member input separately.
 
 ### 09. Labor-capital scholars
 
-Labor capital becomes useful when a documented right can improve a worker-defined maintenance or continuity task. Which instrument gives which actor that right?
+Labor capital matters when a documented investment right changes a worker-defined task or service outcome. Tie the finding to an actual maintenance task and buyer term. Scholarship alone confers no representation, mandate, funding or endorsement.
 
-**First test:** Ask scholars to challenge one instrument-to-rights model and an adverse case where integrated support serves workers better. Connect the critique to actual tasks and buyer terms. Scholarship supplies neither representation, mandate, funding nor endorsement.
-
-## Finance, risk, markets, and technical service
+**First test:** Ask scholars to challenge one instrument-to-rights chain, including a case where integrated support better serves workers.
 
 ### 10. Infrastructure investors, lenders, and diligence advisers
 
-A lender can read a recovery clause without knowing whether the named asset can be replaced or restored under its stated conditions. Pin the instrument, asset and assumption down before building a risk story.
+A lender may have a recovery clause while the financed service has no workable replacement path. Operators and buyers test service reality; workers test the labor premise. A filing alone proves neither a fault nor impaired collateral.
 
-**First test:** Link one public clause to an authorized technical question, missing evidence and downside comparator. Operators and buyers check service reality; workers check the labor premise. A filing by itself proves no failure or impairment.
+**First test:** Take one public clause, name the asset and assumption, then list the permitted technical check, missing evidence and downside comparator.
 
 ### 11. Privacy-oriented assurance interlocutors
 
-Before promising cleaner or more efficient traffic, decide whose outcome improves, which minimal event is needed and how an incorrect judgment can be appealed. An ambiguous event is not a verdict on intent.
+Before anyone calls traffic wasteful, decide whose service improves and who can overturn a wrong judgment. Users, service teams and risk reviewers test different consequences of the same event. A personal exchange grants no insurance sponsorship or customer-data access.
 
-**First test:** Critique a privacy-preserving event model and a falsifiable error question. Any later risk study requires its own qualified, consenting counterpart. A personal exchange supplies neither insurance sponsorship nor customer-data access.
+**First test:** Invite an opt-in critique of one minimal event record, its privacy boundary and a falsifiable error question. A later risk study needs a separately consenting qualified party.
 
 ### 12. Insurance and risk engineering — defined recovery exposures
 
-If a service fails, where did the time go: detection, permission to act, diagnosis, repair or restoration? Only a defined loss lets those intervals mean something to a risk engineer.
+In a service outage, who was waiting on detection, permission, diagnosis, repair and restoration? Which delay belongs to the defined loss? Workers define safe paid authority, buyers continuity and risk engineers the loss. Overlapping stages and shifted harm matter. A faster repair does not establish coverage or lower insured loss.
 
-**First test:** In a consented fault drill, define incident-stage evidence and a comparator. Operators provide authorized records, workers define safe paid tasks and buyers define continuity. Check overlapping delays and transferred harm; faster repair alone does not prove less insured loss or coverage.
+**First test:** With a consenting operator, define one fault drill, incident-stage record and comparator before testing the permissioned console.
 
 ### 13. Independent assurance — reconstructable claims and exceptions
 
-Can a second reviewer reconstruct a claim, its version, contrary evidence, correction and decision authority without trusting the original author's summary?
+An assurance claim should survive a second reviewer who did not write the first summary. Buyers, repairers and residents may ask different questions of the trace. A reviewable package is not certification or a legal opinion.
 
-**First test:** Give an independent assessor a structured provenance and exception export for a blinded receiving-side trial. Buyers, repairers and residents may ask different questions of that trace. A reviewable package is not a certification or legal opinion.
+**First test:** Give that reviewer a blinded export with the original version, contrary evidence, exceptions, corrections and decision authority.
 
 ### 14. Silicon Data, benchmark, and compute-market infrastructure audiences
 
-A GPU price reference may move while the contracted service fails for another reason. Follow the licensed benchmark version, adopting clause, fallback, actual capacity and usable service separately.
+A GPU price reference can move while the contracted service fails for another reason. Which dependency matters in this deal? Buyers, operators and risk reviewers examine separate exposures. Docket has no feed right, price forecast, exchange status or guarantee that a hedge restores compute.
 
-**First test:** With rights-holder and customer permission, model one versioned contract dependency. Buyers, operators and risk reviewers examine different exposures. Docket claims no index feed right, price prediction, exchange status or guarantee that a hedge restores service.
+**First test:** With rights-holder and customer permission, map one licensed benchmark version to its adopting clause, fallback, actual capacity and usable service.
 
 ### 15. Computational Antitrust — procurement and intermediary controls
 
-A shared supplier may be efficient, or it may leave a public buyer with no meaningful alternative. The useful question is which dependency matters and what benign or superior-service explanation survives review.
+A public buyer sees the same intermediary in several bids. Can it still switch suppliers and keep the service working? Buyers test substitution and repairers test the replacement. A shared supplier or similar bids alone establish neither collusion nor liability.
 
-**First test:** Ask competition researchers to specify a counter-hypothesis and a public procurement evidence trail; segregate bidder-sensitive material. Buyers test substitution and repairers test implementation. Similar bids or shared vendors alone prove neither collusion nor liability.
+**First test:** Build one public procurement case and a competing cost, quality or service explanation. Keep bidder-sensitive material in a separately authorized study.
 
 ### 16. Data-center operators, developers, and service teams
 
-An operator knows the fault that matters to its service. A community may know the public promise that matters to it. These questions can inform each other without opening the same private records to everyone.
+The operator knows its recovery fault; the community knows its public promise. Each needs an evidence path with its own permissions. Keep private incident records under operator control and public commitments on their own source trail. Accept a negative result; one case need not join the two record sets.
 
-**First test:** With a willing sponsor and budget, scope a paid, permissioned fault study with qualified workers and independent risk review. Set data and publication terms before access, and accept a negative result. Private incidents remain private unless separately authorized.
+**First test:** With a willing sponsor and budget, scope one paid fault drill with qualified workers and independent risk review. Set data and publication terms before access.
 
 ### 17. Cloudflare and edge-service audiences
 
-At a gateway, a cancellation and a legitimate retry can look alike. With an opt-in customer, test the application task before treating either event as waste.
+A gateway event can be a useful cancellation or a legitimate retry. The customer's task decides which. Users, service teams and rights reviewers judge benefit and error together. Metadata cannot read intent or justify a universal slop label.
 
-**First test:** Define a minimal task ID and gateway-metadata connector, a false-block appeal and a quality/resource comparison. Users, service teams and rights reviewers check the result. Gateway data alone cannot identify intent or justify a universal “slop” label.
+**First test:** With an opt-in customer, test a minimal task ID, gateway metadata, false-block appeal and quality versus resource comparison.
 
 ### 18. Hugging Face and model-supply-chain collaborators
 
-For one deployment, can the receiving team tell exactly which model or artifact it received, under which card and license, and what its scan result does and does not say?
+A receiving team needs to know which model artifact arrived, under which card and license, and what the scan actually checked. Maintainers check the artifact trail; buyers check the service. No badge means unknown; it does not mean safe or compromised.
 
-**First test:** Build an opt-in version and provenance adapter with an exception and correction view for a permitted workflow. Maintainers check history; buyers test service meaning. A missing badge means unknown, not safe or compromised.
+**First test:** Test an opt-in provenance adapter on one permitted deployment, with pinned revision, exception and correction history.
 
 ### 19. Cloud and managed-service providers
 
-A customer can authorize a transfer and still discover that another team cannot operate the named function. History, security terms, cost and exceptions must move with the service.
+A customer may authorize an export and discover that the receiving team still cannot operate the named function. The buyer accepts the service; repairers and workers test capability. Portability, reserved capacity, price hedging and incident recovery require separate findings.
 
-**First test:** Run a sandboxed receiving-side transfer with a consenting customer and define success before the export. Buyers decide acceptance; repairers and workers check capability. Portability, reserved capacity, hedging and incident recovery remain separate claims.
+**First test:** Run one consented sandbox handoff. Agree first on success, exception, security term and cost, then try the task from the receiving side.
 
 ### 20a. Open Compute Project technical workstreams
 
-A management profile may pass while a qualified technician cannot perform the actual task on that device and firmware. Test the function at the bench under the correct role.
+A management profile may pass at the desk and fail at the bench on the actual firmware. Repairers test access and workers test paid authority. Conformance, recognition, safety review and legal repair rights remain distinct.
 
-**First test:** Select one profile and implement a lawful, reproducible conformance-to-task trial with buyer acceptance and exceptions. Repairers check access; workers check authority. A profile result, recognition program, safety review and legal repair right are distinct.
+**First test:** Select one profile, device, role and lawful task. Let a qualified technician run the function and let the buyer review the exception.
 
 ### 20b. Right-to-repair communities and advocates
 
-Start with the technician's blocked task, exact product version and claimed security reason. Then ask whether a narrower, lawful way to complete it exists.
+Start with the blocked repair: the product, version, task and stated security reason. Standards reviewers examine function; workers and buyers examine skill and acceptance. Contract, statute and safety may limit the route.
 
-**First test:** Specify the task and access evidence, conduct an authorized trial and explain what failed in plain language. Standards contributors test the function; workers and buyers test skill and acceptance. Contract terms, statutory exclusions and safety may limit the route.
+**First test:** Run one authorized task trial, keep the access record and test whether a narrower lawful route would resolve the block.
 
 ### 21. Uptime, iMasons, AFCOM, and infrastructure professional networks
 
-Incident comparisons mean little if one group starts the clock at detection and another at repair. Qualifications and overlapping delays matter too.
+Two outage reports cannot be compared if one clock starts at detection and the other at repair. Risk engineers, operators and workers can examine compatible intervals. This grants no network-wide participation, certification or access to private incidents; overlapping downtime is not additive.
 
-**First test:** Invite a willing professional subgroup to review stage definitions, role labels and a de-identified fixture for the permissioned console. Risk engineers, operators and workers can compare compatible observations. No network-wide participation, certification or access to real incidents is assumed.
-
-## Workforce, energy, public capacity, and governance
+**First test:** Ask a willing subgroup to challenge stage definitions, qualifications and a de-identified fixture for the permissioned console.
 
 ### 22a. Techsgiving — delivery pathway
 
-A training program matters when people can move from a documented infrastructure task into supervised practice and paid work. Where is that route blocked today?
+Training should lead from a named infrastructure task to supervised practice and paid work. Workers judge job quality; colleges and employers test entry. An earlier proposal is no Docket award, contract or placement.
 
-**First test:** With a willing, funded delivery lead, map one task to equipment access, employer sponsorship, paid time and conversion. Workers judge job quality; employers and colleges test entry arrangements. Earlier proposal material is no Docket award, contract or placement.
+**First test:** With a funded, willing delivery lead, map one task to equipment, employer sponsor, paid time and job conversion.
 
 ### 22b. Google.org — charitable program route
 
-A charitable program route should begin with an eligible, independently consenting lead and a community benefit the team can actually deliver. This personal project cannot assume a grant.
+A charitable program needs an eligible lead and a community benefit it can actually deliver. Recheck eligibility, sponsorship and current terms. This personal project has no assumed Google.org grant.
 
-**First test:** If a current program fits, scope one engineering or evaluation component with that lead, a budget and distinct worker-governance and delivery roles. Recheck eligibility, sponsorship and active terms before making any funding claim.
+**First test:** If a current program and independent lead fit, cost one engineering and evaluation component with worker governance and delivery roles explicit.
 
 ### 22c. Jobs for the Future — workforce evaluation route
 
-Course completion is a thin result if there is no paid practice, progression or retention. Pick one occupation and follow the route into a real job.
+A course completion count does not show whether someone entered, stayed or advanced in paid work. Colleges, unions and employers define their own roles. Existing JFF programs create no Docket collaboration or subaward.
 
-**First test:** Ask an apprenticeship team to challenge the task and outcome model or refer a willing employer for funded evaluation. Colleges, unions and employers define their own roles. Existing Jobs for the Future programs do not create a Docket collaboration or subaward.
+**First test:** Choose one occupation. Ask an apprenticeship team to challenge the task and outcome model or refer a willing employer for funded evaluation.
 
 ### 23. Colleges, apprenticeships, and workforce institutions
 
-Can a trainee perform a named infrastructure task with supervised equipment time, an employer sponsor, progressive wages and skills that travel? A course or simulation alone cannot promise a job or authorize hazardous work.
+The real training question is whether a trainee can perform a named task safely with paid supervision and a job path. Operators check relevance and workers check access and pay. A course or simulation cannot authorize hazardous work or promise employment.
 
-**First test:** Build a task-to-qualification view with a sponsor and union review of classification and safety. Operators check task relevance; workers check access and pay.
+**First test:** Map one task to equipment time, employer sponsorship, wage progression and portable skill, with union review of classification and safety.
 
 ### 24. Educators and education-sector unions
 
-If a classroom tool or vendor changes, will the teacher-defined task and accessible human fallback still work, and will students actually learn? Output speed is not the learning measure.
+When a school changes vendors, will a teacher's task still work, remain accessible and support learning? Public buyers test contract terms and model teams document revisions. Faster output is not proof of learning; student records cannot become worker-performance telemetry.
 
-**First test:** With educators, test a consent-aware task/version and exception record. Buyers examine procurement terms and model teams document revisions. Student data must not become worker-performance telemetry.
+**First test:** Let educators test one task, version and human fallback with consent-aware exception records and a learning measure they choose.
 
 ### 25. Industrial robotics, manufacturing, and learning factories
 
-In a simulated fault, can the qualified worker identify the exact version, isolation state, authority and safe recovery step? A digital trace can teach; it cannot authorize energized servicing.
+In a factory fault, the worker needs the machine version, isolation state, authority and safe recovery step. Repairers and apprenticeship sponsors check transfer to real work. A digital trace cannot authorize energized service or waive safety duties.
 
-**First test:** Build an annotated safe simulation with a technical testbed and worker group. Repairers and apprenticeship sponsors check where the method transfers and where workplace safety duties still govern.
+**First test:** Build one annotated simulation with a technical testbed and workers, then test whether it teaches the task.
 
 ### 26. Utilities, energy researchers, and climate-workforce institutions
 
-A local power question may involve an interconnection request, tariff, meter, permit, cost allocation or water record. Match each document to the site and phase before inferring burden or jobs.
+A town asking who bears the power or water burden needs the right record for this site and phase. Residents examine costs and workers the skilled tasks. Queue megawatts, measured load, bills and jobs answer different questions.
 
-**First test:** Build one public-source adapter and decision table with uncertainty, revisions and provenance, then compare existing planning practice. Residents examine costs; workers examine tasks and skills. Requested megawatts, observed load, bills and employment are different measures.
+**First test:** Build one public-source adapter and decision table, retaining revisions, uncertainties and original links. Compare it with current planning review.
 
 ### 27. DPI and municipal public-compute procurement implementers
 
-Public computing has to remain useful after a supplier or leadership change. Can the institution operate, support, move and govern one actual service?
+A public compute service succeeds when the institution can keep it running and change suppliers without losing users. Buyers, local skills providers and users each test a part. Domestic hosting and open licensing alone establish neither sovereignty nor Docket's DPI status.
 
-**First test:** Choose a receiving-side task with authority, accessible delivery, maintenance, training and remedies, then compare jurisdiction-specific options. Buyers, affected users and local skills providers test their own part. Domestic hosting or open licensing alone does not establish sovereignty or make Docket DPI.
+**First test:** Choose one authorized receiving-side task and test access, maintenance, training and contract remedy under the actual jurisdiction.
 
 ### 28. Middle-power AI-safety funders
 
-A versioned safety concern needs a real institution able to receive it, assess it, hear an appeal and act. A benchmark or grant cannot give that institution authority.
+A safety concern needs an institution that can receive the evidence, hear an appeal and act. Public capacity may matter to safety. A grant, benchmark or compute building cannot confer regulatory authority.
 
-**First test:** Support a bounded evidence-and-authority prototype only with a named decision maker and independent evaluator. Public capacity and safety intersect, but each decision right has to be shown.
+**First test:** Name that decision maker before funding a bounded, versioned evidence-and-authority prototype with independent evaluation.
 
 ### 29. DPI, public-capability and public-value researchers — policy overlay
 
-A shared schema is useful only if a library or public-compute service becomes accessible, maintained, accountable and possible to leave. Activity counts do not establish public value.
+A library's public compute service should be usable, maintained and possible to leave when the supplier changes. Libraries, buyers and communities choose separate measures. A shared schema or usage count does not establish public value or DPI status.
 
-**First test:** Ask researchers and receiving-side users to compare one governance and maintenance record with ordinary documents and existing navigators. Libraries, buyers and communities choose distinct measures; the case does not earn DPI status by label.
+**First test:** Ask researchers and receiving-side users to test one governance, maintenance and exit record against existing documents and navigators.
 
 ### 30. Independent Diplomat and digital non-alignment audiences
 
-A small public institution can seek more digital independence without assuming any external analyst knows its priorities. What mandate, supplier dependency, alternate service and remedy can it actually exercise?
+A small public institution should decide which digital dependency it wants to escape and which alternative it can govern. Repair, procurement and technical capacity intersect. An outside analyst cannot set that institution's priorities or presume sponsorship.
 
-**First test:** Invite specialists to critique a narrow portability/governance case and identify local decision authority before co-design. Procurement, repair and local technical capacity each have a role; no sponsorship is presumed.
+**First test:** Ask specialists to critique one mandate, supplier contract, portability task and remedy with local decision authority named first.
 
 ### 31. Cooperatives, local ownership, and shared-service networks
 
-Two members may want a shared evidence service while keeping their own records, pay rules and right to leave. A commons needs operating rules as well as a name.
+A shared evidence service only works if members keep their own records, pay rules, correction rights and exit. Local ownership becomes concrete in operating rules and maintenance. A commons with vague duties can create another gatekeeper.
 
-**First test:** Cost a member-governed pilot, try its permission and export flows, and document a case where governance is captured. Labor and public-value questions meet in those rules; vague ownership or maintenance can create another gatekeeper.
+**First test:** Cost a two-member pilot. Test permissions and export with each member, including a scenario where one captures governance.
 
 ### 32. Libraries, creators, households, and civic compute
 
-A library or household needs more than an available machine. Can a real patron use one funded service with accessible instruction, privacy, lawful creator terms, maintenance and an exit?
+A library patron needs a useful service, instruction, privacy and someone to maintain it after the launch. Local skills and creative rights belong in the test. Research capacity is no household entitlement; hardware alone supplies neither literacy nor compensation.
 
-**First test:** Let patrons, staff and creators design a small service journey and rights card, then compare usefulness and cost with existing help. Research capacity is not a household entitlement; hardware alone creates neither literacy nor compensation.
+**First test:** Let patrons, staff and creators design one funded service journey and rights card. Compare its usefulness and cost with existing help.
 
 ### 33. AI laboratories, evaluators, and safety/governance researchers
 
-For a model or service claim, ask who authorized the task, which exact version was observed, what contradicted the result and who can receive a correction. An evaluation record is not a deployment approval.
+A model evaluation needs a version, an authorized task, a contrary observation and someone who can correct the record. Oversight staff, maintainers and users ask different questions. An evaluation record grants no deployment approval or general safety finding.
 
-**First test:** Build a reproducible evaluation and correction fixture with protected operational traces and a bounded public export. Oversight, supply-chain and user-rights reviewers keep their own questions.
+**First test:** Build one reproducible fixture with protected operational traces and a narrow public export, then invite an independent challenge.
 
 ### 34. AI-welfare and nonhuman-minds researchers
 
-Researchers disagree about how to interpret possible nonhuman welfare. A task, version and observation can still be recorded without smuggling a conclusion into the schema.
+Researchers can record behavior without deciding a disputed question of nonhuman welfare in advance. A behavioral proxy cannot establish sentience or welfare; a welfare-facing feature requires its own research and governance.
 
-**First test:** Have domain reviewers challenge a hypothesis-neutral data and consent record, including privacy and competing interpretations, before adding a welfare-facing feature. A behavioral proxy cannot establish sentience or welfare.
-
-## Funding, communication, and open development
+**First test:** Ask domain reviewers to challenge one task, version, observation and consent schema, including privacy and rival interpretations.
 
 ### 35. The Workers Lab
 
-The worker constituency chooses the question and remedy. The measure is whether a shared evidence component strengthens paid participation and worker power, not how many features appear in a demo.
+Workers should choose the infrastructure question and the remedy before anyone builds a dashboard for them. Worker governance can inform other cases without turning workers into a data source. Past contact or a previous cycle is no Docket award.
 
-**First test:** Seek participatory-method critique; scope compensated research or software only if an authorized lead and payer emerge. Worker governance can inform other uses without making workers a data source. Historical contact or a past cycle is no Docket award.
+**First test:** Seek critique of one paid participatory test. Scope research or software only when an authorized lead and payer exist.
 
 ### 36. Public-interest and technology-accountability philanthropy
 
-Could a beneficiary-controlled case change a real decision, right or service more effectively than the current method? Pay for the people who would have to test and live with it.
+The funding test is whether a beneficiary-controlled case changes a right, service or decision better than current practice. Builders, workers and researchers have separate authority. This personal project cannot borrow a nonprofit's status.
 
-**First test:** With an eligible applicant, budget engineering, participants, accessibility, independent review, maintenance and a deliverable even if the result is negative. Civic builders, workers and researchers have different roles. A personal project cannot borrow a nonprofit's status.
+**First test:** With an eligible applicant, cost paid participants, engineering, accessibility, independent review, maintenance and a deliverable even after a negative finding.
 
 ### 37. Open-source and digital-commons funders
 
-A reusable module should work for someone beyond Docket. Can a second authorized reviewer use a provenance, correction, exception or export component without our case-specific assumptions?
+An open module earns the name when a second team can use it without adopting the whole Docket project. Public buyers and civic builders can judge reuse. Check active fund terms, geography, AI and disclosure limits before applying.
 
-**First test:** Offer a narrowly licensed FOSS module, reproducible fixture, maintainer plan and adopter trial under current fund terms. Public buyers and civic builders can test reuse. Check geography, AI and disclosure restrictions rather than relabeling an ineligible project.
+**First test:** Offer one licensed provenance, correction or export component with a reproducible fixture, maintainer plan and authorized adopter test.
 
 ### 38. Research employers and funded development hosts
 
-A research host needs its own funded question, supervisor, permission and path to publish. It need not take on the whole Docket agenda.
+A research host can take on one funded question with a supervisor, permission and a path to publish. The host need not adopt the full agenda. Past awards and student programs supply no current budget or staff.
 
-**First test:** Define one paid research or engineering role around a single-case evidence or usability gain, with IP, publication, scope and maintenance agreed in writing. Historical awards and student programs supply neither today's staff nor a budget.
+**First test:** Scope a paid single-case evidence or usability role. Put IP, publication, data access and maintenance responsibilities in writing.
 
 ### 39. Journalists, editors, and podcast producers
 
-A reporter should be able to find the original act, the contrary record and the person who can answer a precise question about one promise or dependency. A compelling map alone is no corroboration.
+A reporter needs the original act, the contrary record and a person who can answer the question that follows. An interface can help find a lead; it is not corroboration. The test creates no publication commitment.
 
-**First test:** Ask editors or producers to challenge the source navigation and explanation while preserving editorial independence, subject response and corrections. A public-interest UI critique creates no publication commitment.
+**First test:** Ask an editor to test one source timeline and memo, with editorial independence, subject response and corrections intact.
 
 ### 40. Civic technologists, geospatial builders, and technical communities
 
-Can a newcomer find the original document, tell which phase a claim concerns and correct one bad match in two minutes? That is a more useful design test than how polished the map looks.
+Can someone new to the case find the original filing, see the project phase and correct a bad match in two minutes? Community users choose the question; official acts set evidence status. A vivid map or introduction is no verified site or developer assignment.
 
-**First test:** Build an accessible source card, phase-aware map and correction flow with fixture data, then observe real users. Community members choose questions; official acts set evidentiary status. A personal introduction creates no developer assignment.
+**First test:** Observe users on fixture data while they try one source card, phase-aware map and correction flow. Scope production work separately.
 
 ### 41. Cooperative finance and enterprise-support institutions
 
-Before financing a shared service, someone has to name demand, accountable owners, maintenance cost, cash flow and a workable exit. A proposal is not yet a cooperative balance sheet.
+Before financing a shared service, name the buyer, owner, maintenance bill, cash flow and member exit. Buyers and cooperatives can test demand. A loan requires repayment; this personal project is not already a worker cooperative.
 
-**First test:** Review one component budget and governance model with potential users and buyers before considering support or debt. Loans require repayment; this personal project is not already a worker cooperative.
+**First test:** Review one component budget and governance model with potential users before discussing debt or enterprise support.
 
 ### 42. Grassroots, movement, and equitable-opportunity funders
 
-A community should choose the claim, disclosure boundary, remedy and next action in its own infrastructure case. A map cannot grant it power by itself.
+A community should choose which infrastructure claim to publish, what to keep private and what decision to change. The technical tool answers to local authority. A map or funder label cannot create community control.
 
-**First test:** If an eligible community-controlled lead and fitting program exist, pay for community review, accessible engineering, independent verification and a route to change an actual decision. Technical tools support local authority; a funder label does not create it.
+**First test:** With an eligible community-led group and fitting program, budget paid review, accessible engineering, independent verification and an actionable remedy.
 
 ### 43. Public-interest scholars and democratic-technology audiences
 
-A repairer, worker, buyer, resident and operator can read the same case and disagree. Which rights to evidence, correction, exit and governance remain when they do?
+Workers, buyers, residents, repairers and operators may share a case while disagreeing about what should happen. Spell out rights to evidence, correction, exit and decision authority. A temporary coalition is not yet a durable institution.
 
-**First test:** Challenge a multi-party case protocol with an adverse scenario, then reduce the result to one software or governance change people can implement. Shared infrastructure can help coordinate without turning temporary agreement into a democratic institution.
+**First test:** Challenge one multi-party protocol with an adverse scenario, then turn the finding into a small software or governance change.
 
 ## Coverage, provenance, and publication checks
 
