@@ -15,6 +15,8 @@ I'm building Data Center Docket to connect those original records to a site and 
 
 Both are intended parts of the project. Public Docket is the first shipping focus; the Console has its own authority and review. Neither is a deployed, integrated product, and private telemetry cannot turn a weak public facility claim into a confirmed one.
 
+These proposals draw on earlier questions about invisible labor and local knowledge; data centers, networks and capital; practical repair and service rights; and ways to make that hidden infrastructure understandable. [The visual guide maps those branches](https://dannybuk-byte.github.io/DCIM/#lineage). Earlier inquiry does not mean the app existed then or that any correspondent has joined it.
+
 ![One sourced case can support different questions from workers, residents, buyers and reviewers](docs/audiences/overview.svg)
 
 ## Start with your question
