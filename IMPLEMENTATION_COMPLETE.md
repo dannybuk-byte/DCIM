@@ -1,5 +1,7 @@
 # Infrastructure Detail Synthesis - Implementation Complete ✅
 
+> **Historical prototype note (29 September 2026):** The rack, device and tenant details below were synthesized for an illustrative interface. They are not observed inventories or authorized operator data. This file does not establish a live integration or current product capability; see [STATUS](STATUS.md) and [AGENTS](AGENTS.md).
+
 ## Summary
 
 Successfully implemented comprehensive infrastructure detail synthesis, generating realistic rack layouts and device inventories down to the individual device/server level.
