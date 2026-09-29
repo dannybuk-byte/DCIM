@@ -1,5 +1,9 @@
 # Data Center Docket: audience-specific development invitations
 
+> **Visual edition:** [Open the audience atlas HTML](./index.html) · [Download the standalone HTML](https://raw.githubusercontent.com/dannybuk-byte/DCIM/docs/audience-development-invitations-20260929/docs/audiences/index.html). The interactive page is prepared for GitHub Pages; deployment follows repository review and Pages configuration.
+
+![Audience atlas overview: one evidence trail and four editorial clusters](./overview.svg)
+
 **Daniel Buk · 29 September 2026**
 
 Data Center Docket is Daniel Buk's personal research and software project to make digital infrastructure's public commitments, technical dependencies, work, costs, rights, and useful services easier to inspect and act upon. Its proposed **Public Docket** would connect original records, versions, entities, site and project phases, contrary evidence, and corrections. A separately permissioned **Traffic and Workload Stewardship Console** is also part of the intended product: a consenting operator or user could examine an authorized task, artifact, service event, or recovery question. Public records do not grant access to private operational data. These are intended capabilities. Isolated local interface prototypes and bounded engineering work exist, but they do not establish live integration, accessible production use, formal qualification, or a deployable combined product.
