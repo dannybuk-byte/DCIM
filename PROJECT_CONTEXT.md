@@ -1,5 +1,7 @@
 # DCIM Compliance App - Complete Project Context
 
+> **Historical project context (29 September 2026):** This describes an earlier browser prototype with seeded local data. The roughly 12,000 facilities and infrastructure details are not a corroborated public-record corpus or current live Docket observations. Current scope and evidence are governed by [STATUS](STATUS.md) and [AGENTS](AGENTS.md).
+
 ## PROJECT OVERVIEW
 
 This is a **zero-backend browser application** for infrastructure accountability tracking with an AI-powered chat interface. The app tracks compliance status, subsidy gaps, and facility information for ~12,000 infrastructure facilities (switches, COs, POPs, data centers) stored locally in IndexedDB.
