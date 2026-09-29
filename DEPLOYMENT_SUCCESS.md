@@ -1,3 +1,5 @@
+> **Historical deployment note · reviewed 29 September 2026.** This records a January 2026 push, not the current deployed state. Its facility count, search speed, savings and agent claims were not remeasured for this release; check [STATUS](STATUS.md) and [claim rules](AGENTS.md) before citing them.
+
 # 🚀 DEPLOYMENT SUCCESSFUL
 
 **Date**: January 3, 2026, 10:17 AM
