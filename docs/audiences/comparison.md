@@ -2,7 +2,11 @@
 
 **Daniel Buk · 29 September 2026 · research and proposed product comparison**
 
-> [Open the interactive comparison chart](./comparison.html) · [Explore the 61-source public signal atlas](./public-signal-atlas.html) · [Return to the audience atlas](./index.html)
+![Visual comparison of Docket's proposed public evidence outputs with documented tracker, OSINT, policy, asset, and facility monitoring products](./comparison-matrix.svg)
+
+**Read it at a glance:** outlined rings are the proposed Docket workflow; filled dots are outputs documented by existing products. The small gold dot marks support-only network and infrastructure leads. Empty cells mean the feature was not evaluated for this chart. The rightmost columns require operator data. [See the provider sources below](#documented-product-outputs).
+
+> [Audience invitations](./README.md) · [Issue-specific pitches](./issue-bridges.md) · [Download interactive HTML for local viewing](https://raw.githubusercontent.com/dannybuk-byte/DCIM/docs/audience-development-invitations-20260929/docs/audiences/comparison.html)
 
 Data Center Docket proposes an open-source, public-record and outside-the-fence OSINT workflow that connects official acts to a site, phase, institutional origin and reviewed audience memo. It has **not** demonstrated a production automated memo pipeline or a measured price/speed advantage. The reviewed Phase-1 facility corpus had zero corroborated rows. Public BGP, DNS, CT, RDAP and peering are support-only and cannot substitute for two eligible independent official acts in a facility confirmation. See [`STATUS.md`](../../STATUS.md) and [`AGENTS.md`](../../AGENTS.md).
 
