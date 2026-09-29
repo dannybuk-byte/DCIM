@@ -1,4 +1,4 @@
-> Historical README preserved before the visual Data Center Docket entry revision on 29 September 2026. Some runtime statements and placeholders below predate the dated `STATUS.md`; use current governing records for implementation claims.
+> Historical README preserved before the visual Data Center Docket entry revision on 29 September 2026. Its runtime, branch, contribution and license statements describe an earlier draft. For current claims and contribution instructions, see [`STATUS.md`](../../STATUS.md), [`AGENTS.md`](../../AGENTS.md), and [`CONTRIBUTING.md`](../../CONTRIBUTING.md). Code is now licensed AGPL-3.0-only; `STATUS.md` records data and method documentation as CC BY 4.0.
 
 # WWW / OS-DCIM
 
@@ -58,7 +58,7 @@ Four data layers feed three analytical outputs through a review layer.
 
 The review layer enforces minimum-source thresholds before any case escalates. When evidence is insufficient, the system suppresses signal visibly rather than masking the limit — a design choice the bounded-claims discipline treats as more honest than imputed inference.
 
-See [`ARCHITECTURE.md`](./ARCHITECTURE.md) for the full layer breakdown, the L2 disambiguation in detail, and review-layer mechanics.
+See [`ARCHITECTURE.md`](../../ARCHITECTURE.md) for the full layer breakdown, the L2 disambiguation in detail, and review-layer mechanics.
 
 ## Methodological posture
 
@@ -99,7 +99,7 @@ This repository is part of ongoing infrastructure and research work associated w
 
 ## Contributing
 
-Active contributor entry points and currently-open issues are documented in [`CONTRIBUTING.md`](./CONTRIBUTING.md). The federal-layer ingestion track, the OCP disclosure crosswalk, and the review-surface UX are the largest currently-open contribution areas.
+Active contributor entry points and currently-open issues are documented in [`CONTRIBUTING.md`](../../CONTRIBUTING.md). The federal-layer ingestion track, the OCP disclosure crosswalk, and the review-surface UX are the largest currently-open contribution areas.
 
 ## License
 

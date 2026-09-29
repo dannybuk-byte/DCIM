@@ -1,10 +1,12 @@
+> **Historical integration note · reviewed 29 September 2026.** This describes prototype code paths, including synthetic fallback. A source badge does not establish that a live adapter returned a verified facility record, and network clues do not satisfy the official-act corroboration floor. See [STATUS](STATUS.md) and [claim rules](AGENTS.md).
+
 # OSINT Data Integration
 
-This document describes the OSINT (Open Source Intelligence) data integration system implemented in the DCIM Compliance App.
+This document records an earlier OSINT (Open Source Intelligence) integration design and prototype code paths in the DCIM Compliance App. Its runtime assertions need to be tested against the current code and source responses.
 
 ## Overview
 
-The application now integrates with real OSINT data sources to replace mock data generation. Data is fetched from multiple public APIs, cached in IndexedDB, and displayed with data source attribution.
+The prototype was designed to fetch multiple public APIs, cache responses in IndexedDB, and display source attribution. It also contains synthetic fallback paths; a displayed badge does not establish that a live response was received or that a facility claim passed review.
 
 ## Architecture
 
@@ -103,4 +105,3 @@ The OSINT integration is automatic when viewing facility details. When a user ex
 4. Falls back to synthetic data if APIs unavailable
 
 All data fetching respects rate limits and includes error handling for network failures.
-

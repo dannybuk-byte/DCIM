@@ -1,3 +1,5 @@
+> **Historical implementation note · reviewed 29 September 2026.** Feature checkmarks record an earlier code milestone. The FRE 902 compliance, production-readiness, monetary value, performance and facility claims below have not been established as current external outcomes. See [STATUS](STATUS.md) and [claim rules](AGENTS.md).
+
 # ✅ DCIM DASHBOARD - FEATURE IMPLEMENTATION COMPLETE
 
 **Date**: January 3, 2026, 8:15 PM  

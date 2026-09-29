@@ -1,3 +1,5 @@
+> **Historical prototype note · reviewed 29 September 2026.** The 11,992-facility denominator, violation counts, predictive alerts and operator examples below illustrate an earlier interface; they are not a current verified corpus or measured forecasts. See [STATUS](STATUS.md) and [claim rules](AGENTS.md).
+
 # 🎯 Synthesis Complete: Military-Grade Compliance Monitoring
 
 ## What Was Just Built

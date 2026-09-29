@@ -1,3 +1,5 @@
+> **Historical UI walkthrough · reviewed 29 September 2026.** The 11,992-facility search set, result counts, dollar gaps, operator examples and timing below are demonstration material. Controls and data availability may have changed; see [STATUS](STATUS.md) and [claim rules](AGENTS.md) for current state.
+
 # How to Use Natural Language Search 🔍
 
 ## Where Is It?

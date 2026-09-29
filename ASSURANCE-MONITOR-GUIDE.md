@@ -1,3 +1,5 @@
+> **Historical prototype note · reviewed 29 September 2026.** The price comparison, live-compliance language, example operator, job figures and violation labels below were not verified as current findings. Treat them as an interface sketch. The accepted facility review had zero corroborated rows; see [STATUS](STATUS.md) and [claim rules](AGENTS.md).
+
 # Compliance Assurance Monitor: Juniper Marvis for Accountability
 
 **Inspired by:**
