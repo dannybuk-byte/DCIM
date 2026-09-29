@@ -8,7 +8,7 @@
 
 ![Matrix comparing proposed Docket public outputs with documented tracker, OSINT, policy, asset, and facility monitoring products](./comparison-matrix.svg)
 
-[Read the output definitions, product sources and cost test](./comparison.md) · [Explore 61 public signal families](./public-signal-atlas.html).
+[Read the output definitions, product sources and cost test](./comparison.md) · [Explore the rendered 61-family source atlas](./public-signal-atlas.md).
 
 > **Issue-first pitches:** [Buildout detection, Computational Antitrust, CAP policy tracking, DPI municipal procurement, assurance and coalition bridges](./issue-bridges.md).
 
