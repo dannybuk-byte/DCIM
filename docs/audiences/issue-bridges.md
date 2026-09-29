@@ -1,7 +1,7 @@
 # Data Center Docket: issue-first pitches and coalition handoffs
 
 **Public development candidate · 29 September 2026 · Daniel Buk**  
-[Visual atlas](./index.html) · [Competitive comparison](./comparison.md) · [Public signal atlas](./public-signal-atlas.html) · [46 audience invitations](./README.md)
+[Audience guide](./README.md) · [Visual comparison](./comparison.md) · [Public signal atlas](./public-signal-atlas.md) · [Standalone interactive atlas download](https://raw.githubusercontent.com/dannybuk-byte/DCIM/docs/audience-development-invitations-20260929/docs/audiences/index.html)
 
 ![Proposed public evidence workflow: eligible official acts and support-only network clues become a reviewed case, then five distinct audience decisions](./issue-bridge-workflow.svg)
 
@@ -18,6 +18,10 @@ The case envelope is `original source + version + event/retrieval clocks + exact
 **Core development request:** Help implement and adversarially test one permitted source adapter, one site/phase/origin resolver, a reviewer-controlled change and correction queue, and an accessible case export. Compare false joins, missed acts, review time and correction cost with an existing tracker and a competent manual workflow. A real pilot needs agreed source rights, named reviewers, paid participation where appropriate and a maintainer.
 
 ## Eleven issue-first pitches
+
+![Visual index of eleven proposed issue pitches, their decision questions, and the distinct evidence each requires](./issue-pitch-index.svg)
+
+Choose an issue below for the full pitch, development ask and coalition handoff.
 
 ### 1. Host-community and labor bargain: a project changes before the public catches up
 
