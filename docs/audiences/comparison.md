@@ -29,7 +29,7 @@ A site map, a hearing timeline and a worker brief can ask different questions of
 | What changed, and when? **Official-act timeline** | GridTracker · Civitar · agency portals | Dated IDA, DEC, municipal and power acts. Proposed Docket format. |
 | What should we read today? **Change digest & alert** | GridTracker · Cleanview · Civitar | Versioned public notices and reviewer queue. Proposed Docket format. |
 | Which documents support or challenge the claim? **Evidence packet** | DocumentCloud · Aleph · public trackers | Originals, page/field locations, institutional origin and dispute. Proposed Docket format. |
-| What can a council member act on? **Policy memo** | FiscalNote · Quorum · Palantir | Reviewed case, audience question and human sign-off. Proposed Docket format. |
+| What can a council member act on? **Policy memo** | FiscalNote · Quorum | Reviewed case, audience question and human sign-off. Proposed Docket format. |
 | What is promised to residents and workers? **Community & worker brief** | Civitar · FracTracker · AI GridWatch | Public benefits, jobs, conditions and gaps. Proposed Docket format. |
 | What can a public buyer ask for? **Procurement checklist** | Public procurement records · agency clause libraries | Public clauses and disclosed obligations only; no private test data. Proposed Docket format. |
 | Can another team check the work? **Case export** | Compute Atlas · GridTracker · DocumentCloud | Rights-reviewed sources and provenance fields. Proposed Docket format. |
@@ -46,7 +46,7 @@ A site map, a hearing timeline and a worker brief can ask different questions of
 | Asset inventory and IPAM | NetBox, Device42, Oomnitza, Sunbird dcTrack | Use these inside a facility. A proposed Console export needs operator authorization, access controls and a task-specific purpose. |
 | Live rack power/cooling, alarms and incidents | Sunbird Power IQ, Schneider, Nlyte, Vertiv, Hyperview, openDCIM | Use these for operations. Public permits and network clues cannot reveal live racks; A Console study would need authorized equipment data and a defined incident question. |
 | Document OCR, annotation and retrieval | DocumentCloud, Aleph, Foundry | Use these to work with source documents. Docket could receive or export a reviewed packet. |
-| Automated policy memos and reports | FiscalNote, Quorum, Foundry, Civitar, AI GridWatch | Brief writing already exists. Test Docket on original acts, contrary evidence and an answer the intended reader can use. |
+| Policy research, site briefs and enterprise reports | FiscalNote, Quorum, Foundry, Civitar, AI GridWatch | These are different outputs. Test a Docket memo against a matched question, original acts, contrary evidence and the reader’s decision. |
 | Independent-official-act publication gate | Configurable workbenches and trackers vary | Proposed rule: two independent official acts for the same claim, site and phase, with a visible reason to withhold. Test duplicates and negative cases. |
 
 ## Documented product outputs

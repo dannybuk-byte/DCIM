@@ -99,7 +99,7 @@ A lender may have a recovery clause while the financed service has no workable r
 
 ### 11. Privacy-oriented assurance interlocutors
 
-Before anyone calls traffic wasteful, decide whose service improves and who can overturn a wrong judgment. Users, service teams and risk reviewers test different consequences of the same event. A personal exchange grants no insurance sponsorship or customer-data access.
+Before calling traffic wasteful, ask the customer what service should improve and who can appeal a mistaken block. Users and service teams can test the outcome; a risk reviewer can test a defined loss. Any operational data requires separate permission.
 
 **First test:** Invite an opt-in critique of one minimal event record, its privacy boundary and a falsifiable error question. A later risk study needs a separately consenting qualified party.
 

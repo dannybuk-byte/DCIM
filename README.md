@@ -34,7 +34,7 @@ The proposed public workflow starts with **money, permission and power**: incent
 
 A facility claim needs **two eligible, institutionally independent official acts about the same proposition, site and phase**, with human review of copies, amendments and contrary records. Packet inspection and private telemetry belong only in a separately authorized Console study. A public clue grants no access to an operator's network.
 
-The [issue pitches](docs/audiences/issue-bridges.md) show how one reviewed case could inform municipal procurement, Computational Antitrust, CAP policy attention, insurance, community obligations and worker decisions. Each use has its own authority and proof requirement.
+The [issue pitches](docs/audiences/issue-bridges.md) start with different evidence: a public project act, a contract, a policy item or an authorized incident. A documented link can connect questions across those cases; each keeps its own permission, proof and decision maker.
 
 **Current status:** The dated Phase-1 review had zero corroborated facility rows. A live statewide official-record detector, production automated memo pipeline and measured lead-time or cost advantage are not established. [STATUS](STATUS.md) and [AGENTS](AGENTS.md) govern current claims.
 
