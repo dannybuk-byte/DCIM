@@ -1,6 +1,8 @@
+> **Design status · reviewed 29 September 2026.** This page proposes an early-warning workflow; a deployed detector and measured lead time are not established. Public BGP/RIR, DNS and certificate observations can raise leads, but cannot identify a tenant or confirm a facility. A public facility claim requires two eligible, institutionally independent official acts for the same proposition, site and phase, with human review. Vendor and workforce conclusions need separate evidence. See [STATUS](../STATUS.md) and [claim rules](../AGENTS.md).
+
 # Early-warning detection
 
-> Catching new infrastructure builds at the moment of their first public signal, identifying who's behind them, and turning that early signal into workforce and labor-relations leverage.
+> Follow a public clue to the original filing, identify the actor and decision it actually names, and give workers and local officials time to ask better questions. An early clue is a lead, not a verified facility or a measured head start.
 
 ## The problem
 
