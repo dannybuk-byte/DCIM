@@ -1,7 +1,7 @@
 # Data Center Docket: issue-first pitches and coalition handoffs
 
 **Public development candidate · 29 September 2026 · Daniel Buk**  
-[Visual atlas](./index.html) · [46 audience invitations](./README.md)
+[Visual atlas](./index.html) · [Competitive comparison](./comparison.md) · [Public signal atlas](./public-signal-atlas.html) · [46 audience invitations](./README.md)
 
 ## Shared proposition: open evidence of buildout, then distinct decisions
 
