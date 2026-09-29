@@ -1,5 +1,7 @@
 # DEEP DIVE MODE - Maximum Granular Data ✅
 
+> **Historical prototype note (29 September 2026):** This describes an earlier simulated interface. Its facility count, live metrics, interactivity and equipment detail are not verified current observations or a deployed Docket capability. Read [STATUS](STATUS.md) and [AGENTS](AGENTS.md) before using any claim here.
+
 ## Overview
 
 **DEEP DIVE MODE** delivers the **deepest, most granular real-time data possible** with:
