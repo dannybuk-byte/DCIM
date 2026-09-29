@@ -1,3 +1,5 @@
+> **Historical UI milestone · reviewed 29 September 2026.** “100% complete,” live indicators and animated counters below describe an earlier interface change; they do not show a current operational data feed or verified case corpus. See [STATUS](STATUS.md) and [claim rules](AGENTS.md).
+
 # ✅ MAXIMUM INTERACTIVITY - COMPLETE!
 
 ## 🎉 ALL PRIORITY TABS ENHANCED TO COMMAND CENTER STANDARDS!
