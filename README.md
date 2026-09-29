@@ -4,6 +4,8 @@
 
 Projects leave traces in incentive awards, planning records, environmental reviews and power proceedings. Data Center Docket proposes to connect those original acts to the right site and phase, show what changed or conflicts, and prepare a reviewable case for the people who must decide what to do next.
 
+**Open the visual site:** [Audience atlas](https://dannybuk-byte.github.io/DCIM/) · [Interactive product comparison](https://dannybuk-byte.github.io/DCIM/comparison.html) · [Filterable public signal atlas](https://dannybuk-byte.github.io/DCIM/public-signal-atlas.html)
+
 ![Visual overview of public signals becoming distinct audience decisions](docs/audiences/overview.svg)
 
 ## Explore the project visually
@@ -30,4 +32,4 @@ The proposed Public Docket starts with **money, permission and power**: IDA/PILO
 - [Audience source and visual assets](docs/audiences/README.md)
 - [Earlier WWW disclosure-observability README](docs/historical/README-before-visual-entry.md) for the repository's historical framing
 
-The interactive HTML atlas and comparison are in `docs/audiences/` as source for a future GitHub Pages deployment. The Markdown pages above are the rendered reading path on GitHub.
+The interactive editions are published through GitHub Pages at the links above. The Markdown pages remain the rendered reading path inside the repository; GitHub's file viewer shows HTML source.

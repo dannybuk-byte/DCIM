@@ -1,7 +1,7 @@
 # Data Center Docket: issue-first pitches and coalition handoffs
 
 **Public development candidate · 29 September 2026 · Daniel Buk**  
-[Audience guide](./README.md) · [Visual comparison](./comparison.md) · [Public signal atlas](./public-signal-atlas.md)
+[Interactive audience atlas](https://dannybuk-byte.github.io/DCIM/) · [Audience guide](./README.md) · [Visual comparison](./comparison.md) · [Public signal atlas](./public-signal-atlas.md)
 
 ![Proposed public evidence workflow: eligible official acts and support-only network clues become a reviewed case, then five distinct audience decisions](./issue-bridge-workflow.svg)
 
