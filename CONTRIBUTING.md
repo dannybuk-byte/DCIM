@@ -1,80 +1,80 @@
-# Contributing
+# Contributing to Data Center Docket
 
-This document describes how to contribute to the WWW disclosure-observability project. Before contributing, please skim [`README.md`](./README.md) for project orientation and [`ARCHITECTURE.md`](./ARCHITECTURE.md) for the layer/output structure your contribution will fit into.
+> **Scope note · 29 September 2026:** This guide began with the earlier WWW disclosure-observability design. The work areas below are historical proposals, not open assignments or source-admission authority. For the present Docket direction and tested state, read [`README.md`](./README.md), [`STATUS.md`](./STATUS.md), [`AGENTS.md`](./AGENTS.md), and the [DART specification](./specs/dart-v0.9/spec.md). [`ARCHITECTURE.md`](./ARCHITECTURE.md) explains the earlier four-layer design.
+
+Contributions should help a reviewer trace a public claim to its original record, test where the evidence stops, or make the result easier for workers and communities to challenge. A proposed adapter, inference, or audience view still needs the project's separate admission, eligibility, and publication decisions.
 
 ## Who we are looking for
 
 The project benefits most from contributions by:
 
-- Engineers experienced with regulatory-data ingestion pipelines (federal and state disclosure regimes).
-- Network-observability practitioners familiar with BGP routing, certificate transparency, and adjacent public network signals.
+- Engineers experienced with public-record ingestion, source versioning, entity/site/phase matching, and provenance.
+- Network-observability practitioners who can use BGP, DNS and related public clues as research leads without treating them as facility confirmation.
 - Frontend engineers comfortable with React/Vite and willing to work on review-surface UX where epistemic clarity is the primary design constraint.
 - Public-interest technologists interested in audit-oriented infrastructure for disclosure-asymmetry detection.
-- Labor and infrastructure researchers who can co-design ingestion targets and review-layer thresholds.
+- Workers, community reviewers, and labor and infrastructure researchers who can define the decision a case must actually inform.
 
-Contributions from outside these areas are welcome but may have a steeper context ramp. Reading the architecture document and skimming an existing case-card emission before opening an issue is encouraged.
+Contributions from outside these areas are welcome. Start with one bounded question, the original record needed to answer it, and an adverse case that could change the answer.
 
-## Active work areas
+## Earlier proposed work areas
 
-Three areas have the largest currently-open contribution surface:
+The following ideas were recorded for the earlier WWW design. Their issue names below are placeholders; verify current priorities and authorization with maintainers before starting work.
 
 **Federal-layer ingestion**
 
-The federal layer (BLS, NLRB, FERC) is charter-drafted and execution-pending. This is a well-scoped track suitable for a contributor who wants to work on a defined ingestion target end-to-end: source acquisition, parsing, schema mapping, integration with the existing pipeline orchestrator (`scripts/run_www_pipeline.sh`), and validation against the DME's consumer contract.
+The earlier plan proposed federal BLS, NLRB and FERC ingestion through `scripts/run_www_pipeline.sh` and the disclosure-monitoring engine. That proposal is not a current source-admission decision or a ready contributor task.
 
 ⟨Linked issues pending creation: `help-wanted:federal-bls-ingestion`, `help-wanted:federal-nlrb-ingestion`, `help-wanted:federal-ferc-ingestion`⟩
 
 **OCP disclosure crosswalk**
 
-Maps OCP and adjacent infrastructure taxonomies (L4) onto L3 disclosure language, enabling cross-referencing of operator commitments against open-infrastructure framings. Partial specification exists; contributor surface is moderate and benefits from prior familiarity with OCP/iMasons material.
+The earlier design proposed mapping OCP and related infrastructure taxonomies to disclosure language. A new crosswalk would need a defined question, source rights, review authority and a small test before implementation.
 
 ⟨Linked issue pending creation: `help-wanted:ocp-crosswalk-extension`⟩
 
 **Review-surface UX**
 
-The Vite UI exposes the case review surface. The bounded-claims demonstration mechanic — visible signal suppression below the source threshold — is the load-bearing design pattern, and the review surface should make this discipline legible to reviewers rather than hide it behind polished defaults. Frontend contributors who want to work on epistemic-clarity-first design surface have substantial latitude here.
+The earlier UI work emphasized visible suppression when a claim lacks enough independent evidence. That remains a useful design constraint. A new interface task must identify the active data path and reviewer, and must not show a proposed or synthetic case as a live finding.
 
 ⟨Linked issue pending creation: `good-first-task:review-surface-suppression-affordances`⟩
 
-Additional areas with smaller open surface:
+Other earlier ideas whose current status needs checking:
 
-- Entity resolution across disclosure sources (active development; coordinate with maintainers before contributing).
-- Documentation improvements (always welcome; please read `ARCHITECTURE.md` first to ensure vocabulary consistency).
-- Pre-commit gate extensions (the existing six-stage gate is in `.husky/` or equivalent — see existing checks before proposing additions).
+- Entity resolution across disclosures and project records.
+- Documentation that makes source, uncertainty and corrections easier to understand.
+- Check improvements after inspecting the active workflows and specifications.
 
 ## How to contribute
 
-1. **Read the architecture document.** Most architectural confusion downstream traces to skipping this step.
-2. **Open or comment on an issue first.** Substantial contributions should be discussed before implementation. This is not gatekeeping — it is coordination, particularly given the active-development branches.
-3. **Branch from `stabilization/2026-05`** unless a maintainer directs you elsewhere.
-4. **Run the pre-commit gate locally** before submitting. The gate enforces several constraints (localStorage prohibition, Tailwind constraints, large-file blocks, console.log absence, TODO/FIXME absence, useEffect discipline) and rejecting at submission is faster than rejecting at review.
-5. **Open a pull request against `stabilization/2026-05`.** Include a clear description of which layer / output / subsystem your change affects and, where applicable, what evidentiary discipline it preserves or extends.
+1. **Read the current records.** Start with the README, STATUS, AGENTS and the specification for the part you propose to change.
+2. **Open or comment on an issue first.** Name the user question, source or fixture, claim boundary, reviewer and smallest useful result. Do not post protected records or personal contact details.
+3. **Check the current default and designated work branch.** At this review the default branch is `agent/dart-v0.9`; verify it before branching because repository roles and gates can change.
+4. **Run the checks required for your scoped change.** Use the active workflow and specification rather than an older checklist; report what ran and what remains unverified.
+5. **Open a pull request against the currently designated base branch.** At this review that is `agent/dart-v0.9`. Describe the evidence and claim boundary affected, the tests, and any source or permission still pending.
 
 ## Review discipline
 
 Contributions are reviewed against the methodological standard the project operates under. Three review patterns worth knowing about:
 
-**Bounded-claims discipline.** Code that produces inferences must respect minimum-source thresholds and other capability boundaries documented in `ARCHITECTURE.md`. A pull request that quietly weakens visible suppression to "make the UI feel less empty" will be rejected.
+**Bounded claims.** Code that produces facility inferences must preserve the independent-official-act rule and visible withholding described in `AGENTS.md`, `STATUS.md`, and the applicable specification. A clearer interface cannot turn an unsupported lead into a finding.
 
 **Particulars warrant.** Code that ingests or emits particulars (names, dates, amounts, attributions) must preserve source attribution through the pipeline. Records that lose provenance are records that cannot be reviewed; this is a structural rather than stylistic concern.
 
-**L2 disambiguation.** Contributions to the operational-signals layer should be clear about whether they target network-side telemetry (Class A, currently operational) or operator-permissioned compliance dashboards (Class B, not currently relied upon). Conflating these classes is a substantive architectural error, not a documentation issue.
+**Separate evidence rights.** Public BGP, DNS, certificate and registration observations can guide research but cannot count toward facility confirmation. Operator flows, packet data and service traces need their own express authorization and controlled environment.
 
 ## Communication
 
-⟨Communication channel: pending decision — Matrix room, Discord server, mailing list, or GitHub Discussions. Issue tracker is the default channel until a decision is made.⟩
+Use GitHub issues for public proposals and questions. Ask maintainers for a private route before sharing protected records, security findings or private contact details.
 
 For sensitive matters (security findings, governance questions, conflicts of interest with disclosure subjects), please coordinate directly with maintainers rather than through public channels.
 
 ## Code of conduct
 
-⟨`CODE_OF_CONDUCT.md` pending — Contributor Covenant v2.1 is the default candidate.⟩
-
-By contributing you agree to abide by the code of conduct once published.
+A repository code of conduct has not yet been published. Treat collaborators respectfully and raise a conduct concern with maintainers through a private route.
 
 ## License
 
-⟨`LICENSE` pending deliberate choice. Contribution under the eventual license will be assumed; if you need certainty before contributing, please wait for the license decision or coordinate with maintainers.⟩
+Repository code is licensed AGPL-3.0-only under [`LICENSE`](./LICENSE). [`STATUS.md`](./STATUS.md) records data and method documentation as CC BY 4.0. Confirm how a proposed data contribution may be used and redistributed before submitting it.
 
 ## Acknowledgement
 
@@ -82,4 +82,4 @@ Contributors will be acknowledged in repository documentation unless they reques
 
 ---
 
-⟨Document version: v1 draft, ⟨publication date pending⟩. Subject to revision as contributor patterns develop.⟩
+Reconciled with the dated repository status on 29 September 2026. Verify branch and workflow instructions against the current repository before contributing.
