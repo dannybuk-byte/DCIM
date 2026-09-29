@@ -13,7 +13,7 @@ The case envelope is `original source + version + event/retrieval clocks + exact
 
 **Core development request:** Help implement and adversarially test one permitted source adapter, one site/phase/origin resolver, a reviewer-controlled change and correction queue, and an accessible case export. Compare false joins, missed acts, review time and correction cost with an existing tracker and a competent manual workflow. A real pilot needs agreed source rights, named reviewers, paid participation where appropriate and a maintainer.
 
-## Eight issue-first pitches
+## Eleven issue-first pitches
 
 ### 1. Host-community and labor bargain: a project changes before the public catches up
 
@@ -72,6 +72,26 @@ The case envelope is `original source + version + event/retrieval clocks + exact
 **Pitch.** A sourced map or guided journey can put a proposed phase beside hearings, power actions, jobs promises, existing buildings, nearby institutions and alternatives. Residents choose the local question; planners provide authoritative geometry; workers and educators check actual training routes; reporters trace every material label to an original act. Photorealism, animated paths and geographic proximity do not prove a cable, live packet route or partnership.
 
 **Development ask.** Build an accessible 2D/timeline view with source cards, phase/status controls, a contested case and a text/table alternative. Measure whether a second reviewer can find the original and contrary records. A 3D/AR layer can follow only with source-backed geometry and its own device/accessibility review.
+
+### 9. Authorized traffic and workload stewardship: a useful service without a purity score
+
+**Pitch.** Public OSINT cannot reveal an operator's task graph, private traffic or exact energy use. With separate authorization, a service team and affected users could test a specific cancellation, retry, cache miss, version change or recovery event. Edge/model collaborators might improve useful work; educators and accessibility reviewers might defend valid exploratory uses; workers must have authority over any labor-impact question. A universal “slop” label would erase legitimate research, redundancy, creativity and failure.
+
+**Development ask.** Build a consented synthetic or permitted event fixture with task/artifact/version/time, minimal data collection, false-block appeal and a comparator for quality and resource cost. Keep restricted logs outside Public Docket and prohibit individual worker productivity inference.
+
+**Coalition handoff.** User defines a useful outcome → service team specifies observable event → privacy/worker reviewers bound collection → evaluator tests quality and false positives → operator decides a reversible control under its own authority.
+
+### 10. Public contribution, cooperative capacity and circular hardware
+
+**Pitch.** A public subsidy, a retired asset, a library service and a cooperative maintenance pool are potential contributions with different owners, costs and rights. Docket could trace an actual contribution to an executed use, a maintainer, a beneficiary and a practical exit. A community may ask for a usable local service; educators for supported instruction; workers for paid refurbishment or apprenticeship; repairers for parts and safe procedures; a cooperative for a sustainable, member-governed service. Public investment does not automatically create public title, a dividend or a free supply of computing.
+
+**Development ask.** Co-design one sourced contribution-to-service record and total-cost model, including equipment condition, access, labor, disposal, maintenance and alternative provision. Compare against ordinary procurement or self-provision; test a failure where the proposed commons recreates a gatekeeper or offloads unsafe work.
+
+### 11. Workforce disclosure: a parallel test of accountable institutional statements
+
+**Pitch.** The wider project also studies how workforce explanations in WARN notices, SEC filings and earnings statements can diverge. That is a separate claim and source-eligibility problem from facility buildout: a company-level AI narrative does not automatically explain an individual layoff, and a data-center construction signal does not establish a hiring outcome. A source-linked contradiction queue could help labor researchers, journalists and oversight staff ask a precise follow-up while workers control protected testimony.
+
+**Development ask.** Test one exact employer, period and disclosure proposition with original filings, entity resolution, alternative explanations and human review. Reuse provenance, correction and accessible export components where justified; do not merge its evidence standard with the two-act facility confirmation rule.
 
 ## Shared software, distinct authority
 
