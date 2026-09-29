@@ -43,7 +43,7 @@ An incentive, a SEQR action and a power filing may concern different phases of o
 
 ### 2. Computational Antitrust: inspect dependencies without manufacturing collusion
 
-A public tender may appear competitive while its awards and later amendments depend on one pricing, assessment, cloud or access intermediary. That is a question to investigate, not a finding of collusion. Docket could make public contract versions and documented information flows inspectable. A buyer can test alternatives; a competition researcher can test common costs, capacity, quality and lawful standardization; repair and standards teams can test whether an interface works but admission remains controlled.
+Suppose four firms bid for a city service. If each relies on the same platform to price it, deliver it or let the city switch later, how much choice does the city have? That is a question for contract evidence and competing explanations, not a finding of collusion. Docket could make public contract versions and documented information flows inspectable. A buyer can test alternatives; a competition researcher can test common costs, capacity, quality and lawful standardization; repair and standards teams can test whether an interface works but admission remains controlled.
 
 **Build together:** Make a reproducible public tender-to-award graph and a blinded review notebook with a declared question, negative cases, missing data and corrections. Keep sensitive rival bids out of a common public pool. Qualified counsel or economists would decide any legal use. Similar prices or shared vendors prove neither misconduct nor liability.
 
@@ -61,7 +61,7 @@ The Comparative Agendas Project (CAP) may help show when data centers, AI, energ
 
 Digital Public Infrastructure (DPI) has to survive a supplier change. For one municipal service, follow the public requirement from planning and tender through award, amendment and implementation. Can a qualified receiving team diagnose, update, export, recover and transfer the exact service? A library or resident group tests accessibility; workers and training sponsors test paid support skills; the buyer decides acceptance and remedy. Link a physical data-center project only if an actual contract or public instrument does.
 
-**Build together:** Choose one procurement. Turn its clauses into a receiving-side task, exception register and reviewable export. Compare integrated supplier support with a qualified alternative. Name the maintenance payer, the party able to exercise exit and the remedy if the test fails.
+**Build together:** Choose one procurement. Turn its clauses into a receiving-side task, exception register and reviewable export. A city could write an open, interoperable scope and test whether qualified local, including worker-owned, providers can deliver and maintain it. Compare integrated supplier support with a qualified alternative; name the maintenance payer, the party able to exercise exit and the remedy if the test fails. This is a strategy to test, not an available-bidder or awarded-contract claim.
 
 **Bridge:** Public user names the service failure → buyer writes the requirement → technical and worker reviewers try it → oversight checks delivery.
 
@@ -75,7 +75,7 @@ A resilience promise means little if a qualified worker lacks the credential, pa
 
 ### 6. Repair, interoperability and workforce: turn an interface into an exercisable right
 
-A management interface can pass a profile while the technician still lacks a credential, firmware, part, service right or paid training. Docket could connect the exact product, version and profile to a lawful task and access term. Repair advocates ask what is blocked; technical workstreams test the function; workers define safe paid authority; buyers can require an actual receiving-side result.
+A management interface can pass a profile while the technician still lacks a credential, firmware, part, service right or paid training. Docket could connect the exact product, version and profile to a lawful task and access term. Repair advocates ask what is blocked; technical workstreams test the function; workers define safe paid authority; buyers can require an actual receiving-side result. A separate public buildout case might show which incentives or jobs terms could fund a paid repair and apprenticeship pathway; it does not establish a curriculum, union placement or a repair right.
 
 **Build together:** Have an independent qualified team try one permitted task. Keep the requirement, observed result, rights and exceptions together, and test a contrary case where integrated support works better. Qualified reviewers handle legal applicability and security exceptions. A badge or open membership does not prove repairability.
 
@@ -107,7 +107,7 @@ Public BGP, DNS and related OSINT cannot expose an operator's task graph, privat
 
 ### 10. Public contribution, cooperative capacity and circular hardware
 
-A subsidy, retired server, library service and cooperative maintenance pool have different owners and costs. Public investment does not automatically create public title or free compute. Docket could trace a real contribution through an executed use, beneficiary, maintainer, worker skill, cost and exit. A community asks whether a service is usable; educators ask who teaches it; workers ask who is paid to repair it.
+Suppose a city helps pay for computing capacity and a library wants to use it. Who owns the equipment, maintains the service and pays when the funding ends? Docket could trace one executed agreement into one usable service, naming its beneficiary, maintainer, worker skill, cost and exit. Public investment does not automatically create public title or free compute. A community asks whether a service is usable; educators ask who teaches it; workers ask who is paid to repair it.
 
 **Build together:** Model one contribution-to-service case, including equipment condition, access, labor, disposal, maintenance and alternatives. Compare ordinary procurement or self-provision. Test whether a proposed commons would recreate a gatekeeper or shift unsafe work onto volunteers.
 
