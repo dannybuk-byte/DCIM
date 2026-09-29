@@ -3,6 +3,10 @@
 **Public development candidate · 29 September 2026 · Daniel Buk**  
 [Visual atlas](./index.html) · [Competitive comparison](./comparison.md) · [Public signal atlas](./public-signal-atlas.html) · [46 audience invitations](./README.md)
 
+![Proposed public evidence workflow: eligible official acts and support-only network clues become a reviewed case, then five distinct audience decisions](./issue-bridge-workflow.svg)
+
+**The bridge in one view:** original money, permission and power acts support a bounded facility claim after independent-origin review. BGP/RIS, DNS/CT, RDAP and related public clues stay leads. The reviewed case can then answer different municipal, competition, CAP, assurance and community/worker questions.
+
 ## Shared proposition: open evidence of buildout, then distinct decisions
 
 Data-center construction and expansion leave dispersed public traces before a community has a coherent case: incentives, planning and environmental acts, power proceedings, retired-plant context and later permits. Data Center Docket proposes **open-source software for public-record discovery and outside-the-fence OSINT triage**. It would preserve original source bytes, versions, dates and rights; queue changes; resolve the proposed campus/site/building/phase and corporate roles; identify whether apparently separate evidence repeats one institutional origin; expose disputes and corrections; and render the result for the decision each audience can actually make.
