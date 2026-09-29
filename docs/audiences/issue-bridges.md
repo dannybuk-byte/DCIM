@@ -1,129 +1,129 @@
-# Data Center Docket: issue-first pitches and coalition handoffs
+# Data Center Docket: eleven ways to use the same evidence well
 
-**Public development candidate · 29 September 2026 · Daniel Buk**  
+**Daniel Buk · 29 September 2026 · public development proposals**  
 [Interactive audience atlas](https://dannybuk-byte.github.io/DCIM/) · [Audience guide](./README.md) · [Visual comparison](./comparison.md) · [Public signal atlas](./public-signal-atlas.md)
 
 ![Proposed public evidence workflow: eligible official acts and support-only network clues become a reviewed case, then five distinct audience decisions](./issue-bridge-workflow.svg)
 
-**The bridge in one view:** original money, permission and power acts support a bounded facility claim after independent-origin review. BGP/RIS, DNS/CT, RDAP and related public clues stay leads. The reviewed case can then answer different municipal, competition, CAP, assurance and community/worker questions.
+Public records can tell us a great deal about a data-center project, but rarely in one place. An incentive agreement may name the developer. An environmental notice may describe a new phase. A power proceeding may show a changed request. I want Data Center Docket to bring those records together, show where they agree or conflict, and let people use the same reviewed case to ask different questions. This remains my personal research and software project; worker-centered work informs it, but no organization or prospective partner has authorized me to speak for it here.
 
-## Shared proposition: open evidence of buildout, then distinct decisions
+## Start with the buildout record
 
-Data-center construction and expansion leave dispersed public traces before a community has a coherent case: incentives, planning and environmental acts, power proceedings, retired-plant context and later permits. Data Center Docket proposes **open-source software for public-record discovery and outside-the-fence OSINT triage**. It would preserve original source bytes, versions, dates and rights; queue changes; resolve the proposed campus/site/building/phase and corporate roles; identify whether apparently separate evidence repeats one institutional origin; expose disputes and corrections; and render the result for the decision each audience can actually make.
+The first development task is an open-source workflow for finding and reviewing **public, non-proprietary buildout signals**. It would retain the original document, date, version, source rights, site and phase; track changes; separate a new agency act from a copy of the old one; and show what is still missing. The source families are **money** (IDA/PILOT), **permission** (DEC ENB/SEQR and municipal boards), **power** (PSC/DPS and appropriate NYISO/utility records), retired-plant context, permits and imagery. Public entity, parcel and network metadata help find and check leads.
 
-The historical source families are **MONEY** (IDA/PILOT), **PERMISSION** (DEC ENB/SEQR and municipal boards), **POWER** (PSC/DPS and appropriate NYISO/utility records), retired-plant context, permits/imagery where their provenance warrants use, and **SUPPORT** (public entity, parcel and network metadata). DNS, CT, RDAP/ASN, routing and peering can prompt questions; they cannot disclose tenants, payloads, inside-the-fence operations or count toward facility confirmation. A confirmed public facility proposition requires two eligible, institutionally independent official acts for the same site and phase. Source admission, claim eligibility and publication are three separate decisions. Candidate and withheld cases remain visible as such. This is a proposed buildout workflow, **not a claim that all adapters run, that a comprehensive statewide detector exists, or that early-warning lead time has been measured**.
+BGP/RIPE RIS and other routing data, DNS, certificate transparency, RDAP/ASN and peering records can sharpen a question. They cannot identify a tenant, read a private workload or packet, locate a cable, or confirm a facility. A public facility claim needs **two eligible, institutionally independent official acts** for the same proposition, site and phase. Admission of a source, eligibility of a claim and authorization to publish are separate decisions. A case can remain a candidate, disputed or withheld.
 
-The case envelope is `original source + version + event/retrieval clocks + exact proposition + entity/site/phase + institutional origin + status + counterevidence + correction`. A procurement clause, policy code, product test, financial instrument or consented incident can be linked only with a documented relationship and its own access rule. The Public Docket and the separately authorized Traffic and Workload Stewardship Console are coequal intended planes; no public clue licenses operational inspection.
+The reusable case record is deliberately plain: **original source, version, dates, precise claim, entity, site, phase, institutional origin, contrary evidence, status and correction**. A policy code, contract, product test or financial instrument needs its own documented link and evidence rule. The proposed Public Docket and separately permissioned Traffic and Workload Stewardship Console are distinct, coequal products; public records do not grant access to operational telemetry. The source families have been researched, but this page does not claim a live statewide detector, complete adapters or measured early-warning lead time.
 
-**Core development request:** Help implement and adversarially test one permitted source adapter, one site/phase/origin resolver, a reviewer-controlled change and correction queue, and an accessible case export. Compare false joins, missed acts, review time and correction cost with an existing tracker and a competent manual workflow. A real pilot needs agreed source rights, named reviewers, paid participation where appropriate and a maintainer.
+**First build request:** Take one permitted public source, one disputed site match and one changed phase. Build a source adapter, an origin-aware review queue and a case export that another person can reconstruct. Compare it with manual research and an existing tracker: missed acts, false joins, time to reviewed answer and correction effort. Agree on rights, reviewers, paid participation where needed and a maintainer before a pilot.
 
-## Eleven issue-first pitches
+## Eleven issue pitches
 
 ![Visual index of eleven proposed issue pitches, their decision questions, and the distinct evidence each requires](./issue-pitch-index.svg)
 
-Choose an issue below for the full pitch, development ask and coalition handoff.
+Each pitch starts from a decision someone actually owns. The bridge shows where another constituency can contribute without borrowing that decision or its authority.
 
 ### 1. Host-community and labor bargain: a project changes before the public catches up
 
-**Pitch.** A public incentive, a SEQR action and a power proceeding may describe different scopes or phases of one development. Docket would show what each original act actually says, whether two acts independently support a bounded claim, which commitments were executed and which remain proposed. Residents would select a burden or benefit to examine; workers would identify the responsible employer and paid training obligation; oversight staff would ask for the next missing act; utility researchers would test cost allocation. None of these constituencies must accept another's preferred remedy.
+An incentive, a SEQR action and a power filing may concern different phases of one project. Residents need to know which burden or promised benefit applies to them. Workers need to know who owes a paid training or jobs commitment. Oversight staff need to know which instrument was executed and which record to request next. Docket could place those acts on one phase-aware timeline, with independent-origin review and a way to correct a bad match.
 
-**Development ask.** A municipal researcher, civic builder and community/worker reviewers could co-design one phase-aware source card, amendment timeline, obligation ledger and correction path around a public case. Compare a same-agency mirror and a false site match as adverse fixtures. Requested MW must not become energized capacity or forecast jobs.
+**Build together:** Test one public case with community and worker reviewers, a municipal researcher and a civic builder. Produce a source card, amendment history and obligation ledger. Include a mirrored agency record and a false site join as adverse cases. Requested megawatts are neither energized capacity nor forecast jobs.
 
-**Coalition handoff.** Source and phase finding → resident's executable promise question → worker's employer/task question → oversight's records request. Each step retains a distinct source and decision authority.
+**Bridge:** The resident chooses the promise; the worker identifies the employer and task; oversight asks for the missing act. Each retains a different question and remedy.
 
 ### 2. Computational Antitrust: inspect dependencies without manufacturing collusion
 
-**Pitch.** Public tenders, awards and changing contract clauses can reveal common pricing, assessment, cloud or access intermediaries. A computational screen would preserve actual information flows and ask a competition researcher to test benign explanations such as common costs, capacity, quality or lawful standardization. A public buyer could test substitutability, repair advocates could test exclusion, technical standards contributors could separate interface conformance from admission control, and independent assessors could review information separation. Similar prices alone are no allegation.
+A public tender may appear competitive while its awards and later amendments depend on one pricing, assessment, cloud or access intermediary. That is a question to investigate, not a finding of collusion. Docket could make public contract versions and documented information flows inspectable. A buyer can test alternatives; a competition researcher can test common costs, capacity, quality and lawful standardization; repair and standards teams can test whether an interface works but admission remains controlled.
 
-**Development ask.** Co-design a reproducible *public-data* tender/award/version graph and a blinded review notebook with a predeclared target, negative cases, missing-data record and correction trail. Sensitive rival bids stay out of a common public pool; qualified counsel/economists decide any legal use. The output is a question and auditable screen, not an automated cartel or misconduct score.
+**Build together:** Make a reproducible public tender-to-award graph and a blinded review notebook with a declared question, negative cases, missing data and corrections. Keep sensitive rival bids out of a common public pool. Qualified counsel or economists would decide any legal use. Similar prices or shared vendors prove neither misconduct nor liability.
 
-**Coalition handoff.** Buyer defines a procurement choice → competition researcher tests market alternatives → repair/standards teams test a gate → assessor checks separation → buyer considers a lawful, usable contract term.
+**Bridge:** Buyer defines the substitution problem → competition reviewer tests explanations → repair team tests the gate → independent assessor checks information separation → buyer considers an enforceable term.
 
 ### 3. CAP policy attention: connect agendas to acts without confusing them
 
-**Pitch.** Comparative Agendas Project (CAP) classifications could help a policy analyst compare when data-center, AI, energy, labor and procurement topics enter public agendas. Docket would preserve jurisdiction, dataset, codebook and version, then link a coded item to its original bill, hearing or policy text where warranted. A separate site/phase link would require independent evidence. A CAP code is neither an operative permit nor proof that a policy caused a buildout decision.
+The Comparative Agendas Project (CAP) may help show when data centers, AI, energy, labor and procurement received public attention. A coded agenda item is not a permit, and attention alone does not cause a buildout decision. Docket could put a versioned CAP classification beside the original bill, hearing or policy text, then keep any claimed link to a particular site on its own evidence track.
 
-**Development ask.** A CAP researcher and municipal policy analyst could design a version-aware crosswalk and source-backed map/timeline overlay, with a coverage table, uncertain mappings and a negative case. **The retained project research did not obtain a complete CAP CSV corpus or verify a row-level AI/data-center subset; independently located proceedings were not verified CAP-coded observations.** Corpus rights and actual rows must be checked before a live overlay is claimed.
+**Build together:** With a CAP researcher and policy analyst, test a codebook-aware crosswalk, map/timeline view, uncertain mappings and a negative case. The retained research did **not** obtain a complete CAP CSV corpus or verify a row-level AI/data-center subset; separately found proceedings were not verified CAP-coded rows. Check corpus rights and actual rows before presenting a live overlay.
 
-**Coalition handoff.** Policy scholar defines a defensible classification → legislative staff selects an agenda question → planning/community reviewer separately checks the operative site instrument. The view displays attention, authority and project status as different layers.
+**Bridge:** Scholar checks the classification; staff ask the policy question; local reviewers check the operative site act. The display keeps attention, authority and project status apart.
 
 ### 4. DPI and municipal procurement: make public computing usable after a supplier changes
 
-**Pitch.** Digital Public Infrastructure needs more than local hosting or a downloadable file. For one municipal service, Docket could connect planning, tender, award, contract amendment and implementation to a receiving team's ability to diagnose, update, export, recover and transfer the exact service. A library or resident group would test accessibility and actual service; a worker/JATC would define paid support skills; open-source and hardware practitioners would test an interface; the buyer decides acceptance and remedy. A physical data-center project connects only when an actual contract or public instrument links it.
+Digital Public Infrastructure (DPI) has to survive a supplier change. For one municipal service, follow the public requirement from planning and tender through award, amendment and implementation. Can a qualified receiving team diagnose, update, export, recover and transfer the exact service? A library or resident group tests accessibility; workers and training sponsors test paid support skills; the buyer decides acceptance and remedy. Link a physical data-center project only if an actual contract or public instrument does.
 
-**Development ask.** Map one public procurement lifecycle into a clause-to-capability matrix, authorized receiving-side task, exception register and portable review export. Compare integrated supplier support with a qualified alternative. Spell out who pays for instruction and maintenance, who can exercise exit and what happens after a failed test.
+**Build together:** Choose one procurement. Turn its clauses into a receiving-side task, exception register and reviewable export. Compare integrated supplier support with a qualified alternative. Name the maintenance payer, the party able to exercise exit and the remedy if the test fails.
 
-**Coalition handoff.** Public user names the service failure → buyer sets a functional requirement → technical and worker reviewers test it → oversight checks implementation. No participant's evidence silently becomes another's authority.
+**Bridge:** Public user names the service failure → buyer writes the requirement → technical and worker reviewers try it → oversight checks delivery.
 
 ### 5. Insurance and assurance: test a defined loss and a real recovery path
 
-**Pitch.** A contract or certificate can promise resilience without showing whether a qualified worker has the diagnostic access, parts, credentials, staffing and time to restore an exact service. A permissioned fault drill could separate detection, authorization, diagnosis, repair and restoration intervals. A risk engineer defines the loss, trigger, beneficiary, limits and exclusions; workers test safe paid authority; operators supply authorized data; buyers test continuity; repair advocates and standards teams test the function. The public source layer can identify a disclosed commitment but cannot inspect a private incident.
+A resilience promise means little if a qualified worker lacks the credential, part, access, staffing or time to restore service. With an operator's separate permission, a fault drill could time detection, authorization, diagnosis, repair and restoration. A risk engineer defines the loss, trigger, beneficiary, limits and exclusions. Workers test safe paid authority; buyers test continuity. A public commitment can be reviewed in Public Docket, but a private incident requires its own authority.
 
-**Development ask.** Build a minimal incident-stage fixture in a separately controlled environment and a public-safe requirement/evidence/assessor/exception schema. Compare parallel delays, integrated support and harm shifted to workers or customers. A faster stage does not prove a lower insured loss, premium, coverage or certification.
+**Build together:** Make a minimal incident-stage fixture in a controlled environment and a public-safe record of requirement, evidence, assessor and exception. Test parallel delays and harm moved to customers or workers; compare integrated support. A faster repair step is not proof of lower insured loss, coverage, premium or certification.
 
-**Coalition handoff.** Worker-defined task → authorized function test → operator recovery observation → qualified loss analysis → buyer/insurer decision under the actual instrument. Preserve disagreements and assessor correction.
+**Bridge:** Worker defines the task → authorized team tests the function → operator observes recovery → qualified risk reviewer analyzes the defined loss → buyer or insurer decides under the actual instrument.
 
 ### 6. Repair, interoperability and workforce: turn an interface into an exercisable right
 
-**Pitch.** A documented management interface may still depend on withheld credentials, firmware, parts, service terms or qualified labor. Docket would tie an exact product/firmware/profile to a lawful task, a scoped test and the actual access term. Repair advocates can challenge a restriction; technical workstreams can specify a function; workers can demand paid skill and safe authority; a buyer can make a tested capability an acceptance condition. Open membership, a passing profile and a badge do not alone prove repairability.
+A management interface can pass a profile while the technician still lacks a credential, firmware, part, service right or paid training. Docket could connect the exact product, version and profile to a lawful task and access term. Repair advocates ask what is blocked; technical workstreams test the function; workers define safe paid authority; buyers can require an actual receiving-side result.
 
-**Development ask.** Build one version-qualified requirement-to-test-to-rights record with a contrary case where integrated support performs better. Have an independent receiving team try the task under permission and record the gap. Keep legal applicability and security exceptions for qualified review.
+**Build together:** Have an independent qualified team try one permitted task. Keep the requirement, observed result, rights and exceptions together, and test a contrary case where integrated support works better. Qualified reviewers handle legal applicability and security exceptions. A badge or open membership does not prove repairability.
 
-**Coalition handoff.** Repair advocate names the barrier → technical workstream tests a versioned function → workers define safe paid authority → buyer specifies acceptance and remedy. Each can reject an overbroad conclusion.
+**Bridge:** Repairer names the barrier → technical team tests a versioned function → workers set task authority → buyer sets acceptance and remedy.
 
 ### 7. Compute markets and labor capital: distinguish price, asset and usable service
 
-**Pitch.** A GPU-hour benchmark, a reservation, a financed facility and a delivered service are different objects. Docket could bind a licensed benchmark version to an adopting contract clause, capacity conditions, operator and public commitments only where documents establish the links. A buyer tests availability and exit; a lender tests a defined recovery assumption; a labor-capital analyst traces an actual decision right through fund and manager; workers test the maintenance premise; a competition researcher examines gatekeeper control. A hedge is not physical capacity or a repair remedy.
+A GPU-hour benchmark, reservation, financed facility and delivered service are four different things. Docket could follow a licensed benchmark version into an adopting contract and ask what capacity, fallback and service the contract actually provides. A buyer checks availability and exit; a lender tests a recovery assumption; a labor-capital reviewer traces any real decision right through fund and manager; workers test the maintenance premise. A hedge cannot repair a machine or deliver compute.
 
-**Development ask.** Define one contract-dependency case with a benchmark fallback, a service failure scenario, an adverse integrated-service comparison and explicit data licenses. Do not infer pension control, public equity or an insurance saving from exposure alone.
+**Build together:** Test one contract dependency, fallback and service-failure scenario with explicit data rights and an adverse integrated-service comparison. Financial exposure alone establishes no pension control, public equity or insurance saving.
 
-**Coalition handoff.** Benchmark specialist identifies the licensed reference → buyer tests contract adoption and availability → labor-capital reviewer identifies actual authority → risk and competition reviewers examine different downside questions.
+**Bridge:** Benchmark specialist identifies the reference → buyer checks adoption and service → labor-capital reviewer finds the actual authority → risk and competition reviewers ask their separate downside questions.
 
 ### 8. Spatial, media and civic development: show the place without inventing hidden infrastructure
 
-**Pitch.** A sourced map or guided journey can put a proposed phase beside hearings, power actions, jobs promises, existing buildings, nearby institutions and alternatives. Residents choose the local question; planners provide authoritative geometry; workers and educators check actual training routes; reporters trace every material label to an original act. Photorealism, animated paths and geographic proximity do not prove a cable, live packet route or partnership.
+A map can place a proposed phase beside hearings, power actions, existing buildings and promised jobs. It can also mislead. A resident chooses the local question; a planner supplies authoritative geometry; reporters trace each material label to an original act; workers and educators check whether a training route exists. A realistic rendering or nearby line does not prove a cable, packet path or partnership.
 
-**Development ask.** Build an accessible 2D/timeline view with source cards, phase/status controls, a contested case and a text/table alternative. Measure whether a second reviewer can find the original and contrary records. A 3D/AR layer can follow only with source-backed geometry and its own device/accessibility review.
+**Build together:** Make an accessible 2D map and timeline with source cards, phase/status controls, a disputed case and a text/table view. Ask a second reviewer to find the original and contrary records. Consider 3D or AR only with source-backed geometry and separate device and accessibility review.
 
-**Coalition handoff.** Resident selects a place-based question → planner supplies geometry and status → reporter checks original records → worker/educator tests the claimed opportunity → user challenges the rendering.
+**Bridge:** Resident chooses the question → planner supplies place and status → reporter checks records → worker or educator checks the opportunity → user can challenge the rendering.
 
 ### 9. Authorized traffic and workload stewardship: a useful service without a purity score
 
-**Pitch.** Public OSINT cannot reveal an operator's task graph, private traffic or exact energy use. With separate authorization, a service team and affected users could test a specific cancellation, retry, cache miss, version change or recovery event. Edge/model collaborators might improve useful work; educators and accessibility reviewers might defend valid exploratory uses; workers must have authority over any labor-impact question. A universal “slop” label would erase legitimate research, redundancy, creativity and failure.
+Public BGP, DNS and related OSINT cannot expose an operator's task graph, private traffic or exact energy use. A separately authorized service team could instead examine a cancellation, retry, cache miss, version change or recovery event with affected users. The question is whether a control improved useful work without blocking legitimate exploration, creativity, accessibility or redundancy. Individual worker productivity is outside this test.
 
-**Development ask.** Build a consented synthetic or permitted event fixture with task/artifact/version/time, minimal data collection, false-block appeal and a comparator for quality and resource cost. Keep restricted logs outside Public Docket and prohibit individual worker productivity inference.
+**Build together:** Use synthetic or permitted task/artifact/version events with minimal collection, a false-block appeal and a quality/resource comparator. Keep restricted logs out of Public Docket. A blanket “slop” score would hide the very judgments this test needs to expose.
 
-**Coalition handoff.** User defines a useful outcome → service team specifies observable event → privacy/worker reviewers bound collection → evaluator tests quality and false positives → operator decides a reversible control under its own authority.
+**Bridge:** User defines a useful result → service team defines an observable event → privacy and worker reviewers bound collection → evaluator tests error → operator decides a reversible control.
 
 ### 10. Public contribution, cooperative capacity and circular hardware
 
-**Pitch.** A public subsidy, a retired asset, a library service and a cooperative maintenance pool are potential contributions with different owners, costs and rights. Docket could trace an actual contribution to an executed use, a maintainer, a beneficiary and a practical exit. A community may ask for a usable local service; educators for supported instruction; workers for paid refurbishment or apprenticeship; repairers for parts and safe procedures; a cooperative for a sustainable, member-governed service. Public investment does not automatically create public title, a dividend or a free supply of computing.
+A subsidy, retired server, library service and cooperative maintenance pool have different owners and costs. Public investment does not automatically create public title or free compute. Docket could trace a real contribution through an executed use, beneficiary, maintainer, worker skill, cost and exit. A community asks whether a service is usable; educators ask who teaches it; workers ask who is paid to repair it.
 
-**Development ask.** Co-design one sourced contribution-to-service record and total-cost model, including equipment condition, access, labor, disposal, maintenance and alternative provision. Compare against ordinary procurement or self-provision; test a failure where the proposed commons recreates a gatekeeper or offloads unsafe work.
+**Build together:** Model one contribution-to-service case, including equipment condition, access, labor, disposal, maintenance and alternatives. Compare ordinary procurement or self-provision. Test whether a proposed commons would recreate a gatekeeper or shift unsafe work onto volunteers.
 
-**Coalition handoff.** Community institution defines a service → cooperative names governance and maintenance → worker/repair teams test capability → buyer/funder compares full costs and exit. No contribution silently becomes ownership.
+**Bridge:** Community institution names the service → cooperative defines governance and maintenance → workers and repairers test capability → buyer or funder compares full cost and exit.
 
 ### 11. Workforce disclosure: a parallel test of accountable institutional statements
 
-**Pitch.** The wider project also studies how workforce explanations in WARN notices, SEC filings and earnings statements can diverge. That is a separate claim and source-eligibility problem from facility buildout: a company-level AI narrative does not automatically explain an individual layoff, and a data-center construction signal does not establish a hiring outcome. A source-linked contradiction queue could help labor researchers, journalists and oversight staff ask a precise follow-up while workers control protected testimony.
+The wider project also asks how a company's account of AI and work compares across WARN notices, SEC filings and earnings statements. That is a separate claim from facility detection. A company-wide AI narrative does not explain any one layoff; a buildout signal does not prove a hiring result. A source-linked contradiction queue could help workers, labor researchers, reporters and oversight staff frame a precise follow-up while protecting testimony.
 
-**Development ask.** Test one exact employer, period and disclosure proposition with original filings, entity resolution, alternative explanations and human review. Reuse provenance, correction and accessible export components where justified; do not merge its evidence standard with the two-act facility confirmation rule.
+**Build together:** Take one employer, period and exact disclosure claim. Align original filings, test alternative explanations and require human review. Reuse source tracking and correction tools where useful, while keeping this claim's evidence rule separate from the two-act facility test.
 
-**Coalition handoff.** Worker-defined question → disclosure researcher aligns exact filings → journalist/oversight reviewer checks the contradiction → employer has a correction opportunity. The facility case remains separately evidenced.
+**Bridge:** Workers define the question → researchers align filings → journalist or oversight reviewer checks the discrepancy → employer can respond and correct the record.
 
-## Shared software, distinct authority
+## One software base, distinct authority
 
-| Reusable capability | Receives evidence from | Reciprocal users | First adverse test |
+| Reusable piece | Evidence it takes | Who might use it | Test that could defeat the claim |
 |---|---|---|---|
-| Public adapter, version and change queue | Permitted official acts; support-only public leads separated | Civic builders, residents, workers, staff, reporters | Missing notice; changed URL; same act mirrored twice |
-| Site/phase/entity/origin graph | Exact project and institutional relationships | Competition, oversight, utilities, policy researchers | False parcel/phase join; one origin counted twice |
-| Policy/procurement/rights ledger | CAP codebook where actually licensed; operative bill/contract; exact obligation | Municipal buyer, DPI practitioner, labor and community | Agenda code misread as binding policy; export without usable exit |
-| Technical and worker capability record | Authorized product/profile/task plus role and access term | Repair, standards, union, buyer | Interface passes but credential or paid authority absent |
-| Scoped assurance/recovery review | Separately consented fault/contract evidence | Operator, worker, risk engineer, purchaser | Faster repair step changes no defined loss; parallel delay hidden |
-| Accessible spatial/case explanation | Source-licensed geometry and versioned claims | Resident, journalist, planner, educator | Proximity falsely implies partnership; realism masquerades as proof |
+| Public adapter and change queue | Permitted official acts; separate support-only leads | Civic builders, residents, workers, staff, reporters | Missed notice, changed URL or one act mirrored twice |
+| Site, phase, entity and origin record | Exact project and institutional links | Competition, oversight, utility and policy researchers | Wrong parcel or phase; one origin counted twice |
+| Policy, procurement and rights ledger | Licensed CAP material where available; actual bill, contract and obligation | Municipal buyer, DPI practitioner, workers, community | Agenda code treated as binding policy; exported file that cannot be used |
+| Technical and worker capability test | Authorized product, version, task, role and access term | Repairer, standards team, union, buyer | Profile passes but credential or paid authority is missing |
+| Scoped recovery review | Separately consented fault and contract evidence | Operator, worker, risk engineer, purchaser | Faster task changes no defined loss; a parallel delay is hidden |
+| Accessible map and case explanation | Licensed geometry and source-linked claims | Resident, reporter, planner, educator | Proximity implies a partnership; realism is mistaken for proof |
 
-No single sponsor buys an unqualified conclusion. Development can be funded as discrete adapters, interfaces, review methods, paid user participation and maintenance with reusable components counted once and recipient-specific work priced separately. A partner's contribution does not confer endorsement or authority over another constituency.
+A sponsor could fund a source adapter, user test, review method or maintained component. Count shared work once, price recipient-specific work separately, and allow an unfavorable result. One participant cannot endorse or govern another's decision merely by joining the same case.
 
-## Source doors and status
+## Original source doors
 
-These are primary starting points for scoped pilots, **not evidence that a named project has been detected or a partner has joined**: [NY DEC ENB](https://dec.ny.gov/news/environmental-notice-bulletin) and [SEQR](https://dec.ny.gov/regulatory/permits-licenses/seqr); [NY DPS document search](https://documents.dps.ny.gov/search/Home/DocumentSearch); [NYISO interconnection process](https://www.nyiso.com/interconnections); [Comparative Agendas Project master codebook](https://www.comparativeagendas.net/pages/master-codebook) and [datasets](https://www.comparativeagendas.net/datasets_codebooks); [Open Contracting Data Standard lifecycle](https://standard.open-contracting.org/latest/en/primer/how/); [U.S. DOJ Procurement Collusion Strike Force](https://www.justice.gov/atr/procurement-collusion-strike-force); [FM loss-prevention data sheets](https://www.fm.com/resources/fm-data-sheets). Each source's current coverage, terms, schema, licensing and fit require verification for the exact proposed adapter or case.
+Start a scoped case at [NY DEC ENB](https://dec.ny.gov/news/environmental-notice-bulletin) and [SEQR](https://dec.ny.gov/regulatory/permits-licenses/seqr), [NY DPS document search](https://documents.dps.ny.gov/search/Home/DocumentSearch), or the [NYISO interconnection process](https://www.nyiso.com/interconnections). Other issue sources include the [CAP master codebook](https://www.comparativeagendas.net/pages/master-codebook) and [datasets](https://www.comparativeagendas.net/datasets_codebooks), the [Open Contracting Data Standard](https://standard.open-contracting.org/latest/en/primer/how/), the [DOJ Procurement Collusion Strike Force](https://www.justice.gov/atr/procurement-collusion-strike-force), and [FM loss-prevention sheets](https://www.fm.com/resources/fm-data-sheets). Check current coverage, rights, schema and fitness for the exact case. These links establish neither a detected facility nor a partner.

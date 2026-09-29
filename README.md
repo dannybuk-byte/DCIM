@@ -1,35 +1,36 @@
 # Data Center Docket
 
-**A public evidence workspace for data-center buildout and the decisions that follow.**
+**A tax deal, a planning notice and a power filing may describe the same project under different names. What can a town learn before the next decision is made?**
 
-Projects leave traces in incentive awards, planning records, environmental reviews and power proceedings. Data Center Docket proposes to connect those original acts to the right site and phase, show what changed or conflicts, and prepare a reviewable case for the people who must decide what to do next.
+I'm building Data Center Docket to connect those original records to a site and phase: who is named, what changed, what conflicts and which act comes next. A municipality can prepare to negotiate; workers and neighbors can ask their own questions from the same source-linked case.
 
-**Open the visual site:** [Audience atlas](https://dannybuk-byte.github.io/DCIM/) · [Interactive product comparison](https://dannybuk-byte.github.io/DCIM/comparison.html) · [Filterable public signal atlas](https://dannybuk-byte.github.io/DCIM/public-signal-atlas.html)
+[Open the visual Docket](https://dannybuk-byte.github.io/DCIM/) · [Explore public signals](https://dannybuk-byte.github.io/DCIM/public-signal-atlas.html) · [Compare existing tools](https://dannybuk-byte.github.io/DCIM/comparison.html)
 
-![Visual overview of public signals becoming distinct audience decisions](docs/audiences/overview.svg)
+![One sourced case can support different questions from workers, residents, buyers and reviewers](docs/audiences/overview.svg)
 
-## Explore the project visually
+## Start with your question
 
-| Start here | What you will see |
+| Question | Guide |
 |---|---|
-| [Public signal atlas](docs/audiences/public-signal-atlas.md) | Official acts, network and parcel clues, rights and evidence boundaries. |
-| [Product comparison](docs/audiences/comparison.md) | A visual matrix of proposed Docket outputs and documented tracker, OSINT, policy, DCAM and DCIM outputs. |
-| [Issue and coalition pitches](docs/audiences/issue-bridges.md) | How one reviewed case supports distinct municipal, antitrust, CAP, assurance, community and worker decisions. |
-| [46 audience invitations](docs/audiences/README.md) | Development asks organized by constituency, with reciprocal handoffs. |
+| Where might a project be taking shape, and what can the records establish? | [Public signal atlas](docs/audiences/public-signal-atlas.md) |
+| What does this mean for a resident, worker, buyer or policy analyst? | [Issue and coalition pitches](docs/audiences/issue-bridges.md) |
+| Who could test a small piece of the build? | [Audience invitations](docs/audiences/README.md) |
+| Which outputs already exist in other tools, and what needs a fair pilot? | [Product comparison](docs/audiences/comparison.md) |
 
-![Proposed workflow from official acts and support-only OSINT clues to a reviewed case and five distinct audience decisions](docs/audiences/issue-bridge-workflow.svg)
+![Original public acts and support-only clues lead to a reviewed case and distinct audience questions](docs/audiences/issue-bridge-workflow.svg)
 
-### What the signals can establish
+## What the evidence can say
 
-The proposed Public Docket starts with **money, permission and power**: IDA/PILOT records, DEC/SEQR and municipal acts, and appropriate PSC/DPS, NYISO or utility records. Public BGP/RIS, DNS, certificate transparency, RDAP/ASN, peering, parcel and imagery data can suggest where to investigate. Those supporting clues do not confirm a facility, expose a tenant or reveal private traffic. A bounded facility claim needs **two eligible, institutionally independent official acts** about the same proposition, site and phase, followed by human review.
+The proposed public workflow starts with **money, permission and power**: incentive agreements, planning and environmental decisions, municipal records and relevant power proceedings. Public BGP/RIPE RIS, DNS, certificate transparency, RDAP/ASN, peering, parcel and imagery observations can point toward a lead. They cannot confirm a facility, identify a tenant or reveal private traffic.
 
-**Evidence status:** The dated reviewed Phase-1 corpus had zero corroborated facility rows. A live statewide official-record detector, production automated memo pipeline, measured early-warning lead time and measured cost/speed advantage are not established. The current [STATUS](STATUS.md) and [AGENTS](AGENTS.md) documents govern claims about running code and evidence.
+A facility claim needs **two eligible, institutionally independent official acts about the same proposition, site and phase**, with human review of copies, amendments and contrary records. Packet inspection and private telemetry belong in a separate, expressly authorized operational study. A public clue grants no access to an operator's network.
 
-## For builders and reviewers
+The [issue pitches](docs/audiences/issue-bridges.md) show how one reviewed case could inform municipal procurement, Computational Antitrust, CAP policy attention, insurance, community obligations and worker decisions. Each use has its own authority and proof requirement.
 
-- [Current status](STATUS.md) and [scope and claim boundaries](AGENTS.md)
-- [Architecture](ARCHITECTURE.md) and [contribution guide](CONTRIBUTING.md)
-- [Audience source and visual assets](docs/audiences/README.md)
-- [Earlier WWW disclosure-observability README](docs/historical/README-before-visual-entry.md) for the repository's historical framing
+**Current status:** The dated Phase-1 review had zero corroborated facility rows. A live statewide official-record detector, production automated memo pipeline and measured lead-time or cost advantage are not established. [STATUS](STATUS.md) and [AGENTS](AGENTS.md) govern current claims.
 
-The interactive editions are published through GitHub Pages at the links above. The Markdown pages remain the rendered reading path inside the repository; GitHub's file viewer shows HTML source.
+## Build and review
+
+[Current status](STATUS.md) · [Claim rules](AGENTS.md) · [Architecture](ARCHITECTURE.md) · [Contribute](CONTRIBUTING.md)
+
+The visual guides are published on GitHub Pages. Older implementation notes record earlier experiments and should be read against the current [STATUS](STATUS.md).
