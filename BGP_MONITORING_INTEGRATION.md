@@ -1,3 +1,5 @@
+> **Historical research and interface note · reviewed 29 September 2026.** The populated source list and tailored RPKI recommendations below are prototype behavior, not verified live facility findings. Public BGP observations can support a lead; RPKI and operator attribution need direct source review, and no public signal grants access to private traffic. See [STATUS](STATUS.md) and [claim rules](AGENTS.md).
+
 # BGP Monitoring Tools - Integration with DCIM Compliance App
 
 ## Overview
