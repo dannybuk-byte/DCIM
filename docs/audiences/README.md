@@ -1,10 +1,14 @@
 # Data Center Docket: audience-specific development invitations
 
-> **Visual edition:** [Open the audience atlas HTML](./index.html) · [Download the standalone HTML](https://raw.githubusercontent.com/dannybuk-byte/DCIM/docs/audience-development-invitations-20260929/docs/audiences/index.html). The interactive page is prepared for GitHub Pages; deployment follows repository review and Pages configuration.
+> **Start with the visual comparison:** [Open the rendered product matrix](./comparison.md). GitHub shows the SVG inside that page. The interactive HTML files are available as [standalone downloads](https://raw.githubusercontent.com/dannybuk-byte/DCIM/docs/audience-development-invitations-20260929/docs/audiences/index.html); opening an HTML file in GitHub's repository viewer shows its source until Pages is deployed.
 
 ![Audience atlas overview: open public signals through distinct constituency decisions](./overview.svg)
 
-> **Comparison:** [Read the GitHub comparison chart](./comparison.md) · [Open the interactive product map](./comparison.html) · [Explore 61 public signal families](./public-signal-atlas.html).
+## Product comparison at a glance
+
+![Matrix comparing proposed Docket public outputs with documented tracker, OSINT, policy, asset, and facility monitoring products](./comparison-matrix.svg)
+
+[Read the output definitions, product sources and cost test](./comparison.md) · [Explore 61 public signal families](./public-signal-atlas.html).
 
 > **Issue-first pitches:** [Buildout detection, Computational Antitrust, CAP policy tracking, DPI municipal procurement, assurance and coalition bridges](./issue-bridges.md).
 
