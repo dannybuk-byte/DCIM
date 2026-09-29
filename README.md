@@ -1,8 +1,8 @@
 # Data Center Docket
 
-**A tax deal, a planning notice and a power filing can describe different phases of the same data center. Who puts them together before the decision is over?**
+**A tax deal, a planning notice and a power filing may describe the same project under different names. What can a town learn before the next decision is made?**
 
-I'm building Data Center Docket to connect original public records to the right site and phase. The aim is a short, source-linked answer: What changed? Who made a commitment? What conflicts? Which document should we seek next?
+I'm building Data Center Docket to connect those original records to a site and phase: who is named, what changed, what conflicts and which act comes next. A municipality can prepare to negotiate; workers and neighbors can ask their own questions from the same source-linked case.
 
 [Open the visual Docket](https://dannybuk-byte.github.io/DCIM/) · [Explore public signals](https://dannybuk-byte.github.io/DCIM/public-signal-atlas.html) · [Compare existing tools](https://dannybuk-byte.github.io/DCIM/comparison.html)
 
