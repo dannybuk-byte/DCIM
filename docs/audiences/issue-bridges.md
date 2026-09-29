@@ -61,17 +61,23 @@ The case envelope is `original source + version + event/retrieval clocks + exact
 
 **Development ask.** Build one version-qualified requirement-to-test-to-rights record with a contrary case where integrated support performs better. Have an independent receiving team try the task under permission and record the gap. Keep legal applicability and security exceptions for qualified review.
 
+**Coalition handoff.** Repair advocate names the barrier → technical workstream tests a versioned function → workers define safe paid authority → buyer specifies acceptance and remedy. Each can reject an overbroad conclusion.
+
 ### 7. Compute markets and labor capital: distinguish price, asset and usable service
 
 **Pitch.** A GPU-hour benchmark, a reservation, a financed facility and a delivered service are different objects. Docket could bind a licensed benchmark version to an adopting contract clause, capacity conditions, operator and public commitments only where documents establish the links. A buyer tests availability and exit; a lender tests a defined recovery assumption; a labor-capital analyst traces an actual decision right through fund and manager; workers test the maintenance premise; a competition researcher examines gatekeeper control. A hedge is not physical capacity or a repair remedy.
 
 **Development ask.** Define one contract-dependency case with a benchmark fallback, a service failure scenario, an adverse integrated-service comparison and explicit data licenses. Do not infer pension control, public equity or an insurance saving from exposure alone.
 
+**Coalition handoff.** Benchmark specialist identifies the licensed reference → buyer tests contract adoption and availability → labor-capital reviewer identifies actual authority → risk and competition reviewers examine different downside questions.
+
 ### 8. Spatial, media and civic development: show the place without inventing hidden infrastructure
 
 **Pitch.** A sourced map or guided journey can put a proposed phase beside hearings, power actions, jobs promises, existing buildings, nearby institutions and alternatives. Residents choose the local question; planners provide authoritative geometry; workers and educators check actual training routes; reporters trace every material label to an original act. Photorealism, animated paths and geographic proximity do not prove a cable, live packet route or partnership.
 
 **Development ask.** Build an accessible 2D/timeline view with source cards, phase/status controls, a contested case and a text/table alternative. Measure whether a second reviewer can find the original and contrary records. A 3D/AR layer can follow only with source-backed geometry and its own device/accessibility review.
+
+**Coalition handoff.** Resident selects a place-based question → planner supplies geometry and status → reporter checks original records → worker/educator tests the claimed opportunity → user challenges the rendering.
 
 ### 9. Authorized traffic and workload stewardship: a useful service without a purity score
 
@@ -87,11 +93,15 @@ The case envelope is `original source + version + event/retrieval clocks + exact
 
 **Development ask.** Co-design one sourced contribution-to-service record and total-cost model, including equipment condition, access, labor, disposal, maintenance and alternative provision. Compare against ordinary procurement or self-provision; test a failure where the proposed commons recreates a gatekeeper or offloads unsafe work.
 
+**Coalition handoff.** Community institution defines a service → cooperative names governance and maintenance → worker/repair teams test capability → buyer/funder compares full costs and exit. No contribution silently becomes ownership.
+
 ### 11. Workforce disclosure: a parallel test of accountable institutional statements
 
 **Pitch.** The wider project also studies how workforce explanations in WARN notices, SEC filings and earnings statements can diverge. That is a separate claim and source-eligibility problem from facility buildout: a company-level AI narrative does not automatically explain an individual layoff, and a data-center construction signal does not establish a hiring outcome. A source-linked contradiction queue could help labor researchers, journalists and oversight staff ask a precise follow-up while workers control protected testimony.
 
 **Development ask.** Test one exact employer, period and disclosure proposition with original filings, entity resolution, alternative explanations and human review. Reuse provenance, correction and accessible export components where justified; do not merge its evidence standard with the two-act facility confirmation rule.
+
+**Coalition handoff.** Worker-defined question → disclosure researcher aligns exact filings → journalist/oversight reviewer checks the contradiction → employer has a correction opportunity. The facility case remains separately evidenced.
 
 ## Shared software, distinct authority
 
