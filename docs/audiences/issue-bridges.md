@@ -3,6 +3,15 @@
 **Daniel Buk · 29 September 2026 · public development proposals**  
 [Interactive audience atlas](https://dannybuk-byte.github.io/DCIM/) · [Audience guide](./README.md) · [Visual comparison](./comparison.md) · [Public signal atlas](./public-signal-atlas.md)
 
+## In one minute
+
+| Read next | Why it matters |
+|---|---|
+| [Buildout record](#start-with-the-buildout-record) | The first public case starts with money, permission and power acts. |
+| [Choose evidence](#choose-the-evidence-for-the-question) | A site, contract and service incident have different proof and permission rules. |
+| [Eleven issue pitches](#eleven-issue-pitches) | Jump to [Computational Antitrust](#2-computational-antitrust-inspect-dependencies-without-manufacturing-collusion), [CAP](#3-cap-policy-attention-connect-agendas-to-acts-without-confusing-them), [DPI procurement](#4-dpi-and-municipal-procurement-make-public-computing-usable-after-a-supplier-changes), or the other decision questions. |
+| [Sources and bibliography](./sources.md) | Check the original project, codebook, agency act or technical document before using a claim. |
+
 ![Proposed Public Docket and separately authorized Stewardship Console begin with different evidence and permissions, while reusing review and correction methods](./issue-bridge-workflow.svg)
 
 An incentive agreement, environmental notice and power filing may describe one project under different names. That is one way into Data Center Docket. A repair question can instead start with a product version and access term; a public-service question with a contract; a workload question with separately authorized task events. The tools could reuse source versions, exact claims, review and correction. The evidence and permission do not travel with them. This remains my personal research and software project; worker-centered work informs it, but no organization or prospective partner has authorized me to speak for it here.
@@ -43,6 +52,8 @@ An incentive, a SEQR action and a power filing may concern different phases of o
 
 ### 2. Computational Antitrust: inspect dependencies without manufacturing collusion
 
+**Research reference:** [Stanford CodeX's Computational Antitrust project](https://law.stanford.edu/codex-the-stanford-center-for-legal-informatics/projects/computational-antitrust/) studies computational methods in antitrust. The procurement test below is Docket's proposed application, not a Stanford product, finding or endorsement. [Source note](./sources.md#computational-antitrust).
+
 Suppose four firms bid for a city service. If each relies on the same platform to price it, deliver it or let the city switch later, how much choice does the city have? That is a question for contract evidence and competing explanations, not a finding of collusion. Docket could make public contract versions and documented information flows inspectable. A buyer can test alternatives; a competition researcher can test common costs, capacity, quality and lawful standardization; repair and standards teams can test whether an interface works but admission remains controlled.
 
 **Build together:** Make a reproducible public tender-to-award graph and a blinded review notebook with a declared question, negative cases, missing data and corrections. Keep sensitive rival bids out of a common public pool. Qualified counsel or economists would decide any legal use. Similar prices or shared vendors prove neither misconduct nor liability.
@@ -51,7 +62,7 @@ Suppose four firms bid for a city service. If each relies on the same platform t
 
 ### 3. CAP policy attention: connect agendas to acts without confusing them
 
-The Comparative Agendas Project (CAP) may help show when data centers, AI, energy, labor and procurement received public attention. A coded agenda item is not a permit, and attention alone does not cause a buildout decision. Docket could put a versioned CAP classification beside the original bill, hearing or policy text, then keep any claimed link to a particular site on its own evidence track.
+The [Comparative Agendas Project (CAP)](https://www.comparativeagendas.net/pages/About) codes government policy activity across topics and jurisdictions. Its [master codebook](https://www.comparativeagendas.net/pages/master-codebook) may help examine when data centers, AI, energy, labor and procurement received public attention, if the actual dataset contains relevant rows. A coded agenda item is not a permit, and attention alone does not cause a buildout decision. Docket could put a versioned classification beside the original bill, hearing or policy text, then keep any claimed link to a particular site on its own evidence track. [Check dataset and reuse terms](./sources.md#comparative-agendas-project-cap).
 
 **Build together:** With a CAP researcher and policy analyst, test a codebook-aware crosswalk, map/timeline view, uncertain mappings and a negative case. The retained research did **not** obtain a complete CAP CSV corpus or verify a row-level AI/data-center subset; separately found proceedings were not verified CAP-coded rows. Check corpus rights and actual rows before presenting a live overlay.
 
@@ -59,7 +70,7 @@ The Comparative Agendas Project (CAP) may help show when data centers, AI, energ
 
 ### 4. DPI and municipal procurement: make public computing usable after a supplier changes
 
-Digital Public Infrastructure (DPI) has to survive a supplier change. For one municipal service, follow the public requirement from planning and tender through award, amendment and implementation. Can a qualified receiving team diagnose, update, export, recover and transfer the exact service? A library or resident group tests accessibility; workers and training sponsors test paid support skills; the buyer decides acceptance and remedy. Link a physical data-center project only if an actual contract or public instrument does.
+[UNDP's digital public infrastructure (DPI) overview](https://www.undp.org/digital/digital-public-infrastructure) emphasizes interoperable systems and public governance. Docket proposes a particular supplier-change test; DPI status or successful exit is not established by that reference. For one municipal service, follow the public requirement from planning and tender through award, amendment and implementation. Can a qualified receiving team diagnose, update, export, recover and transfer the exact service? A library or resident group tests accessibility; workers and training sponsors test paid support skills; the buyer decides acceptance and remedy. Link a physical data-center project only if an actual contract or public instrument does. [Source note](./sources.md#digital-public-infrastructure-and-procurement).
 
 **Build together:** Choose one procurement. Turn its clauses into a receiving-side task, exception register and reviewable export. A city could write an open, interoperable scope and test whether qualified local, including worker-owned, providers can deliver and maintain it. Compare integrated supplier support with a qualified alternative; name the maintenance payer, the party able to exercise exit and the remedy if the test fails. This is a strategy to test, not an available-bidder or awarded-contract claim.
 
@@ -136,4 +147,4 @@ A sponsor could fund a source adapter, user test, review method or maintained co
 
 ## Original source doors
 
-Start a scoped case at [NY DEC ENB](https://dec.ny.gov/news/environmental-notice-bulletin) and [SEQR](https://dec.ny.gov/regulatory/permits-licenses/seqr), [NY DPS document search](https://documents.dps.ny.gov/search/Home/DocumentSearch), or the [NYISO interconnection process](https://www.nyiso.com/interconnections). Other issue sources include the [CAP master codebook](https://www.comparativeagendas.net/pages/master-codebook) and [datasets](https://www.comparativeagendas.net/datasets_codebooks), the [Open Contracting Data Standard](https://standard.open-contracting.org/latest/en/primer/how/), the [DOJ Procurement Collusion Strike Force](https://www.justice.gov/atr/procurement-collusion-strike-force), and [FM loss-prevention sheets](https://www.fm.com/resources/fm-data-sheets). Check current coverage, rights, schema and fitness for the exact case. These links establish neither a detected facility nor a partner.
+Start a scoped case at [NY DEC ENB](https://dec.ny.gov/news/environmental-notice-bulletin) and [SEQR](https://dec.ny.gov/regulatory/permits-licenses/seqr), [NY DPS document search](https://documents.dps.ny.gov/search/Home/DocumentSearch), or the [NYISO interconnection process](https://www.nyiso.com/interconnections). Other issue sources include [Stanford CodeX's Computational Antitrust project](https://law.stanford.edu/codex-the-stanford-center-for-legal-informatics/projects/computational-antitrust/), the [CAP master codebook](https://www.comparativeagendas.net/pages/master-codebook), [datasets](https://www.comparativeagendas.net/datasets_codebooks) and [reuse terms](https://www.comparativeagendas.net/pages/Copyright-and-Legal), [UNDP's DPI overview](https://www.undp.org/digital/digital-public-infrastructure), the [Open Contracting Data Standard](https://standard.open-contracting.org/latest/en/primer/how/), the [DOJ Procurement Collusion Strike Force](https://www.justice.gov/atr/procurement-collusion-strike-force), and [FM loss-prevention sheets](https://www.fm.com/resources/fm-data-sheets). The [annotated bibliography](./sources.md) says what each can and cannot establish. These links establish neither a detected facility nor a partner.
