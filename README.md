@@ -6,6 +6,15 @@ I'm building Data Center Docket to connect those original records to a site and 
 
 [Open the visual guide](https://dannybuk-byte.github.io/DCIM/) · [Explore public signals](https://dannybuk-byte.github.io/DCIM/public-signal-atlas.html) · [Compare existing tools](https://dannybuk-byte.github.io/DCIM/comparison.html)
 
+## In one minute
+
+| Read next | Why it matters |
+|---|---|
+| [Two products](#two-products-two-kinds-of-permission) | Public decisions and permissioned service tests need different evidence. |
+| [Start with your question](#start-with-your-question) | Pick the resident, worker, buyer or policy question before choosing a view. |
+| [Evidence rule](#what-the-evidence-can-say) | Network observations are leads; a public facility claim has its own review gate. |
+| [Sources and bibliography](docs/audiences/sources.md) | Follow official records, research methods, rights and product claims to their original pages. |
+
 ## Two products, two kinds of permission
 
 | Intended product | Question it helps answer | Evidence it may use |
@@ -42,6 +51,6 @@ The [issue pitches](docs/audiences/issue-bridges.md) start with different eviden
 
 ## Build and review
 
-[Current status](STATUS.md) · [Claim rules](AGENTS.md) · [Earlier WWW architecture](ARCHITECTURE.md) · [Contribute](CONTRIBUTING.md)
+[Current status](STATUS.md) · [Claim rules](AGENTS.md) · [Source bibliography](docs/audiences/sources.md) · [Earlier WWW architecture](ARCHITECTURE.md) · [Contribute](CONTRIBUTING.md)
 
 The visual guides are published on GitHub Pages. Older implementation notes record earlier experiments and should be read against the current [STATUS](STATUS.md).
