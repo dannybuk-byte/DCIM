@@ -1,5 +1,15 @@
 # Data Center Docket: who could build and use it
 
+## In one minute
+
+| Read next | Why it matters |
+|---|---|
+| [Method](#the-common-source-to-decision-method) | Find, match, review and explain one exact claim. |
+| [46 invitations](#repair-labor-and-accountable-commitments) | These are possible conversations and first tests, not commitments or partners. |
+| [Selected source checks](#selected-public-sources-and-their-limits) | See what the owner documents can establish. |
+| [Full bibliography](./sources.md) | Check the agency, research program, organization and product pages behind the guide. |
+
+
 Start with the [visual product comparison](./comparison.md) or [interactive audience atlas](https://dannybuk-byte.github.io/DCIM/). Then use the invitations below to choose one real question, one possible collaborator and one test.
 
 ![Audience atlas overview: open public signals through distinct constituency decisions](./overview.svg)
@@ -43,7 +53,7 @@ The exit test comes after the files move: can the next qualified team repair thi
 
 **First test:** Give a repair practitioner one authorized receiving-side task. Record the missing history, credential or right, and invite an opt-in critique of the result.
 
-### 02. EFF interoperability and repair audiences
+### 02. [EFF](https://www.eff.org/) interoperability and repair audiences
 
 A device may speak an open interface while the credential needed to fix it remains unavailable. Which exact task is blocked? Technical reviewers test function, workers paid authority and buyers the contract. Qualified counsel or specialists must assess repair-law scope and security exceptions; Docket makes no legal finding.
 
@@ -115,13 +125,13 @@ An assurance claim should survive a second reviewer who did not write the first 
 
 **First test:** Give that reviewer a blinded export with the original version, contrary evidence, exceptions, corrections and decision authority.
 
-### 14. Silicon Data, benchmark, and compute-market infrastructure audiences
+### 14. [Silicon Data](https://www.silicondata.com/), benchmark, and compute-market infrastructure audiences
 
 A GPU price reference can move while the contracted service fails for another reason. Which dependency matters in this deal? Buyers, operators and risk reviewers examine separate exposures. Docket has no feed right, price forecast, exchange status or guarantee that a hedge restores compute.
 
 **First test:** With rights-holder and customer permission, map one licensed benchmark version to its adopting clause, fallback, actual capacity and usable service.
 
-### 15. Computational Antitrust — procurement and intermediary controls
+### 15. [Computational Antitrust](https://law.stanford.edu/codex-the-stanford-center-for-legal-informatics/projects/computational-antitrust/) — procurement and intermediary controls
 
 A public buyer sees the same intermediary in several bids. Can it still switch suppliers and keep the service working? Buyers test substitution and repairers test the replacement. A shared supplier or similar bids alone establish neither collusion nor liability.
 
@@ -133,13 +143,13 @@ The operator knows its recovery fault; the community knows its public promise. E
 
 **First test:** With a willing sponsor and budget, scope one paid fault drill with qualified workers and independent risk review. Set data and publication terms before access.
 
-### 17. Cloudflare and edge-service audiences
+### 17. [Cloudflare](https://www.cloudflare.com/) and edge-service audiences
 
 A gateway event can be a useful cancellation or a legitimate retry. The customer's task decides which. Users, service teams and rights reviewers judge benefit and error together. Metadata cannot read intent or justify a universal slop label.
 
 **First test:** With an opt-in customer, test a minimal task ID, gateway metadata, false-block appeal and quality versus resource comparison.
 
-### 18. Hugging Face and model-supply-chain collaborators
+### 18. [Hugging Face](https://huggingface.co/) and model-supply-chain collaborators
 
 A receiving team needs to know which model artifact arrived, under which card and license, and what the scan actually checked. Maintainers check the artifact trail; buyers check the service. No badge means unknown; it does not mean safe or compromised.
 
@@ -151,7 +161,7 @@ A customer may authorize an export and discover that the receiving team still ca
 
 **First test:** Run one consented sandbox handoff. Agree first on success, exception, security term and cost, then try the task from the receiving side.
 
-### 20a. Open Compute Project technical workstreams
+### 20a. [Open Compute Project](https://www.opencompute.org/) technical workstreams
 
 A management profile may pass at the desk and fail at the bench on the actual firmware. Repairers test access and workers test paid authority. Conformance, recognition, safety review and legal repair rights remain distinct.
 
@@ -163,25 +173,25 @@ Start with the blocked repair: the product, version, task and stated security re
 
 **First test:** Run one authorized task trial, keep the access record and test whether a narrower lawful route would resolve the block.
 
-### 21. Uptime, iMasons, AFCOM, and infrastructure professional networks
+### 21. [Uptime Institute](https://uptimeinstitute.com/), [iMasons](https://imasons.org/about/), [AFCOM](https://afcom.com/), and infrastructure professional networks
 
 Two outage reports cannot be compared if one clock starts at detection and the other at repair. Risk engineers, operators and workers can examine compatible intervals. This grants no network-wide participation, certification or access to private incidents; overlapping downtime is not additive.
 
 **First test:** Ask a willing subgroup to challenge stage definitions, qualifications and a de-identified fixture for the permissioned console.
 
-### 22a. Techsgiving — delivery pathway
+### 22a. [Techsgiving](https://www.techsgiving.co/) — delivery pathway
 
 Training should lead from a named infrastructure task to supervised practice and paid work. Workers judge job quality; colleges and employers test entry. An earlier proposal is no Docket award, contract or placement.
 
 **First test:** With a funded, willing delivery lead, map one task to equipment, employer sponsor, paid time and job conversion.
 
-### 22b. Google.org — charitable program route
+### 22b. [Google.org](https://www.google.org/) — charitable program route
 
 A charitable program needs an eligible lead and a community benefit it can actually deliver. Recheck eligibility, sponsorship and current terms. This personal project has no assumed Google.org grant.
 
 **First test:** If a current program and independent lead fit, cost one engineering and evaluation component with worker governance and delivery roles explicit.
 
-### 22c. Jobs for the Future — workforce evaluation route
+### 22c. [Jobs for the Future](https://www.jff.org/) — workforce evaluation route
 
 A course completion count does not show whether someone entered, stayed or advanced in paid work. Colleges, unions and employers define their own roles. Existing JFF programs create no Docket collaboration or subaward.
 
@@ -229,7 +239,7 @@ A library's public compute service should be usable, maintained and possible to 
 
 **First test:** Ask researchers and receiving-side users to test one governance, maintenance and exit record against existing documents and navigators.
 
-### 30. Independent Diplomat and digital non-alignment audiences
+### 30. [Independent Diplomat](https://www.independentdiplomat.org/) and digital non-alignment audiences
 
 A small public institution should decide which digital dependency it wants to escape and which alternative it can govern. Repair, procurement and technical capacity intersect. An outside analyst cannot set that institution's priorities or presume sponsorship.
 
@@ -259,7 +269,7 @@ Researchers can record behavior without deciding a disputed question of nonhuman
 
 **First test:** Ask domain reviewers to challenge one task, version, observation and consent schema, including privacy and rival interpretations.
 
-### 35. The Workers Lab
+### 35. [The Workers Lab](https://www.theworkerslab.com/)
 
 Workers should choose the infrastructure question and the remedy before anyone builds a dashboard for them. Worker governance can inform other cases without turning workers into a data source. Past contact or a previous cycle is no Docket award.
 
@@ -322,13 +332,15 @@ These links support the *questions and tests*, not a claim that Docket has built
 | Development question | Primary or owner source | Limit |
 |---|---|---|
 | How would a buyer link a contract change to an original act? | [Open Contracting Data Standard](https://standard.open-contracting.org/latest/en/schema/reference/) | A published contract identifier does not prove a facility, duty, or delivery. |
-| Does a management profile permit the actual repair task? | [DMTF Redfish profile standard](https://www.dmtf.org/sites/default/files/standards/documents/DSP0272_1.10.0.html); [Open Compute Project S.A.F.E.](https://www.opencompute.org/community/ocp-safe-program) | Profile conformance, firmware review, lawful access, and safe intervention are different findings. |
+| Does a management profile permit the actual repair task? | [DMTF Redfish profile standard](https://www.dmtf.org/sites/default/files/standards/documents/DSP0272_1.10.0.html); [Open Compute Project S.A.F.E.](https://www.opencompute.org/products) | Profile conformance, firmware review, lawful access, and safe intervention are different findings. |
 | Which repair rights or exceptions apply? | [New York General Business Law §399-nn](https://www.nysenate.gov/legislation/laws/GBS/399-NN); [FTC repair report](https://www.ftc.gov/reports/nixing-fix-ftc-report-congress-repair-restrictions) | New York's law has first-sale and product limits, including a specified business-to-business/business-to-government contract exclusion; jurisdiction, task, and other exceptions need qualified review. The FTC report is background, not a determination of a particular device's rights. |
 | Does a community promise become an obligation? | [New York Community Investment Framework](https://esd.ny.gov/communityinvestmentframework) | The framework is voluntary; an executed instrument and delivery evidence are separate. |
 | How could a defined data-center fault be framed for loss prevention? | [FM Property Loss Prevention Data Sheet 5-32](https://www.fm.com/FMAApi/data/ApprovalStandardsDownload?isGated=false&itemId=%7B2D62FBAB-83CA-4B26-A447-72D7EF6D574D%7D) | This data sheet offers engineering recommendations; it is not a fault study, insurance coverage, or proof of measured savings. |
-| What is the proposed compute-market reference? | [Silicon Data product information](https://www.silicondata.com/pricing); [CME compute futures page](https://www.cmegroup.com/markets/energy/power/compute-futures.html) | CME describes financially settled GPU rental index futures pending regulatory review. Provider descriptions do not grant feed rights or establish liquidity, approval, or physical delivery of compute. |
+| What is the proposed compute-market reference? | [Silicon Data product information](https://www.silicondata.com/pricing); [CME compute futures page](https://www.cmegroup.com/markets/energy/power/compute-futures.html) | CME describes a financially settled GPU rental index futures design; current listing and regulatory status must be checked at the linked exchange and regulator pages. Provider descriptions do not grant feed rights or establish liquidity, approval, or physical delivery of compute. |
 | What makes an apprenticeship pathway more than enrollment? | [U.S. Department of Labor registered apprenticeship](https://www.apprenticeship.gov/employers/registered-apprenticeship-program) | Course completion is not paid supervised practice, job placement, or safe work authority. |
 | What does public compute need beyond a building? | [Canada's AI Sovereign Compute Infrastructure Program](https://ised-isde.canada.ca/site/ised/en/ai-sovereign-compute-infrastructure-program); [EU Cloud Sovereignty Framework](https://commission.europa.eu/news-and-media/news/sovereign-cloud-framework-explained-2026-06-01_en) | Canada's infrastructure call closed June 1, 2026. Its proposed service layer and the EU's cloud-procurement scoring framework illustrate different governance and access questions; neither establishes a current funding route or a Docket partnership. |
 
 - **Coverage:** IDs 01–19; 20a and 20b; 21; 22a, 22b, and 22c; 23–43 = **46 variants across 43 parent families**. The shared proposition appears at the top.
 - **Use:** Verify mutable program, legal, and market details against current primary sources before a specific proposal. A public page invites discussion; it does not send an email, establish contact permission, or imply affiliation.
+
+[Source bibliography](./sources.md) · [Back to the visual guide](https://dannybuk-byte.github.io/DCIM/)
