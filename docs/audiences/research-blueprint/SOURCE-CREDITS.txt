@@ -1,0 +1,16 @@
+SOURCE CREDIT AND LIMITS
+
+naip-20250610-resampled-1664.png
+USDA National Agriculture Imagery Program (NAIP), FPAC-BC-GEO.
+Capture: June 10, 2025. Raster records 160774 and 160776.
+Candidate export: 1664 x 1664 pixels, EPSG:3857, bilinear resampling and reprojection. Same retained extent and raster IDs, not native pixel identity. Original 768-pixel export preserved separately.
+SHA256: 77a07f55a362cd9089a0d504faca7fdb6d7d61361e9416b159ddf0d0bea2f593
+Collection catalog: https://catalog.data.gov/dataset/national-agriculture-imagery-program-naip-imagery
+Collection public-domain basis supported in retained rights evidence and freshly rechecked at the official Data.gov catalog on November 13, 2026. Exact service terms not established. Illustrative purposes, not surveying or engineering. No USDA endorsement inferred. No accepted site/phase binding, current-condition, heights, operations, energy, emissions or traffic inference. Collection-level public-domain evidence is the reuse basis; blank service fields are not permission. No endorsement is implied.
+
+Historical prototype screenshots: retained Docket CesiumJS1.146.0 prototype captures, recovered November13,2026. Globe uses bundled NaturalEarthII imagery; Cesium attribution remains visible. Synthetic segment is arbitrary test geometry, not observed network traffic. Screenshots are not live controls or current runtime verification.
+
+Screenshot Component Credits
+CesiumJS 1.146.0: Apache License 2.0; existing on-image attribution retained. License and bundled third-party notices: https://github.com/CesiumGS/cesium/blob/1.146/LICENSE.md . The software license does not replace underlying imagery terms.
+Natural Earth II globe imagery: Natural Earth, public-domain raster data. Terms: https://www.naturalearthdata.com/about/terms-of-use/ .
+Starfield visible in the historical globe screenshot: NASA/Goddard Space Flight Center Scientific Visualization Studio, Tycho star catalog visualization. Source and requested credit: https://svs.gsfc.nasa.gov/3572 . NASA media guidance: https://www.nasa.gov/nasa-brand-center/images-and-media/ . Shown as part of a factual historical software-prototype screenshot, not a live scene. No endorsement by NASA, Goddard, Cesium or Natural Earth is stated or implied.
